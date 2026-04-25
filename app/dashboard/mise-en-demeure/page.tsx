@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Header } from '@/components/dashboard/header'
 import { Button } from '@/components/ui/button'
@@ -61,7 +61,7 @@ const MOCK_INVOICES: Invoice[] = [
   },
 ]
 
-export default function MiseEnDemeurePage() {
+function MiseEnDemeurContent() {
   const searchParams = useSearchParams()
   const { toast } = useToast()
 
@@ -450,5 +450,13 @@ export default function MiseEnDemeurePage() {
         }
       `}</style>
     </div>
+  )
+}
+
+export default function MiseEnDemeurePage() {
+  return (
+    <Suspense fallback={<div className="flex-1 p-8 animate-pulse bg-gray-50" />}>
+      <MiseEnDemeurContent />
+    </Suspense>
   )
 }

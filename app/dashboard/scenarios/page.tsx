@@ -173,8 +173,8 @@ export default async function ScenariosPage() {
                     )}
                   </div>
                   <Badge variant="outline" className="text-xs">
-                    {(scenario.steps as ScenarioStep[]).length} étape
-                    {(scenario.steps as ScenarioStep[]).length > 1 ? 's' : ''}
+                    {(scenario.steps as unknown as ScenarioStep[]).length} étape
+                    {(scenario.steps as unknown as ScenarioStep[]).length > 1 ? 's' : ''}
                   </Badge>
                 </div>
                 <CardDescription className="text-sm mt-2">{scenario.description}</CardDescription>
@@ -182,10 +182,10 @@ export default async function ScenariosPage() {
               <CardContent>
                 {/* Timeline of steps */}
                 <div className="relative">
-                  {(scenario.steps as ScenarioStep[]).map((step, index) => {
+                  {(scenario.steps as unknown as ScenarioStep[]).map((step, index) => {
                     const ToneIcon = toneConfig[step.tone]?.icon || Mail
                     const ChannelIcon = channelConfig[step.channel]?.icon || Mail
-                    const isLast = index === (scenario.steps as ScenarioStep[]).length - 1
+                    const isLast = index === (scenario.steps as unknown as ScenarioStep[]).length - 1
 
                     return (
                       <div key={index} className="relative flex gap-3 pb-4">

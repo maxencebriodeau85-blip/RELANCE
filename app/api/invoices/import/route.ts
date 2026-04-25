@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import type { ParsedInvoice } from '@/lib/csv-parser'
+import type { Profile } from '@/lib/database.types'
 
 export async function POST(request: Request) {
   try {
@@ -20,12 +21,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Aucune facture à importer' }, { status: 400 })
     }
 
-    // Check plan limits
-    const { data: profile } = await supabase
+    const { data: profileData } = await supabase
       .from('profiles')
-      .select('plan, invoice_count_month')
+      .select('*')
       .eq('id', user.id)
       .single()
+
+    const profile = profileData as unknown as Profile | null
 
     const planLimits: Record<string, number> = {
       free_trial: 10,
@@ -46,7 +48,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Insert invoices
     const toInsert = invoices.map((inv) => ({
       user_id: user.id,
       client_name: inv.client_name,
@@ -57,26 +58,30 @@ export async function POST(request: Request) {
       amount: inv.amount,
       due_date: inv.due_date,
       issued_date: inv.issued_date || new Date().toISOString().split('T')[0],
-      status: 'pending' as const,
+      status: 'pending',
     }))
 
-    const { data, error } = await supabase.from('invoices').insert(toInsert).select('id')
+    const { data, error } = await supabase
+      .from('invoices')
+      .insert(toInsert as never)
+      .select('id')
 
     if (error) {
       console.error('Insert error:', error)
-      return NextResponse.json({ error: 'Erreur lors de l\'import' }, { status: 500 })
+      return NextResponse.json({ error: "Erreur lors de l'import" }, { status: 500 })
     }
 
-    // Update invoice count
     await supabase
       .from('profiles')
-      .update({ invoice_count_month: currentCount + invoices.length })
+      .update({ invoice_count_month: currentCount + invoices.length } as never)
       .eq('id', user.id)
+
+    const rows = data as unknown as { id: string }[] | null
 
     return NextResponse.json({
       success: true,
-      imported: data?.length || invoices.length,
-      ids: data?.map((d) => d.id),
+      imported: rows?.length || invoices.length,
+      ids: rows?.map((d) => d.id),
     })
   } catch (err) {
     console.error('Import error:', err)

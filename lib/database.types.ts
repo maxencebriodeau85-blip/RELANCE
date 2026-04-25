@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       profiles: {
@@ -49,6 +49,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       invoices: {
         Row: {
@@ -99,6 +100,15 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: 'invoices_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          }
+        ]
       }
       reminders: {
         Row: {
@@ -140,6 +150,22 @@ export interface Database {
           resend_id?: string | null
           created_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: 'reminders_invoice_id_fkey'
+            columns: ['invoice_id']
+            isOneToOne: false
+            referencedRelation: 'invoices'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'reminders_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          }
+        ]
       }
       reminder_scenarios: {
         Row: {
@@ -147,7 +173,7 @@ export interface Database {
           user_id: string | null
           name: string
           description: string | null
-          steps: ScenarioStep[]
+          steps: Json
           is_default: boolean
           is_active: boolean
           created_at: string
@@ -158,7 +184,7 @@ export interface Database {
           user_id?: string | null
           name: string
           description?: string | null
-          steps?: ScenarioStep[]
+          steps?: Json
           is_default?: boolean
           is_active?: boolean
           created_at?: string
@@ -169,12 +195,13 @@ export interface Database {
           user_id?: string | null
           name?: string
           description?: string | null
-          steps?: ScenarioStep[]
+          steps?: Json
           is_default?: boolean
           is_active?: boolean
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
     }
     Views: {
@@ -184,6 +211,9 @@ export interface Database {
       [_ in never]: never
     }
     Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
       [_ in never]: never
     }
   }
@@ -197,7 +227,6 @@ export interface ScenarioStep {
   channel: 'email' | 'sms' | 'courrier'
 }
 
-// Convenience type aliases
 export type Profile = Database['public']['Tables']['profiles']['Row']
 export type Invoice = Database['public']['Tables']['invoices']['Row']
 export type Reminder = Database['public']['Tables']['reminders']['Row']

@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { getEmailTemplate, type EmailTemplateData } from '@/lib/email-templates'
 import { getDaysOverdue } from '@/lib/metrics'
-import type { ReminderType, Invoice } from '@/lib/database.types'
+import type { ReminderType, Invoice, Profile } from '@/lib/database.types'
 
 export async function POST(
   request: Request,
@@ -21,31 +21,30 @@ export async function POST(
     const body = await request.json()
     const reminderType: ReminderType = body.type || 'email_1'
 
-    // Get invoice
-    const { data: invoice, error: invError } = await supabase
+    const { data: invoiceData, error: invError } = await supabase
       .from('invoices')
       .select('*')
       .eq('id', params.id)
       .eq('user_id', user.id)
       .single()
 
-    if (invError || !invoice) {
+    if (invError || !invoiceData) {
       return NextResponse.json({ error: 'Facture introuvable' }, { status: 404 })
     }
 
-    const inv = invoice as Invoice
+    const inv = invoiceData as unknown as Invoice
 
     if (inv.status === 'paid') {
       return NextResponse.json({ error: 'Cette facture est déjà payée' }, { status: 400 })
     }
 
-    // Get profile for creditor info
-    const { data: profile } = await supabase
+    const { data: profileData } = await supabase
       .from('profiles')
-      .select('company_name, email')
+      .select('*')
       .eq('id', user.id)
       .single()
 
+    const profile = profileData as unknown as Profile | null
     const daysOverdue = getDaysOverdue(inv)
 
     const templateData: EmailTemplateData = {
@@ -64,7 +63,6 @@ export async function POST(
     let resendId: string | null = null
     let sendStatus: 'sent' | 'failed' = 'sent'
 
-    // Send email via Resend
     if (process.env.RESEND_API_KEY) {
       try {
         const { Resend } = await import('resend')
@@ -76,7 +74,7 @@ export async function POST(
           subject: emailContent.subject,
           html: emailContent.html,
           text: emailContent.text,
-          replyTo: profile?.email || user.email,
+          reply_to: profile?.email || user.email,
           tags: [
             { name: 'type', value: reminderType },
             { name: 'invoice_id', value: inv.id },
@@ -95,7 +93,6 @@ export async function POST(
       }
     }
 
-    // Record reminder in DB
     const { error: reminderError } = await supabase.from('reminders').insert({
       invoice_id: inv.id,
       user_id: user.id,
@@ -105,19 +102,17 @@ export async function POST(
       subject: emailContent.subject,
       status: sendStatus,
       resend_id: resendId,
-    })
+    } as never)
 
     if (reminderError) {
       console.error('Reminder insert error:', reminderError)
     }
 
-    // Update invoice status
-    const newStatus =
-      reminderType === 'formal_notice' ? 'formal_notice' : 'reminded'
+    const newStatus = reminderType === 'formal_notice' ? 'formal_notice' : 'reminded'
 
     await supabase
       .from('invoices')
-      .update({ status: newStatus })
+      .update({ status: newStatus } as never)
       .eq('id', inv.id)
       .eq('user_id', user.id)
 

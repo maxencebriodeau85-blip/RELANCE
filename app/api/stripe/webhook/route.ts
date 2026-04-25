@@ -36,47 +36,37 @@ export async function POST(request: Request) {
 
         if (!userId) break
 
-        // Get subscription details to find plan
         const subscription = await stripe.subscriptions.retrieve(subscriptionId)
         const priceId = subscription.items.data[0]?.price.id
         const plan = getPlanFromPriceId(priceId) || 'starter'
 
         await supabase
           .from('profiles')
-          .update({
-            stripe_customer_id: customerId,
-            stripe_subscription_id: subscriptionId,
-            plan,
-          })
+          .update({ stripe_customer_id: customerId, stripe_subscription_id: subscriptionId, plan } as never)
           .eq('id', userId)
 
-        console.log(`Checkout completed for user ${userId}, plan: ${plan}`)
         break
       }
 
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription
         const customerId = subscription.customer as string
-
         const priceId = subscription.items.data[0]?.price.id
         const plan = getPlanFromPriceId(priceId) || 'starter'
 
-        // Find user by stripe customer id
         const { data: profiles } = await supabase
           .from('profiles')
           .select('id')
           .eq('stripe_customer_id', customerId)
 
-        if (profiles && profiles.length > 0) {
-          for (const profile of profiles) {
+        if (profiles) {
+          for (const profile of profiles as unknown as { id: string }[]) {
             await supabase
               .from('profiles')
-              .update({ plan, stripe_subscription_id: subscription.id })
+              .update({ plan, stripe_subscription_id: subscription.id } as never)
               .eq('id', profile.id)
           }
         }
-
-        console.log(`Subscription updated for customer ${customerId}, plan: ${plan}`)
         break
       }
 
@@ -84,33 +74,25 @@ export async function POST(request: Request) {
         const subscription = event.data.object as Stripe.Subscription
         const customerId = subscription.customer as string
 
-        // Downgrade to free trial
         const { data: profiles } = await supabase
           .from('profiles')
           .select('id')
           .eq('stripe_customer_id', customerId)
 
-        if (profiles && profiles.length > 0) {
-          for (const profile of profiles) {
+        if (profiles) {
+          for (const profile of profiles as unknown as { id: string }[]) {
             await supabase
               .from('profiles')
-              .update({
-                plan: 'free_trial',
-                stripe_subscription_id: null,
-              })
+              .update({ plan: 'free_trial', stripe_subscription_id: null } as never)
               .eq('id', profile.id)
           }
         }
-
-        console.log(`Subscription cancelled for customer ${customerId}`)
         break
       }
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice
-        const customerId = invoice.customer as string
-        console.log(`Payment failed for customer ${customerId}`)
-        // TODO: send notification email
+        console.log(`Payment failed for customer ${invoice.customer}`)
         break
       }
 

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { createCheckoutSession, STRIPE_PLANS, type PlanKey } from '@/lib/stripe'
+import type { Profile } from '@/lib/database.types'
 
 export async function POST(request: Request) {
   try {
@@ -20,12 +21,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Plan invalide' }, { status: 400 })
     }
 
-    const { data: profile } = await supabase
+    const { data: profileData } = await supabase
       .from('profiles')
-      .select('stripe_customer_id')
+      .select('*')
       .eq('id', user.id)
       .single()
 
+    const profile = profileData as unknown as Profile | null
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
     const session = await createCheckoutSession({
@@ -58,15 +60,18 @@ export async function GET(request: Request) {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      return NextResponse.redirect(new URL(`/auth/login?redirectedFrom=/api/stripe/checkout?plan=${plan}`, request.url))
+      return NextResponse.redirect(
+        new URL(`/auth/login?redirectedFrom=/api/stripe/checkout?plan=${plan}`, request.url)
+      )
     }
 
-    const { data: profile } = await supabase
+    const { data: profileData } = await supabase
       .from('profiles')
-      .select('stripe_customer_id')
+      .select('*')
       .eq('id', user.id)
       .single()
 
+    const profile = profileData as unknown as Profile | null
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
     const session = await createCheckoutSession({

@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { generateFormalNotice, type FormalNoticeData } from '@/lib/formal-notice-template'
 import { getDaysOverdue } from '@/lib/metrics'
-import type { Invoice } from '@/lib/database.types'
+import type { Invoice, Profile } from '@/lib/database.types'
 
 export async function GET(
   request: Request,
@@ -18,7 +18,6 @@ export async function GET(
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
 
-    // Get invoice
     const { data: invoice, error: invError } = await supabase
       .from('invoices')
       .select('*')
@@ -30,14 +29,14 @@ export async function GET(
       return NextResponse.json({ error: 'Facture introuvable' }, { status: 404 })
     }
 
-    // Get profile
-    const { data: profile } = await supabase
+    const { data: profileData } = await supabase
       .from('profiles')
-      .select('company_name, email, siren')
+      .select('*')
       .eq('id', user.id)
       .single()
 
     const inv = invoice as Invoice
+    const profile = profileData as Profile | null
     const daysOverdue = getDaysOverdue(inv)
 
     const noticeData: FormalNoticeData = {
@@ -57,7 +56,6 @@ export async function GET(
 
     const result = generateFormalNotice(noticeData)
 
-    // Return as JSON for client-side rendering
     return NextResponse.json({
       content: result.content,
       penalties: result.penalties,

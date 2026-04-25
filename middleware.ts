@@ -1,10 +1,8 @@
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  })
+  let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,7 +12,7 @@ export async function middleware(request: NextRequest) {
         getAll() {
           return request.cookies.getAll()
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
@@ -31,8 +29,11 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // Protect dashboard routes
-  if (pathname.startsWith('/dashboard') || pathname.startsWith('/api/invoices') || pathname.startsWith('/api/stripe/checkout')) {
+  if (
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/api/invoices') ||
+    pathname.startsWith('/api/stripe/checkout')
+  ) {
     if (!user) {
       const redirectUrl = request.nextUrl.clone()
       redirectUrl.pathname = '/auth/login'
@@ -41,7 +42,6 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Redirect authenticated users away from auth pages
   if (user && (pathname === '/auth/login' || pathname === '/auth/register')) {
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = '/dashboard'
