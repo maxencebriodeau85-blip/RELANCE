@@ -11,6 +11,14 @@ const nextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        source: '/api/stripe/webhook',
+        headers: [{ key: 'x-content-type-options', value: 'nosniff' }],
+      },
+    ]
+  },
 }
 
 module.exports = nextConfig

@@ -7,7 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "setup:stripe": "npx tsx scripts/setup-stripe.ts",
+    "supabase:start": "npx supabase start",
+    "supabase:migrate": "npx supabase db push",
+    "supabase:reset": "npx supabase db reset"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
@@ -59,7 +63,9 @@
     "eslint": "^8.57.0",
     "eslint-config-next": "14.2.3",
     "postcss": "^8.4.38",
+    "supabase": "^1.178.2",
     "tailwindcss": "^3.4.4",
+    "tsx": "^4.15.5",
     "typescript": "^5.4.5"
   }
 }
