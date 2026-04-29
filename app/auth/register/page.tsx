@@ -69,7 +69,7 @@ export default function RegisterPage() {
           data: {
             company_name: companyName,
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/auth/callback`,
         },
       })
 
