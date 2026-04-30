@@ -15,7 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Toaster } from '@/components/ui/toaster'
 import { useToast } from '@/hooks/use-toast'
 import {
   generateFormalNotice,
@@ -175,7 +174,6 @@ function MiseEnDemeurContent() {
 
   return (
     <div>
-      <Toaster />
       <Header
         title="Générateur de mise en demeure"
         description="Générez une mise en demeure conforme au droit français"

@@ -10,16 +10,13 @@ import { formatEuro, formatDate, getDaysOverdue } from '@/lib/metrics'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { useToast } from '@/hooks/use-toast'
-import { Toaster } from '@/components/ui/toaster'
 import {
   ArrowLeft,
   Send,
   AlertTriangle,
   Mail,
   CheckCircle,
-  Clock,
-  FileText,
-  ExternalLink,
+  Trash2,
 } from 'lucide-react'
 import Link from 'next/link'
 import type { Invoice, Reminder } from '@/lib/database.types'
@@ -99,6 +96,8 @@ export default function InvoiceDetailPage() {
   const [reminders, setReminders] = useState<Reminder[]>([])
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
+  const [updatingStatus, setUpdatingStatus] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     const loadData = async () => {
@@ -150,7 +149,6 @@ export default function InvoiceDetailPage() {
         toast({
           title: 'Relance envoyée !',
           description: `Un email de relance a été envoyé à ${invoice.client_email}`,
-          variant: 'success' as any,
         })
         // Refresh data
         const { createClient } = await import('@/lib/supabase/client')
@@ -177,6 +175,63 @@ export default function InvoiceDetailPage() {
       })
     } finally {
       setSending(false)
+    }
+  }
+
+  const handleMarkAsPaid = async () => {
+    if (!invoice) return
+    setUpdatingStatus(true)
+    try {
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
+      const { error } = await supabase
+        .from('invoices')
+        .update({ status: 'paid' })
+        .eq('id', invoice.id)
+
+      if (error) throw error
+
+      setInvoice({ ...invoice, status: 'paid' })
+      toast({
+        title: 'Facture marquée comme payée',
+        description: `La facture ${invoice.invoice_number} a été clôturée.`,
+      })
+    } catch {
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de mettre à jour le statut.',
+        variant: 'destructive',
+      })
+    } finally {
+      setUpdatingStatus(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!invoice) return
+    if (!confirm(`Supprimer définitivement la facture ${invoice.invoice_number} ? Cette action est irréversible.`)) {
+      return
+    }
+    setDeleting(true)
+    try {
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
+      const { error } = await supabase.from('invoices').delete().eq('id', invoice.id)
+
+      if (error) throw error
+
+      toast({
+        title: 'Facture supprimée',
+        description: `${invoice.invoice_number} a été supprimée.`,
+      })
+      router.push('/dashboard/invoices')
+    } catch {
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de supprimer la facture.',
+        variant: 'destructive',
+      })
+      setDeleting(false)
     }
   }
 
@@ -210,20 +265,39 @@ export default function InvoiceDetailPage() {
 
   return (
     <div>
-      <Toaster />
       <Header
         title={`Facture ${invoice.invoice_number}`}
         description={invoice.client_name}
         actions={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" asChild>
               <Link href="/dashboard/invoices">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Retour
               </Link>
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDelete}
+              disabled={deleting}
+              className="text-red-600 hover:bg-red-50 hover:text-red-700"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              {deleting ? 'Suppression...' : 'Supprimer'}
+            </Button>
             {invoice.status !== 'paid' && invoice.status !== 'disputed' && (
               <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleMarkAsPaid}
+                  disabled={updatingStatus}
+                  className="text-green-700 hover:bg-green-50 hover:text-green-800 border-green-200"
+                >
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  {updatingStatus ? 'Mise à jour...' : 'Marquer payée'}
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"

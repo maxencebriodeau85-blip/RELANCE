@@ -102,54 +102,174 @@ const MOCK_INVOICES: Invoice[] = [
 ]
 
 export default async function DashboardPage() {
-  let invoices: Invoice[] = MOCK_INVOICES
+  let invoices: Invoice[] = []
+  let isLoggedIn = false
+  let companyName: string | null = null
+  let usingDemo = false
 
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (user) {
+      isLoggedIn = true
+
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('company_name')
+        .eq('id', user.id)
+        .single()
+      companyName = (profileData as { company_name: string | null } | null)?.company_name ?? null
+
       const { data } = await supabase
         .from('invoices')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
-      if (data && data.length > 0) {
+      if (data) {
         invoices = data as Invoice[]
       }
+    } else {
+      invoices = MOCK_INVOICES
+      usingDemo = true
     }
   } catch {
-    // Use mock data
+    invoices = MOCK_INVOICES
+    usingDemo = true
   }
 
+  const isFirstVisit = isLoggedIn && invoices.length === 0
   const metrics = calculateDashboardMetrics(invoices)
   const recentInvoices = invoices.slice(0, 5)
 
   return (
     <div>
       <Header
-        title="Tableau de bord"
-        description="Vue d'ensemble de votre recouvrement"
+        title={
+          isFirstVisit
+            ? `Bienvenue${companyName ? ` chez ${companyName}` : ''} ! 👋`
+            : 'Tableau de bord'
+        }
+        description={
+          isFirstVisit
+            ? 'Voici comment démarrer en moins de 5 minutes'
+            : "Vue d'ensemble de votre recouvrement"
+        }
         actions={
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/dashboard/invoices/import">
-                <Upload className="mr-2 h-4 w-4" />
-                Importer CSV
-              </Link>
-            </Button>
-            <Button size="sm" asChild>
-              <Link href="/dashboard/invoices/new">
-                <Plus className="mr-2 h-4 w-4" />
-                Nouvelle facture
-              </Link>
-            </Button>
-          </div>
+          !isFirstVisit && (
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/dashboard/invoices/import">
+                  <Upload className="mr-2 h-4 w-4" />
+                  Importer CSV
+                </Link>
+              </Button>
+              <Button size="sm" asChild>
+                <Link href="/dashboard/invoices/new">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nouvelle facture
+                </Link>
+              </Button>
+            </div>
+          )
         }
       />
 
       <div className="p-6 space-y-6">
+        {usingDemo && (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900 flex items-center justify-between gap-4">
+            <span>
+              <strong>Mode démo</strong> — connectez-vous pour gérer vos vraies factures
+            </span>
+            <Button size="sm" asChild>
+              <Link href="/auth/register">Créer un compte</Link>
+            </Button>
+          </div>
+        )}
+
+        {isFirstVisit && (
+          <Card className="border-2 border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50/50">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                Premiers pas avec RelanceFlow
+              </h3>
+              <p className="text-sm text-gray-600 mb-5">
+                Suivez ces 3 étapes pour automatiser vos relances dès aujourd&apos;hui.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Link
+                  href="/dashboard/invoices/import"
+                  className="group rounded-lg border bg-white p-4 hover:border-blue-300 hover:shadow-md transition-all"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm">
+                      1
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-300 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 text-sm mb-1">
+                    Importez vos factures
+                  </h4>
+                  <p className="text-xs text-gray-500">
+                    CSV depuis votre logiciel de facturation, ou saisie manuelle
+                  </p>
+                </Link>
+                <Link
+                  href="/dashboard/scenarios"
+                  className="group rounded-lg border bg-white p-4 hover:border-blue-300 hover:shadow-md transition-all"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm">
+                      2
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-300 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 text-sm mb-1">
+                    Choisissez un scénario
+                  </h4>
+                  <p className="text-xs text-gray-500">
+                    3 scénarios préconfigurés ou personnalisez le vôtre
+                  </p>
+                </Link>
+                <Link
+                  href="/dashboard/settings"
+                  className="group rounded-lg border bg-white p-4 hover:border-blue-300 hover:shadow-md transition-all"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm">
+                      3
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-300 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 text-sm mb-1">
+                    Personnalisez votre profil
+                  </h4>
+                  <p className="text-xs text-gray-500">
+                    Raison sociale, SIREN, signature email
+                  </p>
+                </Link>
+              </div>
+              <div className="mt-5 pt-5 border-t border-blue-100 flex items-center justify-between">
+                <p className="text-sm text-gray-600">
+                  Besoin d&apos;aide ?{' '}
+                  <Link href="/support" className="text-blue-600 font-medium hover:underline">
+                    Consultez notre FAQ
+                  </Link>
+                </p>
+                <Button asChild>
+                  <Link href="/dashboard/invoices/import">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Commencer
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {!isFirstVisit && (
+        <>
         {/* KPI Cards */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
@@ -323,6 +443,8 @@ export default async function DashboardPage() {
             </Card>
           </div>
         </div>
+        </>
+        )}
       </div>
     </div>
   )

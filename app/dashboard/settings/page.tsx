@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Toaster } from '@/components/ui/toaster'
 import { useToast } from '@/hooks/use-toast'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
@@ -156,7 +155,6 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <Toaster />
       <Header title="Paramètres" description="Gérez votre compte et votre abonnement" />
 
       <div className="p-6 space-y-6 max-w-2xl">
