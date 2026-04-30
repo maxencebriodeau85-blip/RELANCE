@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { Header } from '@/components/dashboard/header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,10 +20,12 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { StatusBadge } from '@/components/invoices/status-badge'
+import { EmptyState } from '@/components/ui/empty-state'
+import { Skeleton } from '@/components/ui/skeleton'
 import { formatEuro, formatDate, getDaysOverdue } from '@/lib/metrics'
-import { Plus, Upload, Search, ChevronLeft, ChevronRight, Eye, Send } from 'lucide-react'
+import { Plus, Upload, Search, ChevronLeft, ChevronRight, Eye, Send, FileText, FilterX } from 'lucide-react'
 import Link from 'next/link'
-import type { Invoice, InvoiceStatus } from '@/lib/database.types'
+import type { Invoice } from '@/lib/database.types'
 import { createClient } from '@/lib/supabase/client'
 
 const MOCK_INVOICES: Invoice[] = [
@@ -128,11 +130,12 @@ const MOCK_INVOICES: Invoice[] = [
 const PAGE_SIZE = 10
 
 export default function InvoicesPage() {
-  const [invoices, setInvoices] = useState<Invoice[]>(MOCK_INVOICES)
+  const [invoices, setInvoices] = useState<Invoice[]>([])
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [page, setPage] = useState(1)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [usingDemo, setUsingDemo] = useState(false)
 
   useEffect(() => {
     const loadInvoices = async () => {
@@ -148,10 +151,18 @@ export default function InvoicesPage() {
             .order('created_at', { ascending: false })
           if (data && data.length > 0) {
             setInvoices(data as Invoice[])
+            setUsingDemo(false)
+          } else {
+            setInvoices([])
+            setUsingDemo(false)
           }
+        } else {
+          setInvoices(MOCK_INVOICES)
+          setUsingDemo(true)
         }
       } catch {
-        // keep mock
+        setInvoices(MOCK_INVOICES)
+        setUsingDemo(true)
       } finally {
         setLoading(false)
       }
@@ -196,6 +207,12 @@ export default function InvoicesPage() {
       />
 
       <div className="p-6 space-y-4">
+        {usingDemo && (
+          <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+            <span className="font-semibold">Mode démo</span>
+            <span className="text-blue-700">— les factures affichées sont fictives. Connectez-vous pour gérer vos vraies factures.</span>
+          </div>
+        )}
         {/* Filters */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative flex-1 max-w-sm">
@@ -247,15 +264,63 @@ export default function InvoicesPage() {
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center text-gray-500 py-8">
-                    Chargement...
-                  </TableCell>
-                </TableRow>
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={`skeleton-${i}`}>
+                    <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell className="text-right"><Skeleton className="h-4 w-20 ml-auto" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-10" /></TableCell>
+                    <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                    <TableCell className="text-right"><Skeleton className="h-8 w-16 ml-auto" /></TableCell>
+                  </TableRow>
+                ))
               ) : paginated.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-gray-500 py-8">
-                    Aucune facture trouvée
+                  <TableCell colSpan={7} className="p-0">
+                    {invoices.length === 0 ? (
+                      <EmptyState
+                        icon={FileText}
+                        title="Aucune facture pour le moment"
+                        description="Importez vos factures depuis votre logiciel de facturation ou créez-en une manuellement pour commencer à automatiser vos relances."
+                        action={
+                          <>
+                            <Button asChild>
+                              <Link href="/dashboard/invoices/import">
+                                <Upload className="mr-2 h-4 w-4" />
+                                Importer un CSV
+                              </Link>
+                            </Button>
+                            <Button variant="outline" asChild>
+                              <Link href="/dashboard/invoices/new">
+                                <Plus className="mr-2 h-4 w-4" />
+                                Créer manuellement
+                              </Link>
+                            </Button>
+                          </>
+                        }
+                      />
+                    ) : (
+                      <EmptyState
+                        icon={FilterX}
+                        iconColor="text-gray-400"
+                        iconBg="bg-gray-100"
+                        title="Aucun résultat"
+                        description={`Aucune facture ne correspond ${search ? `à "${search}"` : ''}${search && statusFilter !== 'all' ? ' avec ' : ''}${statusFilter !== 'all' ? 'ce statut' : ''}. Essayez d'élargir vos filtres.`}
+                        action={
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setSearch('')
+                              setStatusFilter('all')
+                              setPage(1)
+                            }}
+                          >
+                            Réinitialiser les filtres
+                          </Button>
+                        }
+                      />
+                    )}
                   </TableCell>
                 </TableRow>
               ) : (

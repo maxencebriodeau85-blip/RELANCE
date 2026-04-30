@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { FAQSection } from '@/components/landing/faq-section'
 import {
   Zap,
   Clock,
@@ -174,6 +175,9 @@ export default function LandingPage() {
             <a href="#temoignages" className="hover:text-gray-900 transition-colors">
               Témoignages
             </a>
+            <a href="#faq" className="hover:text-gray-900 transition-colors">
+              FAQ
+            </a>
           </nav>
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" asChild>
@@ -231,6 +235,145 @@ export default function LandingPage() {
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-500" />
               <span>Conforme au droit français</span>
+            </div>
+          </div>
+
+          {/* Dashboard mockup */}
+          <div className="relative mt-16 max-w-5xl mx-auto">
+            <div className="absolute -inset-4 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-3xl blur-2xl opacity-60"></div>
+            <div className="relative rounded-2xl border bg-white shadow-2xl overflow-hidden">
+              {/* Browser chrome */}
+              <div className="flex items-center gap-2 border-b bg-gray-50 px-4 py-3">
+                <div className="flex gap-1.5">
+                  <div className="h-3 w-3 rounded-full bg-red-400"></div>
+                  <div className="h-3 w-3 rounded-full bg-yellow-400"></div>
+                  <div className="h-3 w-3 rounded-full bg-green-400"></div>
+                </div>
+                <div className="flex-1 mx-4">
+                  <div className="rounded-md bg-white border px-3 py-1 text-xs text-gray-400 max-w-xs mx-auto">
+                    relanceflow.fr/dashboard
+                  </div>
+                </div>
+              </div>
+              {/* Mockup content */}
+              <div className="grid grid-cols-12 gap-0 bg-gray-50 min-h-[420px]">
+                {/* Sidebar */}
+                <div className="col-span-2 border-r bg-white p-4 space-y-2">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="h-6 w-6 rounded bg-blue-600 flex items-center justify-center">
+                      <Zap className="h-3 w-3 text-white" />
+                    </div>
+                    <div className="h-3 w-16 rounded bg-gray-300"></div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2 rounded-md bg-blue-50 px-2 py-1.5">
+                      <BarChart3 className="h-3 w-3 text-blue-600" />
+                      <div className="h-2 w-12 rounded bg-blue-200"></div>
+                    </div>
+                    <div className="flex items-center gap-2 px-2 py-1.5">
+                      <FileText className="h-3 w-3 text-gray-400" />
+                      <div className="h-2 w-10 rounded bg-gray-200"></div>
+                    </div>
+                    <div className="flex items-center gap-2 px-2 py-1.5">
+                      <Mail className="h-3 w-3 text-gray-400" />
+                      <div className="h-2 w-14 rounded bg-gray-200"></div>
+                    </div>
+                    <div className="flex items-center gap-2 px-2 py-1.5">
+                      <AlertTriangle className="h-3 w-3 text-gray-400" />
+                      <div className="h-2 w-12 rounded bg-gray-200"></div>
+                    </div>
+                  </div>
+                </div>
+                {/* Main */}
+                <div className="col-span-10 p-6 space-y-4 text-left">
+                  <div>
+                    <h3 className="text-base font-bold text-gray-900">Tableau de bord</h3>
+                    <p className="text-xs text-gray-500">Bonjour, voici votre activité</p>
+                  </div>
+                  {/* KPI cards */}
+                  <div className="grid grid-cols-4 gap-3">
+                    <div className="rounded-lg border bg-white p-3">
+                      <p className="text-xs text-gray-500">Encaissé</p>
+                      <p className="text-lg font-bold text-gray-900">42 380 €</p>
+                      <p className="text-xs text-green-600 flex items-center gap-1 mt-1">
+                        <TrendingUp className="h-3 w-3" /> +18%
+                      </p>
+                    </div>
+                    <div className="rounded-lg border bg-white p-3">
+                      <p className="text-xs text-gray-500">En attente</p>
+                      <p className="text-lg font-bold text-gray-900">12 740 €</p>
+                      <p className="text-xs text-orange-500 flex items-center gap-1 mt-1">
+                        <Clock className="h-3 w-3" /> 8 factures
+                      </p>
+                    </div>
+                    <div className="rounded-lg border bg-white p-3">
+                      <p className="text-xs text-gray-500">DSO</p>
+                      <p className="text-lg font-bold text-gray-900">41 j</p>
+                      <p className="text-xs text-green-600 flex items-center gap-1 mt-1">
+                        <TrendingUp className="h-3 w-3 rotate-180" /> -14j
+                      </p>
+                    </div>
+                    <div className="rounded-lg border bg-white p-3">
+                      <p className="text-xs text-gray-500">Taux recouvrement</p>
+                      <p className="text-lg font-bold text-gray-900">96 %</p>
+                      <p className="text-xs text-green-600 flex items-center gap-1 mt-1">
+                        <CheckCircle className="h-3 w-3" /> Excellent
+                      </p>
+                    </div>
+                  </div>
+                  {/* Chart placeholder */}
+                  <div className="rounded-lg border bg-white p-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <p className="text-xs font-semibold text-gray-700">Encaissements 6 derniers mois</p>
+                      <div className="flex gap-1">
+                        <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                        <div className="h-2 w-2 rounded-full bg-gray-200"></div>
+                      </div>
+                    </div>
+                    <div className="flex items-end gap-2 h-20">
+                      {[40, 55, 30, 70, 60, 85].map((h, i) => (
+                        <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                          <div
+                            className="w-full rounded-t bg-gradient-to-t from-blue-500 to-blue-400"
+                            style={{ height: `${h}%` }}
+                          ></div>
+                          <div className="h-1.5 w-4 rounded bg-gray-200"></div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Recent invoices */}
+                  <div className="rounded-lg border bg-white p-3 space-y-2">
+                    <p className="text-xs font-semibold text-gray-700 mb-2">Relances récentes</p>
+                    {[
+                      { name: 'Boulangerie Martin', amount: '850 €', status: 'Payée', color: 'green' },
+                      { name: 'SARL Dupont', amount: '2 400 €', status: 'Relance 2/3', color: 'orange' },
+                      { name: 'Studio Créatif', amount: '1 150 €', status: 'Payée', color: 'green' },
+                    ].map((row, i) => (
+                      <div key={i} className="flex items-center justify-between py-1.5 border-b last:border-0">
+                        <div className="flex items-center gap-2">
+                          <div className="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">
+                            {row.name[0]}
+                          </div>
+                          <span className="text-xs text-gray-700">{row.name}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-semibold text-gray-900">{row.amount}</span>
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded-full ${
+                              row.color === 'green'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-orange-100 text-orange-700'
+                            }`}
+                          >
+                            {row.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -454,6 +597,9 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* FAQ */}
+      <FAQSection />
+
       {/* CTA section */}
       <section className="py-20 bg-gray-900 text-white">
         <div className="container mx-auto px-4 text-center">
@@ -514,7 +660,7 @@ export default function LandingPage() {
           </div>
           <div className="border-t mt-8 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-gray-400">
-              © 2024 RelanceFlow. Tous droits réservés.
+              © 2026 RelanceFlow. Tous droits réservés.
             </p>
             <p className="text-sm text-gray-400">
               🇫🇷 Hébergé en France · Conforme RGPD
