@@ -1,10 +1,10 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 
 export type LoginState = {
-  error: string
+  error?: string
+  success?: boolean
 } | null
 
 export async function loginAction(
@@ -13,7 +13,6 @@ export async function loginAction(
 ): Promise<LoginState> {
   const email = (formData.get('email') as string)?.trim()
   const password = formData.get('password') as string
-  const redirectTo = (formData.get('redirectTo') as string) || '/dashboard'
 
   if (!email || !password) {
     return { error: 'Veuillez remplir tous les champs.' }
@@ -32,14 +31,17 @@ export async function loginAction(
     if (error.message.includes('Email not confirmed')) {
       return {
         error:
-          'Votre adresse email n\'est pas encore confirmée. Vérifiez votre boîte de réception (et vos spams).',
+          "Votre email n'est pas encore confirmé. Vérifiez votre boîte de réception et vos spams.",
       }
     }
     return { error: error.message }
   }
 
-  // Server-side redirect — session cookies are set in the HTTP response
-  // before the browser makes the next request, so the middleware always
-  // sees a valid session. This is the approach used by MEG, Evoliz, Obat.
-  redirect(redirectTo)
+  // Return success — do NOT call redirect() here.
+  // The Supabase server client has already written Set-Cookie headers into the
+  // HTTP response for this server action call. The browser stores those cookies
+  // when it receives this response. The client-side useEffect then does a hard
+  // navigation (window.location.href) so the next request to /dashboard carries
+  // valid session cookies and the middleware lets it through.
+  return { success: true }
 }

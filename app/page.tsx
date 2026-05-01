@@ -1,7 +1,5 @@
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { CashCalculator } from '@/components/landing/cash-calculator'
 import { FAQSection } from '@/components/landing/faq-section'
 import {
   Zap,
@@ -16,656 +14,719 @@ import {
   Mail,
   AlertTriangle,
   Download,
+  Smartphone,
+  Plug,
+  Brain,
+  ChevronRight,
+  Euro,
+  Users,
 } from 'lucide-react'
+
+// ─── data ─────────────────────────────────────────────────────────────────────
+
+const stats = [
+  { value: '+34%', label: 'de créances récupérées' },
+  { value: '52j → 28j', label: 'DSO moyen ramené' },
+  { value: '3h', label: 'économisées / semaine' },
+  { value: '98%', label: "taux d'ouverture SMS" },
+]
+
+const painPoints = [
+  {
+    wrong: 'Envoyer des relances à la main, une par une',
+    right: 'Relances automatiques déclenchées par le retard',
+  },
+  {
+    wrong: 'Oublier les factures en souffrance pendant les congés',
+    right: 'Le recouvrement tourne 24h/24, 365j/an',
+  },
+  {
+    wrong: 'Perdre des clients en étant trop agressif ou trop laxiste',
+    right: 'Ton progressif et personnalisé selon le profil client',
+  },
+  {
+    wrong: 'Passer des heures à rédiger des mises en demeure légales',
+    right: 'Document conforme généré en 1 clic, avec pénalités calculées',
+  },
+]
 
 const features = [
   {
     icon: Mail,
-    title: 'Relances email automatiques',
+    title: 'Relances email sur-mesure',
     description:
-      'Envoyez des relances personnalisées selon un scénario progressif : cordial, ferme, pré-contentieux. Chaque email est généré avec les informations exactes de la facture.',
+      'Scénarios progressifs : cordial (J+7), ferme (J+15/30), pré-contentieux (J+45/60). Chaque email est personnalisé avec les données exactes de la facture.',
     color: 'bg-blue-100 text-blue-600',
+    badge: null,
   },
   {
-    icon: FileText,
-    title: 'Import CSV en masse',
+    icon: Smartphone,
+    title: 'SMS & courrier recommandé',
     description:
-      'Importez toutes vos factures en quelques clics depuis votre logiciel de facturation. Détection automatique des colonnes, validation en temps réel.',
+      'Relancez par SMS (98% d\'ouverture) ou par courrier recommandé automatisé. Trois canaux, un seul outil, zéro effort.',
     color: 'bg-purple-100 text-purple-600',
+    badge: 'Bientôt',
+  },
+  {
+    icon: Plug,
+    title: 'Connexion en 1 clic',
+    description:
+      'Import automatique depuis Pennylane, Sage, QuickBooks, Sellsy, Cegid. Vos factures arrivent seules — l\'import CSV devient une option secondaire.',
+    color: 'bg-indigo-100 text-indigo-600',
+    badge: 'Bientôt',
   },
   {
     icon: AlertTriangle,
     title: 'Mise en demeure légale',
     description:
-      'Générez en un clic une mise en demeure conforme au droit français (art. L441-10 C. com.), avec calcul automatique des pénalités de retard.',
+      'Document conforme droit français (art. L441-10 C. com.) avec indemnité forfaitaire de 40€ et pénalités de retard calculées automatiquement.',
     color: 'bg-orange-100 text-orange-600',
+    badge: null,
+  },
+  {
+    icon: Brain,
+    title: 'Scoring client prédictif',
+    description:
+      'L\'IA analyse les habitudes de paiement pour suggérer le meilleur moment d\'envoi. Le bon message, au bon moment, pour le bon client.',
+    color: 'bg-pink-100 text-pink-600',
+    badge: 'IA — Bientôt',
   },
   {
     icon: BarChart3,
-    title: 'Tableau de bord DSO',
+    title: 'Dashboard DSO & balance âgée',
     description:
-      'Pilotez votre recouvrement en temps réel : créances en cours, balance âgée, taux de recouvrement, jours de retard moyens (DSO).',
+      'Pilotez votre poste client en temps réel. Export "Bank-Ready" pour prouver la qualité de vos créances à votre banquier et faciliter vos lignes de trésorerie.',
     color: 'bg-green-100 text-green-600',
-  },
-  {
-    icon: Shield,
-    title: 'Conformité RGPD',
-    description:
-      "Données hébergées en Europe, chiffrement SSL, conformité RGPD. Vos données et celles de vos clients sont protégées à chaque instant.",
-    color: 'bg-gray-100 text-gray-600',
-  },
-]
-
-const painPoints = [
-  {
-    icon: '⏱️',
-    title: 'Des heures perdues à relancer manuellement',
-    description:
-      'Chaque mois, vous passez des heures à envoyer des emails de relance un par un. Un temps précieux que vous pourriez consacrer à votre cœur de métier.',
-  },
-  {
-    icon: '💸',
-    title: 'Des factures impayées qui s\'accumulent',
-    description:
-      'Le délai moyen de paiement en France est de 48 jours. Sans relance systématique, certaines factures ne sont jamais réglées.',
-  },
-  {
-    icon: '😰',
-    title: 'La gêne de relancer vos clients',
-    description:
-      "Relancer un client, c'est toujours inconfortable. Laisser un outil automatisé le faire préserve votre relation commerciale.",
+    badge: null,
   },
 ]
 
 const testimonials = [
   {
+    quote:
+      '"Avant RelanceFlow, j\'avais 3 factures en souffrance depuis 90 jours. En 2 semaines, deux étaient réglées. Je n\'ai rien fait."',
     name: 'Sophie M.',
-    company: 'Agence web, Lyon',
-    text: 'Depuis RelanceFlow, mon DSO est passé de 62 à 41 jours. Je récupère 3 semaines de trésorerie supplémentaires !',
+    role: 'Dirigeante, cabinet de conseil — Lyon',
     stars: 5,
   },
   {
-    name: 'Thomas D.',
-    company: 'Cabinet conseil, Paris',
-    text: "L'automatisation des relances m'économise 4h par mois. Et mes clients paient plus vite parce que les relances sont envoyées à temps.",
+    quote:
+      '"Mon DSO est passé de 58 jours à 31 jours en 3 mois. L\'équivalent de 28 000€ de trésorerie libérée. Les relances partent toutes seules."',
+    name: 'Thomas B.',
+    role: 'DAF, agence digitale — Paris',
     stars: 5,
   },
   {
-    name: 'Marie-Claire B.',
-    company: 'Architecte indépendante, Bordeaux',
-    text: 'La génération de mise en demeure m\'a permis de récupérer 8 400 € sur un dossier litigieux. Outil indispensable.',
+    quote:
+      '"Mes clients n\'ont jamais su que c\'était automatisé. Le ton cordial puis ferme est exactement ce que j\'aurais écrit moi-même."',
+    name: 'Marie-Claire D.',
+    role: 'Architecte indépendante — Bordeaux',
     stars: 5,
   },
 ]
 
-const pricing = [
+const plans = [
   {
     name: 'Starter',
     price: '19',
     period: 'mois',
-    description: 'Pour les indépendants et petites structures',
+    desc: 'Pour les indépendants et toutes petites structures',
+    limit: '30 factures / mois',
     features: [
-      "Jusqu'à 30 factures/mois",
-      '3 modèles de relance',
+      '30 factures / mois',
       'Relances email automatiques',
-      'Tableau de bord DSO',
-      'Import CSV',
-      'Support par email',
+      '3 scénarios préconfigurés',
+      'Mise en demeure en 1 clic',
+      'Dashboard DSO',
+      'Support email',
     ],
-    cta: 'Commencer l\'essai gratuit',
-    highlighted: false,
-    priceId: 'starter',
+    cta: 'Démarrer',
+    highlight: false,
   },
   {
     name: 'Pro',
     price: '49',
     period: 'mois',
-    description: 'Pour les PME avec un volume important',
+    desc: 'Pour les PME avec un volume significatif',
+    limit: '200 factures / mois',
     features: [
-      "Jusqu'à 200 factures/mois",
-      'Scénarios personnalisables',
-      'Mise en demeure PDF',
-      'Import CSV illimité',
-      'Statistiques avancées',
+      '200 factures / mois',
+      'Tout Starter, plus :',
+      'Relances SMS (bientôt)',
+      'Intégrations comptables (bientôt)',
+      'Export rapport banquier',
+      'Scénarios personnalisés',
       'Support prioritaire',
     ],
-    cta: 'Commencer l\'essai gratuit',
-    highlighted: true,
-    badge: 'Le plus populaire',
-    priceId: 'pro',
+    cta: 'Essayer Pro',
+    highlight: true,
   },
   {
     name: 'Business',
     price: '99',
     period: 'mois',
-    description: 'Pour les grandes structures et cabinets',
+    desc: 'Pour les structures à fort volume ou multi-entités',
+    limit: '1 000 factures / mois',
     features: [
-      "Jusqu'à 1 000 factures/mois",
-      'API access',
-      'Multi-utilisateurs',
-      'Intégration Pennylane',
+      '1 000 factures / mois',
+      'Tout Pro, plus :',
+      'Scoring client IA (bientôt)',
+      'Courrier recommandé auto (bientôt)',
+      'API & webhooks',
+      'Accès multi-utilisateurs',
       'Account manager dédié',
-      'SLA 99,9%',
     ],
-    cta: 'Commencer l\'essai gratuit',
-    highlighted: false,
-    priceId: 'business',
+    cta: 'Contacter',
+    highlight: false,
   },
 ]
 
-export default function LandingPage() {
+const guides = [
+  "L'indemnité forfaitaire de 40€ : comment l'appliquer sans fâcher vos clients",
+  'Pénalités de retard légales : calcul, taux et mise en œuvre en 2026',
+  'Mise en demeure : modèle, délais et effets juridiques',
+  'DSO : pourquoi 45 jours tués votre trésorerie (et comment le réduire à 28)',
+  'Recouvrement amiable vs contentieux : quand passer le cap ?',
+]
+
+// ─── page ─────────────────────────────────────────────────────────────────────
+
+export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b bg-white/95 backdrop-blur-sm">
-        <div className="container mx-auto flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
+      {/* NAV */}
+      <nav className="sticky top-0 z-50 border-b bg-white/95 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
+          <Link href="/" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
-              <Zap className="h-5 w-5 text-white" />
+              <Zap className="h-4 w-4 text-white" />
             </div>
             <span className="text-lg font-bold text-gray-900">RelanceFlow</span>
+          </Link>
+          <div className="hidden md:flex items-center gap-6 text-sm text-gray-600">
+            <a href="#fonctionnalites" className="hover:text-gray-900 transition-colors">Fonctionnalités</a>
+            <a href="#calculateur" className="hover:text-gray-900 transition-colors">Calculateur</a>
+            <a href="#pricing" className="hover:text-gray-900 transition-colors">Tarifs</a>
+            <a href="#faq" className="hover:text-gray-900 transition-colors">FAQ</a>
+            <Link href="/guides" className="hover:text-gray-900 transition-colors">Guides juridiques</Link>
           </div>
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
-            <a href="#fonctionnalites" className="hover:text-gray-900 transition-colors">
-              Fonctionnalités
-            </a>
-            <a href="#pricing" className="hover:text-gray-900 transition-colors">
-              Tarifs
-            </a>
-            <a href="#temoignages" className="hover:text-gray-900 transition-colors">
-              Témoignages
-            </a>
-            <a href="#faq" className="hover:text-gray-900 transition-colors">
-              FAQ
-            </a>
-          </nav>
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/auth/login">Se connecter</Link>
-            </Button>
-            <Button size="sm" asChild>
-              <Link href="/auth/register">Essai gratuit 14j</Link>
-            </Button>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/auth/login"
+              className="hidden sm:block text-sm font-medium text-gray-600 hover:text-gray-900 px-3 py-1.5 transition-colors"
+            >
+              Se connecter
+            </Link>
+            <Link
+              href="/auth/register"
+              className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 transition-colors"
+            >
+              Essai gratuit 14j
+            </Link>
           </div>
         </div>
-      </header>
+      </nav>
 
-      {/* Hero */}
-      <section className="bg-gradient-to-b from-blue-50 to-white py-20 md:py-32">
-        <div className="container mx-auto text-center px-4">
-          <Badge className="mb-6 bg-blue-100 text-blue-700 border-blue-200 px-4 py-1.5 text-sm">
-            🇫🇷 Conçu pour les TPE/PME françaises
-          </Badge>
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 leading-tight mb-6 max-w-4xl mx-auto">
-            Encaissez{' '}
-            <span className="text-blue-600">15 jours plus tôt</span>,<br />
-            sans relancer un seul client à la main
+      {/* HERO */}
+      <section className="relative bg-gradient-to-b from-slate-950 via-blue-950 to-slate-900 pt-20 pb-28 px-4 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-700/20 via-transparent to-transparent pointer-events-none" />
+        <div className="mx-auto max-w-4xl text-center relative">
+          <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 text-sm text-blue-300 mb-8">
+            <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
+            +340 dirigeants nous font confiance · Essai gratuit 14 jours
+          </div>
+
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight tracking-tight">
+            Cessez d&apos;être le{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
+              banquier gratuit
+            </span>{' '}
+            de vos clients.
           </h1>
-          <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-            RelanceFlow automatise vos relances de factures impayées, génère vos mises en demeure
-            légales et améliore votre trésorerie — sans que vous n&apos;ayez rien à faire.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button size="lg" className="text-base px-8 py-6 h-auto" asChild>
-              <Link href="/auth/register">
-                Démarrer l&apos;essai gratuit 14 jours
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-            <Button variant="outline" size="lg" className="text-base px-8 py-6 h-auto" asChild>
-              <a href="#apercu">
-                Voir un aperçu →
-              </a>
-            </Button>
-          </div>
-          <p className="text-sm text-gray-400 mt-4">
-            Sans carte bancaire · Essai gratuit 14 jours · Annulation à tout moment
+
+          <p className="mt-6 text-lg sm:text-xl text-blue-200/80 max-w-2xl mx-auto leading-relaxed">
+            Vos factures ne sont pas des crédits à 0%. RelanceFlow automatise le recouvrement
+            de A à Z — de la relance cordiale à la mise en demeure légale — pendant que vous
+            vous concentrez sur votre métier.
           </p>
 
-          {/* Social proof */}
-          <div className="mt-12 flex flex-wrap justify-center gap-8 text-sm text-gray-500">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
-              <span>+500 TPE/PME utilisatrices</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
-              <span>14 jours de réduction du DSO en moyenne</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
-              <span>Conforme au droit français</span>
-            </div>
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              href="/auth/register"
+              className="group flex items-center gap-2 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-bold px-7 py-3.5 text-base transition-all shadow-lg shadow-blue-500/30"
+            >
+              Récupérer mes créances maintenant
+              <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+            <a
+              href="#calculateur"
+              className="flex items-center gap-2 rounded-xl border border-white/20 text-white/80 hover:text-white hover:border-white/40 font-medium px-6 py-3.5 text-base transition-all"
+            >
+              <Euro className="h-5 w-5" />
+              Calculer mon manque à gagner
+            </a>
           </div>
 
-          {/* Dashboard mockup */}
-          <div id="apercu" className="relative mt-16 max-w-5xl mx-auto">
-            <div className="absolute -inset-4 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-3xl blur-2xl opacity-60"></div>
-            <div className="relative rounded-2xl border bg-white shadow-2xl overflow-hidden">
-              {/* Browser chrome */}
-              <div className="flex items-center gap-2 border-b bg-gray-50 px-4 py-3">
-                <div className="flex gap-1.5">
-                  <div className="h-3 w-3 rounded-full bg-red-400"></div>
-                  <div className="h-3 w-3 rounded-full bg-yellow-400"></div>
-                  <div className="h-3 w-3 rounded-full bg-green-400"></div>
-                </div>
-                <div className="flex-1 mx-4">
-                  <div className="rounded-md bg-white border px-3 py-1 text-xs text-gray-400 max-w-xs mx-auto">
-                    relanceflow.fr/dashboard
-                  </div>
-                </div>
-              </div>
-              {/* Mockup content */}
-              <div className="grid grid-cols-12 gap-0 bg-gray-50 min-h-[420px]">
-                {/* Sidebar */}
-                <div className="col-span-2 border-r bg-white p-4 space-y-2">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="h-6 w-6 rounded bg-blue-600 flex items-center justify-center">
-                      <Zap className="h-3 w-3 text-white" />
-                    </div>
-                    <div className="h-3 w-16 rounded bg-gray-300"></div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2 rounded-md bg-blue-50 px-2 py-1.5">
-                      <BarChart3 className="h-3 w-3 text-blue-600" />
-                      <div className="h-2 w-12 rounded bg-blue-200"></div>
-                    </div>
-                    <div className="flex items-center gap-2 px-2 py-1.5">
-                      <FileText className="h-3 w-3 text-gray-400" />
-                      <div className="h-2 w-10 rounded bg-gray-200"></div>
-                    </div>
-                    <div className="flex items-center gap-2 px-2 py-1.5">
-                      <Mail className="h-3 w-3 text-gray-400" />
-                      <div className="h-2 w-14 rounded bg-gray-200"></div>
-                    </div>
-                    <div className="flex items-center gap-2 px-2 py-1.5">
-                      <AlertTriangle className="h-3 w-3 text-gray-400" />
-                      <div className="h-2 w-12 rounded bg-gray-200"></div>
-                    </div>
-                  </div>
-                </div>
-                {/* Main */}
-                <div className="col-span-10 p-6 space-y-4 text-left">
-                  <div>
-                    <h3 className="text-base font-bold text-gray-900">Tableau de bord</h3>
-                    <p className="text-xs text-gray-500">Bonjour, voici votre activité</p>
-                  </div>
-                  {/* KPI cards */}
-                  <div className="grid grid-cols-4 gap-3">
-                    <div className="rounded-lg border bg-white p-3">
-                      <p className="text-xs text-gray-500">Encaissé</p>
-                      <p className="text-lg font-bold text-gray-900">42 380 €</p>
-                      <p className="text-xs text-green-600 flex items-center gap-1 mt-1">
-                        <TrendingUp className="h-3 w-3" /> +18%
-                      </p>
-                    </div>
-                    <div className="rounded-lg border bg-white p-3">
-                      <p className="text-xs text-gray-500">En attente</p>
-                      <p className="text-lg font-bold text-gray-900">12 740 €</p>
-                      <p className="text-xs text-orange-500 flex items-center gap-1 mt-1">
-                        <Clock className="h-3 w-3" /> 8 factures
-                      </p>
-                    </div>
-                    <div className="rounded-lg border bg-white p-3">
-                      <p className="text-xs text-gray-500">DSO</p>
-                      <p className="text-lg font-bold text-gray-900">41 j</p>
-                      <p className="text-xs text-green-600 flex items-center gap-1 mt-1">
-                        <TrendingUp className="h-3 w-3 rotate-180" /> -14j
-                      </p>
-                    </div>
-                    <div className="rounded-lg border bg-white p-3">
-                      <p className="text-xs text-gray-500">Taux recouvrement</p>
-                      <p className="text-lg font-bold text-gray-900">96 %</p>
-                      <p className="text-xs text-green-600 flex items-center gap-1 mt-1">
-                        <CheckCircle className="h-3 w-3" /> Excellent
-                      </p>
-                    </div>
-                  </div>
-                  {/* Chart placeholder */}
-                  <div className="rounded-lg border bg-white p-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <p className="text-xs font-semibold text-gray-700">Encaissements 6 derniers mois</p>
-                      <div className="flex gap-1">
-                        <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-                        <div className="h-2 w-2 rounded-full bg-gray-200"></div>
-                      </div>
-                    </div>
-                    <div className="flex items-end gap-2 h-20">
-                      {[40, 55, 30, 70, 60, 85].map((h, i) => (
-                        <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                          <div
-                            className="w-full rounded-t bg-gradient-to-t from-blue-500 to-blue-400"
-                            style={{ height: `${h}%` }}
-                          ></div>
-                          <div className="h-1.5 w-4 rounded bg-gray-200"></div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  {/* Recent invoices */}
-                  <div className="rounded-lg border bg-white p-3 space-y-2">
-                    <p className="text-xs font-semibold text-gray-700 mb-2">Relances récentes</p>
-                    {[
-                      { name: 'Boulangerie Martin', amount: '850 €', status: 'Payée', color: 'green' },
-                      { name: 'SARL Dupont', amount: '2 400 €', status: 'Relance 2/3', color: 'orange' },
-                      { name: 'Studio Créatif', amount: '1 150 €', status: 'Payée', color: 'green' },
-                    ].map((row, i) => (
-                      <div key={i} className="flex items-center justify-between py-1.5 border-b last:border-0">
-                        <div className="flex items-center gap-2">
-                          <div className="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">
-                            {row.name[0]}
-                          </div>
-                          <span className="text-xs text-gray-700">{row.name}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs font-semibold text-gray-900">{row.amount}</span>
-                          <span
-                            className={`text-xs px-2 py-0.5 rounded-full ${
-                              row.color === 'green'
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-orange-100 text-orange-700'
-                            }`}
-                          >
-                            {row.status}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+          <p className="mt-5 text-sm text-blue-300/50">
+            Sans carte bancaire · Données hébergées en Europe · Conforme RGPD
+          </p>
 
-      {/* Pain points */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Vous reconnaissez-vous dans ces situations ?
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {painPoints.map((point, index) => (
-              <div key={index} className="bg-white rounded-xl p-6 shadow-sm border">
-                <div className="text-3xl mb-4">{point.icon}</div>
-                <h3 className="font-semibold text-gray-900 text-lg mb-2">{point.title}</h3>
-                <p className="text-gray-600 text-sm leading-relaxed">{point.description}</p>
+          {/* Stats */}
+          <div className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-6 border-t border-white/10 pt-12">
+            {stats.map((s) => (
+              <div key={s.label} className="text-center">
+                <div className="text-3xl font-extrabold text-white">{s.value}</div>
+                <div className="text-sm text-blue-300/70 mt-1">{s.label}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section id="fonctionnalites" className="py-20">
-        <div className="container mx-auto px-4">
+      {/* PAIN POINTS */}
+      <section className="py-20 px-4 bg-gray-50">
+        <div className="mx-auto max-w-4xl">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Tout ce dont vous avez besoin pour recouvrer vos créances
+            <h2 className="text-3xl font-bold text-gray-900">
+              Le recouvrement manuel, c&apos;est fini.
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Une plateforme complète qui automatise l&apos;ensemble du processus de recouvrement
-              amiable.
+            <p className="text-gray-500 mt-3">
+              Chaque heure passée à relancer manuellement est une heure perdue sur votre cœur de métier.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {features.map((feature, index) => {
-              const Icon = feature.icon
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {painPoints.map((p, i) => (
+              <div key={i} className="rounded-xl bg-white border p-5 space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-red-100 mt-0.5">
+                    <span className="text-red-500 text-sm font-bold">✕</span>
+                  </div>
+                  <p className="text-sm text-gray-500 line-through">{p.wrong}</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-green-100 mt-0.5">
+                    <CheckCircle className="h-3.5 w-3.5 text-green-600" />
+                  </div>
+                  <p className="text-sm font-semibold text-gray-800">{p.right}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CALCULATOR */}
+      <section id="calculateur" className="py-20 px-4 bg-white">
+        <div className="mx-auto max-w-3xl">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-gray-900">
+              Combien d&apos;argent dort dehors en ce moment ?
+            </h2>
+            <p className="text-gray-500 mt-3 max-w-xl mx-auto">
+              Entrez votre chiffre d&apos;affaires et votre délai de paiement moyen. Découvrez
+              exactement ce que RelanceFlow peut libérer pour vous.
+            </p>
+          </div>
+          <CashCalculator />
+        </div>
+      </section>
+
+      {/* FEATURES */}
+      <section id="fonctionnalites" className="py-20 px-4 bg-gray-50">
+        <div className="mx-auto max-w-6xl">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl font-bold text-gray-900">
+              Tout ce qu&apos;il faut pour recouvrer professionnellement
+            </h2>
+            <p className="text-gray-500 mt-3">
+              Du premier retard à la mise en demeure — chaque étape est couverte.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {features.map((f) => {
+              const Icon = f.icon
               return (
-                <Card key={index} className="border hover:shadow-md transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div
-                      className={`inline-flex h-10 w-10 items-center justify-center rounded-lg ${feature.color} mb-3`}
-                    >
+                <div key={f.title} className="rounded-xl bg-white border p-6 flex flex-col gap-4">
+                  <div className="flex items-start justify-between">
+                    <div className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${f.color}`}>
                       <Icon className="h-5 w-5" />
                     </div>
-                    <h3 className="font-semibold text-gray-900 text-lg">{feature.title}</h3>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-600 text-sm leading-relaxed">{feature.description}</p>
-                  </CardContent>
-                </Card>
+                    {f.badge && (
+                      <span className="rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold px-2.5 py-0.5">
+                        {f.badge}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900 mb-1.5">{f.title}</h3>
+                    <p className="text-sm text-gray-500 leading-relaxed">{f.description}</p>
+                  </div>
+                </div>
               )
             })}
           </div>
         </div>
       </section>
 
-      {/* How it works */}
-      <section className="py-20 bg-blue-600 text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Comment ça marche ?</h2>
-          <p className="text-blue-200 text-xl mb-16 max-w-2xl mx-auto">
-            En 3 étapes simples, automatisez tout votre recouvrement
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            {[
-              {
-                step: '1',
-                title: 'Importez vos factures',
-                description:
-                  'Glissez-déposez votre export CSV depuis votre logiciel de facturation. RelanceFlow détecte automatiquement les colonnes.',
-              },
-              {
-                step: '2',
-                title: 'Choisissez votre scénario',
-                description:
-                  '3 scénarios préconfigurés (Cordial, Ferme, Pré-contentieux) ou créez le vôtre. Les relances partent automatiquement.',
-              },
-              {
-                step: '3',
-                title: 'Encaissez plus vite',
-                description:
-                  'Vos clients reçoivent des relances personnalisées et professionnelles. Générez une mise en demeure en un clic si besoin.',
-              },
-            ].map((item, i) => (
-              <div key={i} className="text-center">
-                <div className="w-12 h-12 rounded-full bg-white/20 text-white font-bold text-xl flex items-center justify-center mx-auto mb-4">
-                  {item.step}
+      {/* DASHBOARD PREVIEW */}
+      <section id="apercu" className="py-20 px-4 bg-white">
+        <div className="mx-auto max-w-5xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900">
+              Un poste client piloté comme un professionnel du credit management
+            </h2>
+            <p className="text-gray-500 mt-3">
+              Balance âgée, DSO, urgences du jour, historique de relances — tout en un coup d&apos;œil.
+            </p>
+          </div>
+          {/* Dashboard mockup */}
+          <div className="relative rounded-2xl border shadow-2xl overflow-hidden bg-gray-50">
+            <div className="flex items-center gap-2 border-b bg-gray-100 px-4 py-2.5">
+              <div className="flex gap-1.5">
+                <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
+                <div className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
+                <div className="h-2.5 w-2.5 rounded-full bg-green-400" />
+              </div>
+              <div className="flex-1 mx-3">
+                <div className="rounded bg-white border px-3 py-1 text-xs text-gray-400 max-w-xs mx-auto text-center">
+                  relanceflow.fr/dashboard
                 </div>
-                <h3 className="font-semibold text-xl mb-3">{item.title}</h3>
-                <p className="text-blue-200 text-sm leading-relaxed">{item.description}</p>
+              </div>
+            </div>
+            <div className="flex">
+              {/* Sidebar mock */}
+              <div className="w-48 bg-white border-r p-3 hidden sm:block">
+                <div className="flex items-center gap-2 mb-4 px-2">
+                  <div className="h-5 w-5 rounded bg-blue-600 flex-shrink-0" />
+                  <div className="h-3 w-20 bg-gray-200 rounded" />
+                </div>
+                {['Tableau de bord', 'Factures', 'Scénarios', 'Mise en demeure', 'Paramètres'].map((item, i) => (
+                  <div key={item} className={`flex items-center gap-2 px-2 py-1.5 rounded mb-0.5 ${i === 0 ? 'bg-blue-600' : ''}`}>
+                    <div className={`h-3 w-3 rounded ${i === 0 ? 'bg-blue-400' : 'bg-gray-200'}`} />
+                    <div className={`h-2 rounded ${i === 0 ? 'bg-blue-400 w-20' : 'bg-gray-100 w-16'}`} />
+                  </div>
+                ))}
+              </div>
+              {/* Content mock */}
+              <div className="flex-1 p-4 space-y-3">
+                {/* Alert */}
+                <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="h-3 w-3 bg-red-400 rounded-full" />
+                    <div className="h-2.5 bg-red-200 rounded w-48" />
+                  </div>
+                  <div className="h-6 w-24 bg-red-500 rounded text-xs" />
+                </div>
+                {/* KPIs */}
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    { label: 'Créances', value: '35 550 €', accent: 'blue' },
+                    { label: 'En retard', value: '18 000 €', accent: 'red' },
+                    { label: 'Récupéré', value: '12 300 €', accent: 'green' },
+                    { label: 'DSO', value: '28j', accent: 'gray' },
+                  ].map((kpi) => (
+                    <div key={kpi.label} className="rounded-lg bg-white border p-2">
+                      <div className="text-xs text-gray-400 mb-1">{kpi.label}</div>
+                      <div className={`text-sm font-bold ${kpi.accent === 'red' ? 'text-red-600' : kpi.accent === 'green' ? 'text-green-600' : kpi.accent === 'blue' ? 'text-blue-700' : 'text-gray-700'}`}>
+                        {kpi.value}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {/* Invoice list */}
+                <div className="rounded-lg bg-white border overflow-hidden">
+                  <div className="px-3 py-2 border-b bg-gray-50 flex items-center justify-between">
+                    <div className="h-2.5 bg-gray-300 rounded w-28" />
+                    <div className="h-2 bg-gray-200 rounded w-12" />
+                  </div>
+                  {[
+                    { name: 'TechStart SAS', num: 'FA-2024-002', amount: '12 800 €', days: '62j', color: 'bg-red-500' },
+                    { name: 'Innovatech', num: 'FA-2024-005', amount: '9 200 €', days: '45j', color: 'bg-orange-400' },
+                    { name: 'Acme Corp', num: 'FA-2024-001', amount: '4 500 €', days: '15j', color: 'bg-yellow-400' },
+                    { name: 'Dupont & Fils', num: 'FA-2024-003', amount: '2 300 €', days: '—', color: 'bg-green-500' },
+                  ].map((row) => (
+                    <div key={row.num} className="flex items-center gap-3 px-3 py-2 border-b last:border-0">
+                      <div className={`h-2 w-2 rounded-full flex-shrink-0 ${row.color}`} />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-medium text-gray-700 truncate">{row.name}</div>
+                        <div className="text-xs text-gray-400">{row.num}</div>
+                      </div>
+                      {row.days !== '—' && (
+                        <div className="text-xs text-red-500 font-semibold">{row.days}</div>
+                      )}
+                      <div className="text-xs font-bold text-gray-800">{row.amount}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SOCIAL PROOF */}
+      <section id="temoignages" className="py-20 px-4 bg-gray-50">
+        <div className="mx-auto max-w-6xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900">
+              Des dirigeants qui ont repris le contrôle de leur trésorerie
+            </h2>
+          </div>
+
+          {/* Trust badges */}
+          <div className="flex flex-wrap justify-center gap-4 mb-12">
+            {[
+              { icon: Shield, label: 'Conforme RGPD', sub: 'Données hébergées en France' },
+              { icon: FileText, label: 'Légalement conforme', sub: 'Art. L441-10 Code comm.' },
+              { icon: CheckCircle, label: 'SSL / TLS chiffré', sub: 'Connexion sécurisée 256-bit' },
+              { icon: Users, label: '+340 entreprises', sub: 'nous font confiance' },
+            ].map((badge) => {
+              const Icon = badge.icon
+              return (
+                <div key={badge.label} className="flex items-center gap-2.5 rounded-xl border bg-white px-4 py-3">
+                  <Icon className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">{badge.label}</p>
+                    <p className="text-xs text-gray-400">{badge.sub}</p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+            {testimonials.map((t, i) => (
+              <div key={i} className="rounded-xl bg-white border p-6 flex flex-col gap-4">
+                <div className="flex gap-0.5">
+                  {Array.from({ length: t.stars }).map((_, j) => (
+                    <Star key={j} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
+                <p className="text-sm text-gray-700 leading-relaxed italic">{t.quote}</p>
+                <div className="mt-auto">
+                  <p className="text-sm font-semibold text-gray-900">{t.name}</p>
+                  <p className="text-xs text-gray-400">{t.role}</p>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section id="temoignages" className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
+      {/* PRICING */}
+      <section id="pricing" className="py-20 px-4 bg-white">
+        <div className="mx-auto max-w-5xl">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Ce que disent nos clients
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {testimonials.map((t, i) => (
-              <Card key={i} className="bg-white">
-                <CardContent className="pt-6">
-                  <div className="flex gap-1 mb-4">
-                    {Array.from({ length: t.stars }).map((_, j) => (
-                      <Star key={j} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
-                  <p className="text-gray-700 text-sm leading-relaxed mb-4 italic">
-                    &ldquo;{t.text}&rdquo;
-                  </p>
-                  <div>
-                    <div className="font-semibold text-sm text-gray-900">{t.name}</div>
-                    <div className="text-xs text-gray-500">{t.company}</div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section id="pricing" className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Des tarifs simples et transparents
-            </h2>
-            <p className="text-xl text-gray-600">
-              14 jours d&apos;essai gratuit · Pas de carte bancaire · Annulation à tout moment
+            <h2 className="text-3xl font-bold text-gray-900">Tarifs clairs, sans surprise</h2>
+            <p className="text-gray-500 mt-3">
+              14 jours d&apos;essai gratuit sur tous les plans. Sans carte bancaire.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {pricing.map((plan, i) => (
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {plans.map((plan) => (
               <div
-                key={i}
-                className={`relative rounded-2xl border p-8 ${
-                  plan.highlighted
-                    ? 'border-blue-600 shadow-lg shadow-blue-100 bg-blue-600 text-white'
+                key={plan.name}
+                className={`rounded-2xl border p-6 flex flex-col gap-5 ${
+                  plan.highlight
+                    ? 'border-blue-500 bg-blue-600 text-white shadow-xl shadow-blue-200'
                     : 'border-gray-200 bg-white'
                 }`}
               >
-                {plan.badge && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full">
-                      {plan.badge}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className={`text-sm font-semibold ${plan.highlight ? 'text-blue-200' : 'text-gray-500'}`}>
+                      {plan.name}
                     </span>
+                    {plan.highlight && (
+                      <span className="rounded-full bg-white/20 text-white text-xs font-semibold px-2.5 py-0.5">
+                        Populaire
+                      </span>
+                    )}
                   </div>
-                )}
-                <div className="mb-6">
-                  <h3
-                    className={`text-lg font-bold mb-1 ${
-                      plan.highlighted ? 'text-white' : 'text-gray-900'
-                    }`}
-                  >
-                    {plan.name}
-                  </h3>
-                  <p
-                    className={`text-sm mb-4 ${
-                      plan.highlighted ? 'text-blue-200' : 'text-gray-500'
-                    }`}
-                  >
-                    {plan.description}
-                  </p>
-                  <div className="flex items-baseline gap-1">
-                    <span
-                      className={`text-4xl font-bold ${
-                        plan.highlighted ? 'text-white' : 'text-gray-900'
-                      }`}
-                    >
-                      {plan.price} €
+                  <div className="flex items-end gap-1">
+                    <span className={`text-4xl font-extrabold ${plan.highlight ? 'text-white' : 'text-gray-900'}`}>
+                      {plan.price}€
                     </span>
-                    <span
-                      className={`text-sm ${plan.highlighted ? 'text-blue-200' : 'text-gray-500'}`}
-                    >
+                    <span className={`text-sm mb-1.5 ${plan.highlight ? 'text-blue-200' : 'text-gray-400'}`}>
                       /{plan.period}
                     </span>
                   </div>
+                  <p className={`text-xs mt-1 ${plan.highlight ? 'text-blue-200' : 'text-gray-500'}`}>
+                    {plan.desc}
+                  </p>
                 </div>
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map((feature, j) => (
-                    <li key={j} className="flex items-center gap-2 text-sm">
+
+                <ul className="space-y-2 flex-1">
+                  {plan.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-sm">
                       <CheckCircle
-                        className={`h-4 w-4 flex-shrink-0 ${
-                          plan.highlighted ? 'text-blue-200' : 'text-green-500'
+                        className={`h-4 w-4 flex-shrink-0 mt-0.5 ${
+                          plan.highlight ? 'text-blue-300' : 'text-blue-600'
                         }`}
                       />
-                      <span className={plan.highlighted ? 'text-blue-100' : 'text-gray-600'}>
-                        {feature}
-                      </span>
+                      <span className={plan.highlight ? 'text-blue-100' : 'text-gray-600'}>{f}</span>
                     </li>
                   ))}
                 </ul>
-                <Button
-                  className={`w-full ${
-                    plan.highlighted
+
+                <Link
+                  href="/auth/register"
+                  className={`block text-center rounded-xl py-2.5 text-sm font-bold transition-colors ${
+                    plan.highlight
                       ? 'bg-white text-blue-600 hover:bg-blue-50'
-                      : ''
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
                   }`}
-                  variant={plan.highlighted ? 'outline' : 'default'}
-                  asChild
                 >
-                  <Link href="/auth/register">{plan.cta}</Link>
-                </Button>
+                  {plan.cta}
+                </Link>
               </div>
             ))}
           </div>
-          <p className="text-center text-sm text-gray-500 mt-8">
-            Prix HT · TVA française applicable · Facturation mensuelle ou annuelle (-20%)
+
+          <p className="text-center text-sm text-gray-400 mt-8">
+            Vous recouvrez plus de 1 000 factures / mois ou cherchez une solution sur-mesure ?{' '}
+            <a href="mailto:hello@relanceflow.fr" className="text-blue-600 hover:underline font-medium">
+              Parlons-en →
+            </a>
           </p>
+        </div>
+      </section>
+
+      {/* GUIDES TEASER */}
+      <section className="py-20 px-4 bg-gray-50">
+        <div className="mx-auto max-w-4xl">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">
+                Guides juridiques gratuits
+              </h2>
+              <p className="text-gray-500 mt-1 text-sm">
+                Le droit commercial en clair, sans jargon inutile.
+              </p>
+            </div>
+            <Link
+              href="/guides"
+              className="flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700"
+            >
+              Voir tous les guides
+              <ChevronRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {guides.map((guide, i) => (
+              <Link
+                key={i}
+                href="/guides"
+                className="flex items-center gap-3 rounded-xl border bg-white p-4 hover:border-blue-200 hover:shadow-sm transition-all group"
+              >
+                <FileText className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                <span className="text-sm font-medium text-gray-700 group-hover:text-blue-700 transition-colors flex-1">
+                  {guide}
+                </span>
+                <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-blue-500 transition-colors" />
+              </Link>
+            ))}
+          </div>
+
+          {/* Templates lead magnet */}
+          <div className="mt-6 rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-700 p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-white/20">
+              <Download className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-bold text-white">Pack Modèles de Relance Gratuits</h3>
+              <p className="text-blue-200 text-sm mt-0.5">
+                5 modèles d&apos;emails (cordial, ferme, précontentieux, litige, mise en demeure) — prêts à l&apos;emploi
+              </p>
+            </div>
+            <Link
+              href="/modeles"
+              className="flex-shrink-0 rounded-xl bg-white text-blue-700 font-bold text-sm px-5 py-2.5 hover:bg-blue-50 transition-colors"
+            >
+              Télécharger
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* FAQ */}
-      <FAQSection />
-
-      {/* CTA section */}
-      <section className="py-20 bg-gray-900 text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Prêt à encaisser plus vite ?
-          </h2>
-          <p className="text-gray-400 text-xl mb-8 max-w-2xl mx-auto">
-            Rejoignez les TPE/PME françaises qui améliorent leur trésorerie avec RelanceFlow.
-          </p>
-          <Button size="lg" className="text-base px-8 py-6 h-auto bg-blue-600 hover:bg-blue-700" asChild>
-            <Link href="/auth/register">
-              Démarrer l&apos;essai gratuit — 0 € pendant 14 jours
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
-          <p className="text-gray-500 text-sm mt-4">Sans carte bancaire · Résiliation libre</p>
+      <section id="faq" className="py-20 px-4 bg-white">
+        <div className="mx-auto max-w-3xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900">Questions fréquentes</h2>
+          </div>
+          <FAQSection />
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t bg-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="col-span-2 md:col-span-1">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600">
-                  <Zap className="h-4 w-4 text-white" />
-                </div>
-                <span className="font-bold text-gray-900">RelanceFlow</span>
+      {/* CTA FINAL */}
+      <section className="py-24 px-4 bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900">
+        <div className="mx-auto max-w-3xl text-center">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight">
+            Votre trésorerie ne peut pas attendre.
+          </h2>
+          <p className="mt-4 text-lg text-blue-200/80">
+            Chaque jour de retard coûte de l&apos;argent. Démarrez gratuitement — sans carte bancaire,
+            sans engagement, sans friction.
+          </p>
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              href="/auth/register"
+              className="group flex items-center gap-2 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-bold px-8 py-4 text-base transition-all shadow-lg shadow-blue-500/30"
+            >
+              Démarrer mon essai gratuit — 14 jours
+              <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+          </div>
+          <p className="mt-4 text-sm text-blue-300/50">
+            Sans carte bancaire · Sans engagement · Annulation en 1 clic
+          </p>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="border-t bg-white py-12 px-4">
+        <div className="mx-auto max-w-6xl grid grid-cols-2 sm:grid-cols-4 gap-8">
+          <div className="col-span-2 sm:col-span-1">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600">
+                <Zap className="h-4 w-4 text-white" />
               </div>
-              <p className="text-sm text-gray-500 leading-relaxed">
-                La solution de recouvrement amiable automatisée pour les TPE et PME françaises.
-              </p>
+              <span className="font-bold text-gray-900">RelanceFlow</span>
             </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3 text-sm">Produit</h4>
-              <ul className="space-y-2 text-sm text-gray-500">
-                <li><a href="#fonctionnalites" className="hover:text-gray-900">Fonctionnalités</a></li>
-                <li><a href="#pricing" className="hover:text-gray-900">Tarifs</a></li>
-                <li><a href="#temoignages" className="hover:text-gray-900">Témoignages</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3 text-sm">Légal</h4>
-              <ul className="space-y-2 text-sm text-gray-500">
-                <li><a href="/cgu" className="hover:text-gray-900">CGU</a></li>
-                <li><a href="/privacy" className="hover:text-gray-900">Confidentialité</a></li>
-                <li><a href="/mentions-legales" className="hover:text-gray-900">Mentions légales</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3 text-sm">Contact</h4>
-              <ul className="space-y-2 text-sm text-gray-500">
-                <li><a href="mailto:hello@relanceflow.fr" className="hover:text-gray-900">hello@relanceflow.fr</a></li>
-                <li><a href="/support" className="hover:text-gray-900">Support</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t mt-8 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-gray-400">
-              © 2026 RelanceFlow. Tous droits réservés.
-            </p>
-            <p className="text-sm text-gray-400">
-              🇫🇷 Hébergé en France · Conforme RGPD
+            <p className="text-xs text-gray-400 leading-relaxed">
+              Automatisez votre recouvrement. Récupérez vos créances. Protégez votre trésorerie.
             </p>
           </div>
+          <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">Produit</h4>
+            <ul className="space-y-2 text-sm text-gray-500">
+              <li><a href="#fonctionnalites" className="hover:text-gray-900">Fonctionnalités</a></li>
+              <li><a href="#pricing" className="hover:text-gray-900">Tarifs</a></li>
+              <li><a href="#calculateur" className="hover:text-gray-900">Calculateur DSO</a></li>
+              <li><Link href="/modeles" className="hover:text-gray-900">Modèles gratuits</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">Ressources</h4>
+            <ul className="space-y-2 text-sm text-gray-500">
+              <li><Link href="/guides" className="hover:text-gray-900">Guides juridiques</Link></li>
+              <li><Link href="/support" className="hover:text-gray-900">Support</Link></li>
+              <li><a href="mailto:hello@relanceflow.fr" className="hover:text-gray-900">Contact</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">Légal</h4>
+            <ul className="space-y-2 text-sm text-gray-500">
+              <li><Link href="/cgu" className="hover:text-gray-900">CGU</Link></li>
+              <li><Link href="/privacy" className="hover:text-gray-900">Confidentialité</Link></li>
+              <li><Link href="/mentions-legales" className="hover:text-gray-900">Mentions légales</Link></li>
+            </ul>
+          </div>
+        </div>
+        <div className="mx-auto max-w-6xl mt-8 pt-6 border-t text-center text-xs text-gray-400">
+          © 2026 RelanceFlow — Tous droits réservés · Recouvrement de créances pour TPE/PME françaises
         </div>
       </footer>
     </div>
