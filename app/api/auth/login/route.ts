@@ -9,16 +9,21 @@ export async function POST(request: NextRequest) {
   let password: string
   let redirectTo: string
 
+  let rememberMe = true // default: persist session
+
   if (contentType.includes('application/json')) {
     const body = await request.json()
     email = (body.email as string)?.trim()
     password = body.password as string
     redirectTo = (body.redirectTo as string) || '/dashboard'
+    rememberMe = body.rememberMe !== false
   } else {
     const form = await request.formData()
     email = ((form.get('email') as string) ?? '').trim()
     password = (form.get('password') as string) ?? ''
     redirectTo = (form.get('redirectTo') as string) || '/dashboard'
+    // Unchecked checkboxes are absent from form data
+    rememberMe = form.get('rememberMe') === 'on'
   }
 
   // Prevent open redirect
@@ -58,7 +63,12 @@ export async function POST(request: NextRequest) {
   // before following the redirect, so the next request to /dashboard will
   // carry a valid session and the middleware will let it through.
   const response = NextResponse.redirect(new URL(redirectTo, request.url), { status: 303 })
-  cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
+  cookiesToSet.forEach(({ name, value, options }) => {
+    // When "remember me" is off, strip maxAge so the cookie is a session cookie
+    // that expires when the browser closes.
+    const finalOptions = rememberMe ? options : { ...options, maxAge: undefined }
+    response.cookies.set(name, value, finalOptions)
+  })
   return response
 }
 

@@ -28,6 +28,7 @@ function LoginForm() {
   const error = searchParams.get('error')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [rememberMe, setRememberMe] = useState(true)
 
   function handleSubmit() {
     // Do NOT call e.preventDefault() — the browser submits the form natively.
@@ -109,6 +110,22 @@ function LoginForm() {
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
+          </div>
+
+          {/* Remember me */}
+          <div className="flex items-center justify-between">
+            <label className="flex items-center gap-2 cursor-pointer select-none group">
+              <input
+                type="checkbox"
+                name="rememberMe"
+                defaultChecked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 accent-blue-600"
+              />
+              <span className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
+                Se souvenir de moi
+              </span>
+            </label>
           </div>
 
           <Button type="submit" className="w-full h-11 text-base" disabled={loading}>
