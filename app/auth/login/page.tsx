@@ -25,42 +25,16 @@ function LoginForm() {
   const redirectTo =
     rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') ? rawRedirect : '/dashboard'
 
-  const [error, setError] = useState<string | null>(searchParams.get('error'))
+  const error = searchParams.get('error')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setError(null)
+  function handleSubmit() {
+    // Do NOT call e.preventDefault() — the browser submits the form natively.
+    // The Route Handler returns a 303 + Set-Cookie; the browser processes the
+    // cookie headers before following the redirect, so /dashboard gets the session.
+    // Errors redirect back to /auth/login?error=... which re-renders this page.
     setLoading(true)
-
-    const formData = new FormData(e.currentTarget)
-    formData.set('redirectTo', redirectTo)
-
-    try {
-      // The Route Handler returns a 303 redirect.
-      // fetch follows it automatically; the browser commits the Set-Cookie
-      // headers from the 303 response before we read res.url.
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        body: formData,
-      })
-
-      const finalUrl = new URL(res.url)
-      const errorParam = finalUrl.searchParams.get('error')
-
-      if (errorParam) {
-        setError(errorParam)
-        setLoading(false)
-        return
-      }
-
-      // Cookies are already in the browser jar — full navigation sends them.
-      window.location.href = finalUrl.pathname || '/dashboard'
-    } catch {
-      setError('Une erreur est survenue. Veuillez réessayer.')
-      setLoading(false)
-    }
   }
 
   return (
@@ -72,7 +46,14 @@ function LoginForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form
+          action="/api/auth/login"
+          method="POST"
+          onSubmit={handleSubmit}
+          className="space-y-4"
+        >
+          <input type="hidden" name="redirectTo" value={redirectTo} />
+
           {error && (
             <Alert variant="destructive" className="py-3">
               <AlertCircle className="h-4 w-4" />
