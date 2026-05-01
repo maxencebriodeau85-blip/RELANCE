@@ -1,76 +1,65 @@
 'use client'
 
-import { Suspense, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense, useState, useEffect } from 'react'
+import { useFormState, useFormStatus } from 'react-dom'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { createClient } from '@/lib/supabase/client'
+import { loginAction } from './actions'
 import { Zap, Eye, EyeOff, AlertCircle } from 'lucide-react'
 
+function SubmitButton() {
+  const { pending } = useFormStatus()
+  return (
+    <Button type="submit" className="w-full" disabled={pending}>
+      {pending ? (
+        <span className="flex items-center gap-2">
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+          Connexion en cours…
+        </span>
+      ) : (
+        'Se connecter'
+      )}
+    </Button>
+  )
+}
+
 function LoginForm() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirectedFrom') || '/dashboard'
+  const urlError = searchParams.get('error')
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [state, formAction] = useFormState(loginAction, null)
   const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-
-    try {
-      const supabase = createClient()
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-
-      if (signInError) {
-        if (
-          signInError.message.includes('Invalid login credentials') ||
-          signInError.message.includes('invalid_credentials')
-        ) {
-          setError('Email ou mot de passe incorrect.')
-        } else if (signInError.message.includes('Email not confirmed')) {
-          setError('Veuillez confirmer votre adresse email avant de vous connecter. Vérifiez votre boîte mail.')
-        } else {
-          setError(signInError.message)
-        }
-        return
-      }
-
-      // Hard navigation ensures cookies set by signInWithPassword are sent with the next request
-      window.location.href = redirectTo
-    } catch {
-      setError('Une erreur inattendue est survenue. Réessayez.')
-    } finally {
-      setLoading(false)
-    }
-  }
+  const errorMessage = state?.error || urlError
 
   return (
     <Card>
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold">Connexion</CardTitle>
-        <CardDescription>
-          Connectez-vous à votre espace RelanceFlow
-        </CardDescription>
+        <CardDescription>Connectez-vous à votre espace RelanceFlow</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleLogin} className="space-y-4">
-          {error && (
+        <form action={formAction} className="space-y-4">
+          {/* Pass redirectTo as hidden field so the server action can use it */}
+          <input type="hidden" name="redirectTo" value={redirectTo} />
+
+          {errorMessage && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>{errorMessage}</AlertDescription>
             </Alert>
           )}
 
@@ -78,49 +67,44 @@ function LoginForm() {
             <Label htmlFor="email">Adresse email</Label>
             <Input
               id="email"
+              name="email"
               type="email"
               placeholder="vous@entreprise.fr"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
+              autoFocus
             />
           </div>
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Mot de passe</Label>
-              <Link
-                href="/auth/forgot-password"
-                className="text-sm text-blue-600 hover:underline"
-              >
+              <Link href="/auth/forgot-password" className="text-sm text-blue-600 hover:underline">
                 Mot de passe oublié ?
               </Link>
             </div>
             <div className="relative">
               <Input
                 id="password"
+                name="password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
                 className="pr-10"
               />
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={() => setShowPassword((v) => !v)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                tabIndex={-1}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
           </div>
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Connexion...' : 'Se connecter'}
-          </Button>
+          <SubmitButton />
         </form>
       </CardContent>
       <CardFooter className="flex flex-col gap-3">
