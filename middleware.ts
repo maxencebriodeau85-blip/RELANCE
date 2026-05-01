@@ -42,7 +42,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  if (user && (pathname === '/auth/login' || pathname === '/auth/register')) {
+  if (user && (pathname === '/auth/login' || pathname === '/auth/register' || pathname === '/auth/forgot-password')) {
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = '/dashboard'
     return NextResponse.redirect(redirectUrl)

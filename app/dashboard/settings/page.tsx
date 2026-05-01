@@ -48,9 +48,10 @@ export default function SettingsPage() {
   })
 
   const [emailConfig, setEmailConfig] = useState({
-    senderName: 'Mon Entreprise',
+    senderName: '',
     replyTo: '',
   })
+  const [savingEmail, setSavingEmail] = useState(false)
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -72,6 +73,13 @@ export default function SettingsPage() {
               siren: data.siren || '',
               email: data.email || user.email || '',
             })
+            // Load email config from localStorage
+            const saved = localStorage.getItem('relanceflow_email_config')
+            if (saved) {
+              setEmailConfig(JSON.parse(saved))
+            } else {
+              setEmailConfig({ senderName: data.company_name || '', replyTo: data.email || user.email || '' })
+            }
           }
         }
       } catch {
@@ -112,6 +120,19 @@ export default function SettingsPage() {
       })
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleSaveEmailConfig = async () => {
+    setSavingEmail(true)
+    try {
+      localStorage.setItem('relanceflow_email_config', JSON.stringify(emailConfig))
+      toast({
+        title: 'Configuration email sauvegardée',
+        description: 'Vos préférences d\'envoi ont été enregistrées.',
+      })
+    } finally {
+      setSavingEmail(false)
     }
   }
 
@@ -311,9 +332,9 @@ export default function SettingsPage() {
                 avancés (plan Pro+).
               </p>
             </div>
-            <Button>
+            <Button onClick={handleSaveEmailConfig} disabled={savingEmail}>
               <Save className="mr-2 h-4 w-4" />
-              Sauvegarder la configuration email
+              {savingEmail ? 'Sauvegarde...' : 'Sauvegarder la configuration email'}
             </Button>
           </CardContent>
         </Card>

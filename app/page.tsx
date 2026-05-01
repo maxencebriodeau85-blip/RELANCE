@@ -213,9 +213,9 @@ export default function LandingPage() {
               </Link>
             </Button>
             <Button variant="outline" size="lg" className="text-base px-8 py-6 h-auto" asChild>
-              <Link href="/dashboard">
-                Voir la démo →
-              </Link>
+              <a href="#apercu">
+                Voir un aperçu →
+              </a>
             </Button>
           </div>
           <p className="text-sm text-gray-400 mt-4">
@@ -239,7 +239,7 @@ export default function LandingPage() {
           </div>
 
           {/* Dashboard mockup */}
-          <div className="relative mt-16 max-w-5xl mx-auto">
+          <div id="apercu" className="relative mt-16 max-w-5xl mx-auto">
             <div className="absolute -inset-4 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-3xl blur-2xl opacity-60"></div>
             <div className="relative rounded-2xl border bg-white shadow-2xl overflow-hidden">
               {/* Browser chrome */}

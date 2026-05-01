@@ -35,16 +35,21 @@ function LoginForm() {
       })
 
       if (signInError) {
-        if (signInError.message.includes('Invalid login credentials')) {
+        if (
+          signInError.message.includes('Invalid login credentials') ||
+          signInError.message.includes('invalid_credentials')
+        ) {
           setError('Email ou mot de passe incorrect.')
+        } else if (signInError.message.includes('Email not confirmed')) {
+          setError('Veuillez confirmer votre adresse email avant de vous connecter. Vérifiez votre boîte mail.')
         } else {
           setError(signInError.message)
         }
         return
       }
 
-      router.push(redirectTo)
-      router.refresh()
+      // Hard navigation ensures cookies set by signInWithPassword are sent with the next request
+      window.location.href = redirectTo
     } catch {
       setError('Une erreur inattendue est survenue. Réessayez.')
     } finally {
