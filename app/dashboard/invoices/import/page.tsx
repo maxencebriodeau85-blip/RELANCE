@@ -23,7 +23,6 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
-import { Toaster } from '@/components/ui/toaster'
 import {
   parseCSVFile,
   applyColumnMapping,
@@ -162,7 +161,6 @@ export default function ImportPage() {
 
   return (
     <div>
-      <Toaster />
       <Header
         title="Importer des factures"
         description="Importez vos factures depuis un fichier CSV"
