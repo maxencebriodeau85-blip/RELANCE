@@ -51,7 +51,7 @@ export async function registerAction(
   })
 
   if (error) {
-    return { error: supabaseAuthError(error.message) }
+    return { error: supabaseAuthError(error.message, error.status) }
   }
 
   // When Supabase has email confirmation disabled, signUp returns a session

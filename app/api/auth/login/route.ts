@@ -34,7 +34,9 @@ export async function POST(request: NextRequest) {
   const { error } = await supabase.auth.signInWithPassword({ email, password })
 
   if (error) {
-    return NextResponse.json({ error: supabaseAuthError(error.message) }, { status: 401 })
+    const msg = supabaseAuthError(error.message, error.status)
+    const httpStatus = error.status === 429 ? 429 : 401
+    return NextResponse.json({ error: msg }, { status: httpStatus })
   }
 
   const response = NextResponse.json({ success: true, redirectTo: redirectTo || '/dashboard' })

@@ -30,7 +30,7 @@ export default function ForgotPasswordPage() {
       })
 
       if (resetError) {
-        setError(supabaseAuthError(resetError.message))
+        setError(supabaseAuthError(resetError.message, resetError.status))
         return
       }
 
