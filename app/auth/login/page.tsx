@@ -1,7 +1,6 @@
 'use client'
 
 import { Suspense, useState } from 'react'
-import { useFormState, useFormStatus } from 'react-dom'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -16,34 +15,50 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { loginAction } from './actions'
 import { Zap, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react'
-
-function SubmitButton() {
-  const { pending } = useFormStatus()
-  return (
-    <Button type="submit" className="w-full h-11 text-base" disabled={pending}>
-      {pending ? (
-        <span className="flex items-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          Connexion en cours…
-        </span>
-      ) : (
-        'Se connecter'
-      )}
-    </Button>
-  )
-}
 
 function LoginForm() {
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirectedFrom') || '/dashboard'
-  const urlError = searchParams.get('error')
 
-  const [state, formAction] = useFormState(loginAction, null)
+  const [error, setError] = useState<string | null>(searchParams.get('error'))
+  const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
-  const errorMessage = state?.error || urlError
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setError(null)
+    setLoading(true)
+
+    const formData = new FormData(e.currentTarget)
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.get('email'),
+          password: formData.get('password'),
+          redirectTo,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok || data.error) {
+        setError(data.error || 'Une erreur est survenue.')
+        setLoading(false)
+        return
+      }
+
+      // Cookies are set via Set-Cookie on the fetch response.
+      // A full navigation ensures the browser sends them on the next request.
+      window.location.href = data.redirectTo || '/dashboard'
+    } catch {
+      setError('Une erreur est survenue. Veuillez réessayer.')
+      setLoading(false)
+    }
+  }
 
   return (
     <Card className="shadow-lg border-0">
@@ -54,13 +69,11 @@ function LoginForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form action={formAction} className="space-y-4">
-          <input type="hidden" name="redirectTo" value={redirectTo} />
-
-          {errorMessage && (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
             <Alert variant="destructive" className="py-3">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="text-sm">{errorMessage}</AlertDescription>
+              <AlertDescription className="text-sm">{error}</AlertDescription>
             </Alert>
           )}
 
@@ -114,7 +127,16 @@ function LoginForm() {
             </div>
           </div>
 
-          <SubmitButton />
+          <Button type="submit" className="w-full h-11 text-base" disabled={loading}>
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Connexion en cours…
+              </span>
+            ) : (
+              'Se connecter'
+            )}
+          </Button>
         </form>
       </CardContent>
       <CardFooter className="flex flex-col gap-2 pt-2">
@@ -136,7 +158,6 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-2.5 mb-8 group">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500 shadow-lg shadow-blue-500/30 group-hover:bg-blue-400 transition-colors">
             <Zap className="h-5 w-5 text-white" />
