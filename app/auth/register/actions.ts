@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
+import { supabaseAuthError } from '@/lib/auth-errors'
 
 export type RegisterState = {
   error?: string
@@ -50,13 +51,7 @@ export async function registerAction(
   })
 
   if (error) {
-    if (
-      error.message.includes('already registered') ||
-      error.message.includes('already been registered')
-    ) {
-      return { error: 'Un compte existe déjà avec cet email. Connectez-vous.' }
-    }
-    return { error: error.message }
+    return { error: supabaseAuthError(error.message) }
   }
 
   // When Supabase has email confirmation disabled, signUp returns a session

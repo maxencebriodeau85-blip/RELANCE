@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { supabaseAuthError } from '@/lib/auth-errors'
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
@@ -33,22 +34,9 @@ export async function POST(request: NextRequest) {
   const { error } = await supabase.auth.signInWithPassword({ email, password })
 
   if (error) {
-    let message = error.message
-    if (
-      error.message.includes('Invalid login credentials') ||
-      error.message.includes('invalid_credentials')
-    ) {
-      message = 'Email ou mot de passe incorrect.'
-    } else if (error.message.includes('Email not confirmed')) {
-      message =
-        "Votre email n'est pas encore confirmé. Vérifiez votre boîte de réception et vos spams."
-    }
-    return NextResponse.json({ error: message }, { status: 401 })
+    return NextResponse.json({ error: supabaseAuthError(error.message) }, { status: 401 })
   }
 
-  // Attach session cookies explicitly on the response object.
-  // This is the only reliable way in Next.js 14 — cookies().set() in a
-  // Server Action does not make it into the redirect response.
   const response = NextResponse.json({ success: true, redirectTo: redirectTo || '/dashboard' })
   cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
   return response
