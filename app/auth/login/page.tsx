@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useState, useEffect } from 'react'
+import { Suspense, useState } from 'react'
 import { useFormState, useFormStatus } from 'react-dom'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -43,15 +43,6 @@ function LoginForm() {
   const [state, formAction] = useFormState(loginAction, null)
   const [showPassword, setShowPassword] = useState(false)
 
-  // Once the server action confirms success (cookies already set in the HTTP
-  // response), do a hard navigation. The browser will send the new cookies
-  // on this request, so the middleware will see a valid session.
-  useEffect(() => {
-    if (state?.success) {
-      window.location.href = redirectTo
-    }
-  }, [state, redirectTo])
-
   const errorMessage = state?.error || urlError
 
   return (
@@ -64,6 +55,8 @@ function LoginForm() {
       </CardHeader>
       <CardContent>
         <form action={formAction} className="space-y-4">
+          <input type="hidden" name="redirectTo" value={redirectTo} />
+
           {errorMessage && (
             <Alert variant="destructive" className="py-3">
               <AlertCircle className="h-4 w-4" />
