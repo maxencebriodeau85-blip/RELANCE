@@ -19,7 +19,11 @@ import { Zap, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react'
 
 function LoginForm() {
   const searchParams = useSearchParams()
-  const redirectTo = searchParams.get('redirectedFrom') || '/dashboard'
+  // Validate redirect target: must be an internal path (starts with / but not //)
+  // to prevent open redirect attacks via ?redirectedFrom=https://evil.com
+  const rawRedirect = searchParams.get('redirectedFrom') ?? ''
+  const redirectTo =
+    rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') ? rawRedirect : '/dashboard'
 
   const [error, setError] = useState<string | null>(searchParams.get('error'))
   const [loading, setLoading] = useState(false)

@@ -4,6 +4,14 @@ import { getEmailTemplate, type EmailTemplateData } from '@/lib/email-templates'
 import { getDaysOverdue } from '@/lib/metrics'
 import type { ReminderType, Invoice, Profile } from '@/lib/database.types'
 
+// Strip characters that could abuse the email From: header (header injection).
+function sanitizeFromName(name: string): string {
+  return name
+    .replace(/[\r\n<>"]/g, '')
+    .trim()
+    .substring(0, 100) || 'RelanceFlow'
+}
+
 export async function POST(
   request: Request,
   { params }: { params: { id: string } }
@@ -21,6 +29,7 @@ export async function POST(
     const body = await request.json()
     const reminderType: ReminderType = body.type || 'email_1'
 
+    // RLS ensures the invoice belongs to the authenticated user.
     const { data: invoiceData, error: invError } = await supabase
       .from('invoices')
       .select('*')
@@ -38,6 +47,24 @@ export async function POST(
       return NextResponse.json({ error: 'Cette facture est déjà payée' }, { status: 400 })
     }
 
+    // Rate-limit: one reminder of the same type per invoice per 24 hours.
+    const cooldownStart = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    const { data: recentReminder } = await supabase
+      .from('reminders')
+      .select('id')
+      .eq('invoice_id', inv.id)
+      .eq('type', reminderType)
+      .eq('status', 'sent')
+      .gte('created_at', cooldownStart)
+      .maybeSingle()
+
+    if (recentReminder) {
+      return NextResponse.json(
+        { error: 'Un email de ce type a déjà été envoyé pour cette facture dans les dernières 24h.' },
+        { status: 429 }
+      )
+    }
+
     const { data: profileData } = await supabase
       .from('profiles')
       .select('*')
@@ -45,6 +72,17 @@ export async function POST(
       .single()
 
     const profile = profileData as unknown as Profile | null
+
+    // Check trial expiration
+    if (profile?.plan === 'free_trial' && profile?.trial_ends_at) {
+      if (new Date(profile.trial_ends_at) < new Date()) {
+        return NextResponse.json(
+          { error: "Votre période d'essai est expirée. Passez à un plan payant pour continuer." },
+          { status: 403 }
+        )
+      }
+    }
+
     const daysOverdue = getDaysOverdue(inv)
 
     const templateData: EmailTemplateData = {
@@ -63,13 +101,17 @@ export async function POST(
     let resendId: string | null = null
     let sendStatus: 'sent' | 'failed' = 'sent'
 
-    if (process.env.RESEND_API_KEY) {
+    if (process.env.RESEND_API_KEY && !process.env.RESEND_API_KEY.includes('placeholder')) {
       try {
         const { Resend } = await import('resend')
         const resend = new Resend(process.env.RESEND_API_KEY)
 
+        // Sanitize company name to prevent email header injection.
+        const fromName = sanitizeFromName(profile?.company_name || 'RelanceFlow')
+        const fromEmail = process.env.RESEND_FROM_EMAIL || 'relances@relanceflow.fr'
+
         const { data: emailData, error: emailError } = await resend.emails.send({
-          from: `${profile?.company_name || 'RelanceFlow'} <${process.env.RESEND_FROM_EMAIL || 'relances@relanceflow.fr'}>`,
+          from: `${fromName} <${fromEmail}>`,
           to: [inv.client_email],
           subject: emailContent.subject,
           html: emailContent.html,
@@ -93,7 +135,7 @@ export async function POST(
       }
     }
 
-    const { error: reminderError } = await supabase.from('reminders').insert({
+    await supabase.from('reminders').insert({
       invoice_id: inv.id,
       user_id: user.id,
       type: reminderType,
@@ -103,10 +145,6 @@ export async function POST(
       status: sendStatus,
       resend_id: resendId,
     } as never)
-
-    if (reminderError) {
-      console.error('Reminder insert error:', reminderError)
-    }
 
     const newStatus = reminderType === 'formal_notice' ? 'formal_notice' : 'reminded'
 
