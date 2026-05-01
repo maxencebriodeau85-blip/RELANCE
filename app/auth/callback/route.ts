@@ -16,7 +16,7 @@ function makeClient(
         getAll() {
           return request.cookies.getAll()
         },
-        setAll(cookies) {
+        setAll(cookies: { name: string; value: string; options: CookieOptions }[]) {
           collector.push(...cookies)
         },
       },
