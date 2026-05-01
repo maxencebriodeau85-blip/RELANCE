@@ -3,15 +3,31 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { supabaseAuthError } from '@/lib/auth-errors'
 
 export async function POST(request: NextRequest) {
-  const body = await request.json()
-  const { email, password, redirectTo } = body as {
-    email: string
-    password: string
-    redirectTo?: string
+  // Accept both JSON (legacy) and form-encoded (native form submit)
+  const contentType = request.headers.get('content-type') ?? ''
+  let email: string
+  let password: string
+  let redirectTo: string
+
+  if (contentType.includes('application/json')) {
+    const body = await request.json()
+    email = (body.email as string)?.trim()
+    password = body.password as string
+    redirectTo = (body.redirectTo as string) || '/dashboard'
+  } else {
+    const form = await request.formData()
+    email = ((form.get('email') as string) ?? '').trim()
+    password = (form.get('password') as string) ?? ''
+    redirectTo = (form.get('redirectTo') as string) || '/dashboard'
+  }
+
+  // Prevent open redirect
+  if (!redirectTo.startsWith('/') || redirectTo.startsWith('//')) {
+    redirectTo = '/dashboard'
   }
 
   if (!email || !password) {
-    return NextResponse.json({ error: 'Veuillez remplir tous les champs.' }, { status: 400 })
+    return loginError(request, 'Veuillez remplir tous les champs.', redirectTo)
   }
 
   const cookiesToSet: { name: string; value: string; options: CookieOptions }[] = []
@@ -34,12 +50,21 @@ export async function POST(request: NextRequest) {
   const { error } = await supabase.auth.signInWithPassword({ email, password })
 
   if (error) {
-    const msg = supabaseAuthError(error.message, error.status)
-    const httpStatus = error.status === 429 ? 429 : 401
-    return NextResponse.json({ error: msg }, { status: httpStatus })
+    return loginError(request, supabaseAuthError(error.message, error.status), redirectTo)
   }
 
-  const response = NextResponse.json({ success: true, redirectTo: redirectTo || '/dashboard' })
+  // Return a 303 redirect with the session cookies explicitly attached.
+  // The browser is guaranteed by the HTTP spec to process Set-Cookie headers
+  // before following the redirect, so the next request to /dashboard will
+  // carry a valid session and the middleware will let it through.
+  const response = NextResponse.redirect(new URL(redirectTo, request.url), { status: 303 })
   cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
   return response
+}
+
+function loginError(request: NextRequest, message: string, redirectTo: string) {
+  const url = new URL('/auth/login', request.url)
+  url.searchParams.set('error', message)
+  if (redirectTo !== '/dashboard') url.searchParams.set('redirectedFrom', redirectTo)
+  return NextResponse.redirect(url, { status: 303 })
 }

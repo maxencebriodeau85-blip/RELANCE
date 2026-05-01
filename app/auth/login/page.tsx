@@ -35,29 +35,28 @@ function LoginForm() {
     setLoading(true)
 
     const formData = new FormData(e.currentTarget)
+    formData.set('redirectTo', redirectTo)
 
     try {
+      // The Route Handler returns a 303 redirect.
+      // fetch follows it automatically; the browser commits the Set-Cookie
+      // headers from the 303 response before we read res.url.
       const res = await fetch('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: formData.get('email'),
-          password: formData.get('password'),
-          redirectTo,
-        }),
+        body: formData,
       })
 
-      const data = await res.json()
+      const finalUrl = new URL(res.url)
+      const errorParam = finalUrl.searchParams.get('error')
 
-      if (!res.ok || data.error) {
-        setError(data.error || 'Une erreur est survenue.')
+      if (errorParam) {
+        setError(errorParam)
         setLoading(false)
         return
       }
 
-      // Cookies are set via Set-Cookie on the fetch response.
-      // A full navigation ensures the browser sends them on the next request.
-      window.location.href = data.redirectTo || '/dashboard'
+      // Cookies are already in the browser jar — full navigation sends them.
+      window.location.href = finalUrl.pathname || '/dashboard'
     } catch {
       setError('Une erreur est survenue. Veuillez réessayer.')
       setLoading(false)
