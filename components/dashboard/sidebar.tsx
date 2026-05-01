@@ -13,6 +13,7 @@ import {
   Zap,
   Clock,
   HelpCircle,
+  ChevronRight,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -61,8 +62,7 @@ export function Sidebar() {
   const handleSignOut = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
-    router.push('/auth/login')
-    router.refresh()
+    window.location.href = '/auth/login'
   }
 
   const initials = (profile?.company_name || email || '?')
@@ -79,20 +79,20 @@ export function Sidebar() {
       : null
 
   return (
-    <aside className="flex h-full w-64 flex-col border-r bg-white">
+    <aside className="flex h-full w-60 flex-col border-r bg-white">
       {/* Logo */}
       <Link
         href="/dashboard"
-        className="flex h-16 items-center gap-2 border-b px-6 hover:bg-gray-50 transition-colors"
+        className="flex h-14 items-center gap-2.5 border-b px-5 hover:bg-gray-50 transition-colors flex-shrink-0"
       >
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
-          <Zap className="h-5 w-5 text-white" />
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 flex-shrink-0">
+          <Zap className="h-4 w-4 text-white" />
         </div>
-        <span className="text-lg font-bold text-gray-900">RelanceFlow</span>
+        <span className="text-base font-bold text-gray-900 tracking-tight">RelanceFlow</span>
       </Link>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
+      <nav className="flex-1 px-2 py-3 overflow-y-auto space-y-0.5">
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive =
@@ -105,10 +105,10 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
               )}
             >
               <Icon className="h-4 w-4 flex-shrink-0" />
@@ -120,51 +120,52 @@ export function Sidebar() {
 
       {/* Trial banner */}
       {trialDaysLeft !== null && (
-        <div className="mx-3 mb-3 rounded-lg border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-3">
-          <div className="flex items-center gap-2 mb-2">
-            <Clock className="h-4 w-4 text-blue-600 flex-shrink-0" />
-            <p className="text-xs font-semibold text-blue-900">
-              Essai gratuit · {trialDaysLeft}j restant{trialDaysLeft > 1 ? 's' : ''}
+        <div className="mx-2 mb-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <div className="flex items-center gap-1.5 mb-2">
+            <Clock className="h-3.5 w-3.5 text-amber-600 flex-shrink-0" />
+            <p className="text-xs font-semibold text-amber-900">
+              Essai · {trialDaysLeft}j restant{trialDaysLeft > 1 ? 's' : ''}
             </p>
           </div>
           <Link
             href="/dashboard/settings"
-            className="block w-full text-center rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-1.5 transition-colors"
+            className="flex items-center justify-between rounded-md bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium px-2.5 py-1.5 transition-colors"
           >
             Choisir un plan
+            <ChevronRight className="h-3 w-3" />
           </Link>
         </div>
       )}
 
-      {/* Help link */}
+      {/* Help */}
       <Link
         href="/support"
-        className="mx-3 mb-2 flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+        className="mx-2 mb-1 flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
       >
-        <HelpCircle className="h-4 w-4" />
+        <HelpCircle className="h-3.5 w-3.5" />
         Aide & support
       </Link>
 
-      {/* User section */}
-      <div className="border-t p-3">
-        <div className="flex items-center gap-3 px-2 py-2 rounded-lg">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-sm font-semibold flex-shrink-0">
+      {/* User */}
+      <div className="border-t p-2">
+        <div className="flex items-center gap-2.5 rounded-lg px-2 py-2">
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-white text-xs font-bold">
             {initials || '?'}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium text-gray-900 truncate">
+            <div className="text-xs font-semibold text-gray-900 truncate">
               {profile?.company_name || 'Mon entreprise'}
             </div>
-            <div className="text-xs text-gray-500 truncate">
-              {PLAN_LABELS[profile?.plan || 'free_trial']} · {email || '...'}
+            <div className="text-xs text-gray-400 truncate">
+              {PLAN_LABELS[profile?.plan || 'free_trial']}
             </div>
           </div>
         </div>
         <button
           onClick={handleSignOut}
-          className="mt-1 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-700 transition-colors"
+          className="mt-0.5 flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors"
         >
-          <LogOut className="h-4 w-4" />
+          <LogOut className="h-3.5 w-3.5" />
           Se déconnecter
         </button>
       </div>
