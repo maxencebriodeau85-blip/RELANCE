@@ -4,6 +4,8 @@ import type { EmailOtpType } from '@supabase/supabase-js'
 
 // Creates a Supabase client that collects cookie mutations into an array
 // so they can be explicitly attached to any response object.
+// Provides both the v0.5.0+ (getAll/setAll) and v0.3.x (get/set/remove) APIs
+// so the code works regardless of which minor version is installed.
 function makeClient(
   request: NextRequest,
   collector: { name: string; value: string; options: CookieOptions }[]
@@ -13,11 +15,22 @@ function makeClient(
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
+        // v0.5.0+ API
         getAll() {
           return request.cookies.getAll()
         },
-        setAll(cookies: { name: string; value: string; options: CookieOptions }[]) {
-          collector.push(...cookies)
+        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
+          collector.push(...cookiesToSet)
+        },
+        // v0.3.0 API
+        get(name: string) {
+          return request.cookies.get(name)?.value
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          collector.push({ name, value, options })
+        },
+        remove(name: string, options: CookieOptions) {
+          collector.push({ name, value: '', options })
         },
       },
     }
