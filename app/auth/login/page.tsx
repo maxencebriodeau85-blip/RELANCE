@@ -16,26 +16,49 @@ import {
 } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Zap, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import { supabaseAuthError } from '@/lib/auth-errors'
 
 function LoginForm() {
   const searchParams = useSearchParams()
-  // Validate redirect target: must be an internal path (starts with / but not //)
-  // to prevent open redirect attacks via ?redirectedFrom=https://evil.com
   const rawRedirect = searchParams.get('redirectedFrom') ?? ''
   const redirectTo =
     rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') ? rawRedirect : '/dashboard'
 
-  const error = searchParams.get('error')
+  const [error, setError] = useState<string | null>(searchParams.get('error'))
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [rememberMe, setRememberMe] = useState(true)
 
-  function handleSubmit() {
-    // Do NOT call e.preventDefault() — the browser submits the form natively.
-    // The Route Handler returns a 303 + Set-Cookie; the browser processes the
-    // cookie headers before following the redirect, so /dashboard gets the session.
-    // Errors redirect back to /auth/login?error=... which re-renders this page.
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setError(null)
     setLoading(true)
+
+    const form = new FormData(e.currentTarget)
+    const email = (form.get('email') as string)?.trim()
+    const password = form.get('password') as string
+
+    try {
+      const supabase = createClient()
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (signInError) {
+        setError(supabaseAuthError(signInError.message, signInError.status))
+        setLoading(false)
+        return
+      }
+
+      // createBrowserClient writes the session to document.cookie synchronously.
+      // window.location.href triggers a full HTTP navigation that includes those
+      // cookies — no timing gap, no race condition.
+      window.location.href = redirectTo
+    } catch {
+      setError('Une erreur est survenue. Veuillez réessayer.')
+      setLoading(false)
+    }
   }
 
   return (
@@ -47,14 +70,7 @@ function LoginForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form
-          action="/api/auth/login"
-          method="POST"
-          onSubmit={handleSubmit}
-          className="space-y-4"
-        >
-          <input type="hidden" name="redirectTo" value={redirectTo} />
-
+        <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <Alert variant="destructive" className="py-3">
               <AlertCircle className="h-4 w-4" />
@@ -112,21 +128,16 @@ function LoginForm() {
             </div>
           </div>
 
-          {/* Remember me */}
-          <div className="flex items-center justify-between">
-            <label className="flex items-center gap-2 cursor-pointer select-none group">
-              <input
-                type="checkbox"
-                name="rememberMe"
-                defaultChecked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 accent-blue-600"
-              />
-              <span className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
-                Se souvenir de moi
-              </span>
-            </label>
-          </div>
+          <label className="flex items-center gap-2 cursor-pointer select-none group">
+            <input
+              type="checkbox"
+              defaultChecked
+              className="h-4 w-4 rounded border-gray-300 accent-blue-600"
+            />
+            <span className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
+              Se souvenir de moi
+            </span>
+          </label>
 
           <Button type="submit" className="w-full h-11 text-base" disabled={loading}>
             {loading ? (
