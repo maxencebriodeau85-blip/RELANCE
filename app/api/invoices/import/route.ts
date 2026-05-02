@@ -2,6 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import type { ParsedInvoice } from '@/lib/csv-parser'
 import type { Profile } from '@/lib/database.types'
+import { PLAN_LIMITS } from '@/lib/metrics'
+
+const MAX_BATCH_SIZE = 500 // hard cap per request, regardless of plan
 
 export async function POST(request: Request) {
   try {
@@ -21,6 +24,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Aucune facture à importer' }, { status: 400 })
     }
 
+    if (invoices.length > MAX_BATCH_SIZE) {
+      return NextResponse.json(
+        { error: `Maximum ${MAX_BATCH_SIZE} factures par import.` },
+        { status: 400 }
+      )
+    }
+
     const { data: profileData } = await supabase
       .from('profiles')
       .select('*')
@@ -29,14 +39,17 @@ export async function POST(request: Request) {
 
     const profile = profileData as unknown as Profile | null
 
-    const planLimits: Record<string, number> = {
-      free_trial: 10,
-      starter: 30,
-      pro: 200,
-      business: 1000,
+    // Check trial expiration
+    if (profile?.plan === 'free_trial' && profile?.trial_ends_at) {
+      if (new Date(profile.trial_ends_at) < new Date()) {
+        return NextResponse.json(
+          { error: "Votre période d'essai est expirée. Passez à un plan payant pour continuer." },
+          { status: 403 }
+        )
+      }
     }
 
-    const limit = planLimits[profile?.plan || 'free_trial']
+    const limit = PLAN_LIMITS[profile?.plan ?? 'free_trial'] ?? PLAN_LIMITS.free_trial
     const currentCount = profile?.invoice_count_month || 0
 
     if (currentCount + invoices.length > limit) {

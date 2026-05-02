@@ -1,3 +1,14 @@
+// Escape user-controlled strings before inserting into HTML to prevent XSS.
+// Email clients render HTML, so any unescaped data is a live attack surface.
+function escapeHtml(s: string): string {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 export interface EmailTemplateData {
   creditorName: string
   creditorEmail: string
@@ -22,6 +33,7 @@ function formatDate(dateString: string): string {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
+    timeZone: 'UTC',
   }).format(date)
 }
 
@@ -44,20 +56,25 @@ export function getEmailCordial(data: EmailTemplateData): {
   const { creditorName, clientName, invoiceNumber, amount, dueDate } = data
   const subject = EMAIL_SUBJECTS.email_cordial(invoiceNumber)
 
+  // Escape all user-controlled values
+  const eName = escapeHtml(creditorName)
+  const eClient = escapeHtml(clientName)
+  const eInvoice = escapeHtml(invoiceNumber)
+
   const html = `<!DOCTYPE html>
 <html lang="fr">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="border-bottom: 2px solid #3B82F6; padding-bottom: 16px; margin-bottom: 24px;">
-    <h2 style="color: #1E40AF; margin: 0;">${creditorName}</h2>
+    <h2 style="color: #1E40AF; margin: 0;">${eName}</h2>
   </div>
 
-  <p>Bonjour ${clientName},</p>
+  <p>Bonjour ${eClient},</p>
 
   <p>Nous espérons que vous allez bien. Nous nous permettons de vous contacter concernant la facture référencée ci-dessous, dont l'échéance est passée.</p>
 
   <div style="background: #F0F9FF; border-left: 4px solid #3B82F6; padding: 16px; margin: 24px 0; border-radius: 4px;">
-    <p style="margin: 4px 0;"><strong>Facture n° :</strong> ${invoiceNumber}</p>
+    <p style="margin: 4px 0;"><strong>Facture n° :</strong> ${eInvoice}</p>
     <p style="margin: 4px 0;"><strong>Montant TTC :</strong> ${formatEuro(amount)}</p>
     <p style="margin: 4px 0;"><strong>Date d'échéance :</strong> ${formatDate(dueDate)}</p>
   </div>
@@ -68,10 +85,10 @@ export function getEmailCordial(data: EmailTemplateData): {
 
   <p>Nous restons disponibles pour tout renseignement complémentaire.</p>
 
-  <p>Cordialement,<br><strong>${creditorName}</strong></p>
+  <p>Cordialement,<br><strong>${eName}</strong></p>
 
   <div style="border-top: 1px solid #E5E7EB; padding-top: 16px; margin-top: 24px; font-size: 12px; color: #9CA3AF;">
-    <p>Ce message est généré automatiquement par RelanceFlow. Pour toute question, contactez directement ${creditorName}.</p>
+    <p>Ce message est généré automatiquement par RelanceFlow. Pour toute question, contactez directement ${eName}.</p>
   </div>
 </body>
 </html>`
@@ -104,21 +121,25 @@ export function getEmailFerme(data: EmailTemplateData): {
   const { creditorName, clientName, invoiceNumber, amount, dueDate, daysOverdue } = data
   const subject = EMAIL_SUBJECTS.email_ferme(invoiceNumber)
 
+  const eName = escapeHtml(creditorName)
+  const eClient = escapeHtml(clientName)
+  const eInvoice = escapeHtml(invoiceNumber)
+
   const html = `<!DOCTYPE html>
 <html lang="fr">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="border-bottom: 2px solid #F59E0B; padding-bottom: 16px; margin-bottom: 24px;">
-    <h2 style="color: #92400E; margin: 0;">${creditorName}</h2>
+    <h2 style="color: #92400E; margin: 0;">${eName}</h2>
     <p style="color: #D97706; margin: 4px 0; font-size: 14px;">RELANCE – Facture impayée</p>
   </div>
 
-  <p>Bonjour ${clientName},</p>
+  <p>Bonjour ${eClient},</p>
 
   <p>Sauf erreur ou omission de notre part, nous n'avons pas encore reçu le paiement de la facture suivante, dont l'échéance est dépassée depuis <strong>${daysOverdue} jour(s)</strong>.</p>
 
   <div style="background: #FFFBEB; border-left: 4px solid #F59E0B; padding: 16px; margin: 24px 0; border-radius: 4px;">
-    <p style="margin: 4px 0;"><strong>Facture n° :</strong> ${invoiceNumber}</p>
+    <p style="margin: 4px 0;"><strong>Facture n° :</strong> ${eInvoice}</p>
     <p style="margin: 4px 0;"><strong>Montant TTC :</strong> <span style="color: #DC2626; font-size: 18px; font-weight: bold;">${formatEuro(amount)}</span></p>
     <p style="margin: 4px 0;"><strong>Échéance :</strong> ${formatDate(dueDate)}</p>
     <p style="margin: 4px 0;"><strong>Jours de retard :</strong> ${daysOverdue} jour(s)</p>
@@ -132,7 +153,7 @@ export function getEmailFerme(data: EmailTemplateData): {
 
   <p>Dans le cas contraire, nous serons dans l'obligation de prendre les mesures nécessaires pour recouvrer cette créance.</p>
 
-  <p>Cordialement,<br><strong>${creditorName}</strong></p>
+  <p>Cordialement,<br><strong>${eName}</strong></p>
 
   <div style="border-top: 1px solid #E5E7EB; padding-top: 16px; margin-top: 24px; font-size: 12px; color: #9CA3AF;">
     <p>Ce message est généré automatiquement par RelanceFlow.</p>
@@ -169,21 +190,25 @@ export function getEmailPrecontentieux(data: EmailTemplateData): {
   const { creditorName, clientName, invoiceNumber, amount, dueDate, daysOverdue } = data
   const subject = EMAIL_SUBJECTS.email_precontentieux(invoiceNumber)
 
+  const eName = escapeHtml(creditorName)
+  const eClient = escapeHtml(clientName)
+  const eInvoice = escapeHtml(invoiceNumber)
+
   const html = `<!DOCTYPE html>
 <html lang="fr">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: #FEF2F2; border: 2px solid #DC2626; padding: 16px; margin-bottom: 24px; border-radius: 8px;">
-    <h2 style="color: #991B1B; margin: 0;">⚠️ DERNIER AVERTISSEMENT AVANT MISE EN DEMEURE</h2>
-    <p style="color: #DC2626; margin: 4px 0; font-weight: bold;">${creditorName}</p>
+    <h2 style="color: #991B1B; margin: 0;">&#9888;&#65039; DERNIER AVERTISSEMENT AVANT MISE EN DEMEURE</h2>
+    <p style="color: #DC2626; margin: 4px 0; font-weight: bold;">${eName}</p>
   </div>
 
-  <p>Bonjour ${clientName},</p>
+  <p>Bonjour ${eClient},</p>
 
   <p>Malgré nos relances précédentes, nous n'avons toujours pas reçu le règlement de la facture suivante, en souffrance depuis <strong>${daysOverdue} jours</strong>.</p>
 
   <div style="background: #FEF2F2; border-left: 4px solid #DC2626; padding: 16px; margin: 24px 0; border-radius: 4px;">
-    <p style="margin: 4px 0;"><strong>Facture n° :</strong> ${invoiceNumber}</p>
+    <p style="margin: 4px 0;"><strong>Facture n° :</strong> ${eInvoice}</p>
     <p style="margin: 4px 0;"><strong>Montant principal :</strong> <span style="color: #DC2626; font-size: 20px; font-weight: bold;">${formatEuro(amount)}</span></p>
     <p style="margin: 4px 0;"><strong>Échéance initiale :</strong> ${formatDate(dueDate)}</p>
     <p style="margin: 4px 0;"><strong>Retard :</strong> ${daysOverdue} jours</p>
@@ -200,7 +225,7 @@ export function getEmailPrecontentieux(data: EmailTemplateData): {
 
   <p>Pour tout règlement ou accord de paiement, contactez-nous immédiatement.</p>
 
-  <p>Le Service Comptabilité,<br><strong>${creditorName}</strong></p>
+  <p>Le Service Comptabilité,<br><strong>${eName}</strong></p>
 
   <div style="border-top: 1px solid #E5E7EB; padding-top: 16px; margin-top: 24px; font-size: 12px; color: #9CA3AF;">
     <p>Références légales : Art. L441-10 à L441-12 du Code de commerce. Ce courrier électronique constitue une mise en garde formelle.</p>

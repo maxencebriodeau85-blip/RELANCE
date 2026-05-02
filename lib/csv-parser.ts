@@ -142,6 +142,7 @@ function parseAmount(amountStr: string): number | null {
 
   const num = parseFloat(cleaned)
   if (isNaN(num) || num < 0) return null
+  if (num > 10_000_000) return null // 10 M€ hard cap — catches data entry errors
   return Math.round(num * 100) / 100
 }
 

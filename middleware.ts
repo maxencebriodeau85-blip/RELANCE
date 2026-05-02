@@ -9,6 +9,7 @@ export async function middleware(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
+        // v0.5.0+ API
         getAll() {
           return request.cookies.getAll()
         },
@@ -18,6 +19,20 @@ export async function middleware(request: NextRequest) {
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           )
+        },
+        // v0.3.0 API — used internally by @supabase/ssr ≤ 0.4.x
+        get(name: string) {
+          return request.cookies.get(name)?.value
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          request.cookies.set(name, value)
+          supabaseResponse = NextResponse.next({ request })
+          supabaseResponse.cookies.set(name, value, options)
+        },
+        remove(name: string, options: CookieOptions) {
+          request.cookies.set(name, '')
+          supabaseResponse = NextResponse.next({ request })
+          supabaseResponse.cookies.set(name, '', options)
         },
       },
     }
@@ -42,7 +57,12 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  if (user && (pathname === '/auth/login' || pathname === '/auth/register' || pathname === '/auth/forgot-password')) {
+  if (
+    user &&
+    (pathname === '/auth/login' ||
+      pathname === '/auth/register' ||
+      pathname === '/auth/forgot-password')
+  ) {
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = '/dashboard'
     return NextResponse.redirect(redirectUrl)

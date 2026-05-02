@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -10,13 +10,42 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createClient } from '@/lib/supabase/client'
 import { Zap, Eye, EyeOff, AlertCircle } from 'lucide-react'
 
+type Mode = 'loading' | 'form' | 'error'
+
 export default function ResetPasswordPage() {
-  const router = useRouter()
+  const [mode, setMode] = useState<Mode>('loading')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  // Keep a stable reference — createClient() is a singleton on the browser
+  const supabase = useRef(createClient()).current
+
+  useEffect(() => {
+    // Fast path: user already has a valid session (came via /auth/callback PKCE)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setMode('form')
+    })
+
+    // Slow path: Supabase reads the URL hash (#access_token=…&type=recovery)
+    // and fires PASSWORD_RECOVERY — this is the implicit / magic-link flow.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
+        setMode('form')
+      }
+    })
+
+    // If neither path resolves in 6 s, the link is expired / invalid.
+    const timer = setTimeout(() => {
+      setMode((prev) => (prev === 'loading' ? 'error' : prev))
+    }, 6000)
+
+    return () => {
+      subscription.unsubscribe()
+      clearTimeout(timer)
+    }
+  }, [supabase])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,29 +55,55 @@ export default function ResetPasswordPage() {
       setError('Le mot de passe doit contenir au moins 8 caractères.')
       return
     }
-
     if (password !== confirmPassword) {
       setError('Les mots de passe ne correspondent pas.')
       return
     }
 
     setLoading(true)
-
-    try {
-      const supabase = createClient()
-      const { error: updateError } = await supabase.auth.updateUser({ password })
-
-      if (updateError) {
-        setError(updateError.message)
-        return
-      }
-
-      window.location.href = '/dashboard'
-    } catch {
-      setError('Une erreur inattendue est survenue. Réessayez.')
-    } finally {
+    const { error: updateError } = await supabase.auth.updateUser({ password })
+    if (updateError) {
+      setError(updateError.message)
       setLoading(false)
+    } else {
+      window.location.href = '/dashboard'
     }
+  }
+
+  if (mode === 'loading') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="text-center space-y-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent mx-auto" />
+          <p className="text-sm text-gray-500">Vérification du lien…</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (mode === 'error') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <Card>
+            <CardContent className="pt-8 pb-8 text-center space-y-4">
+              <div className="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center mx-auto">
+                <AlertCircle className="h-8 w-8 text-red-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold">Lien expiré ou invalide</h2>
+                <p className="text-gray-500 mt-2 text-sm">
+                  Ce lien de réinitialisation n&apos;est plus valide. Les liens expirent après 1 heure.
+                </p>
+              </div>
+              <Button asChild className="w-full">
+                <Link href="/auth/forgot-password">Demander un nouveau lien</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -117,7 +172,7 @@ export default function ResetPasswordPage() {
               </div>
 
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Enregistrement...' : 'Enregistrer le nouveau mot de passe'}
+                {loading ? 'Enregistrement…' : 'Enregistrer le nouveau mot de passe'}
               </Button>
             </form>
           </CardContent>

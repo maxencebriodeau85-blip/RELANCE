@@ -1,6 +1,9 @@
 'use server'
 
+import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
+import { supabaseAuthError } from '@/lib/auth-errors'
 
 export type RegisterState = {
   error?: string
@@ -29,23 +32,36 @@ export async function registerAction(
     return { error: 'Les mots de passe ne correspondent pas.' }
   }
 
-  const supabase = await createClient()
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://relance-teal.vercel.app'
+  // Build the callback URL from the actual request host, not a hardcoded env var.
+  // This works both in dev (localhost) and in any production deployment.
+  const headersList = await headers()
+  const host = headersList.get('host') ?? 'localhost:3000'
+  const proto = headersList.get('x-forwarded-proto') ?? 'http'
+  const appUrl = `${proto}://${host}`
 
-  const { error } = await supabase.auth.signUp({
+  const supabase = await createClient()
+
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: { company_name: companyName },
-      emailRedirectTo: `${appUrl}/auth/callback`,
+      // /auth/confirm is a client page that handles all three token formats:
+      // PKCE (?code=), OTP (?token_hash=&type=), and implicit (#access_token=).
+      // The implicit format puts tokens in the URL hash which never reaches the
+      // server — only a client page can read window.location.hash.
+      emailRedirectTo: `${appUrl}/auth/confirm`,
     },
   })
 
   if (error) {
-    if (error.message.includes('already registered') || error.message.includes('already been registered')) {
-      return { error: 'Un compte existe déjà avec cet email. Connectez-vous.' }
-    }
-    return { error: error.message }
+    return { error: supabaseAuthError(error.message, error.status) }
+  }
+
+  // When Supabase has email confirmation disabled, signUp returns a session
+  // immediately — redirect straight to the dashboard.
+  if (data.session) {
+    redirect('/dashboard')
   }
 
   return { success: true, email }

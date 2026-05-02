@@ -34,17 +34,32 @@ export async function POST(request: Request) {
         const customerId = session.customer as string
         const subscriptionId = session.subscription as string
 
-        if (!userId) break
+        if (!userId || !subscriptionId) break
 
+        // Verify the subscription exists in Stripe before trusting it
         const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+
+        // Verify the customer from Stripe matches the session customer
+        if (subscription.customer !== customerId) {
+          console.error('Stripe customer mismatch in webhook')
+          break
+        }
+
         const priceId = subscription.items.data[0]?.price.id
         const plan = getPlanFromPriceId(priceId) || 'starter'
 
-        await supabase
+        // Only update the specific user — userId comes from Stripe session metadata
+        // which was set server-side when creating the checkout session.
+        const { error } = await supabase
           .from('profiles')
-          .update({ stripe_customer_id: customerId, stripe_subscription_id: subscriptionId, plan } as never)
+          .update({
+            stripe_customer_id: customerId,
+            stripe_subscription_id: subscriptionId,
+            plan,
+          } as never)
           .eq('id', userId)
 
+        if (error) console.error('checkout.session.completed update error:', error)
         break
       }
 
@@ -54,19 +69,13 @@ export async function POST(request: Request) {
         const priceId = subscription.items.data[0]?.price.id
         const plan = getPlanFromPriceId(priceId) || 'starter'
 
-        const { data: profiles } = await supabase
+        // Single UPDATE by stripe_customer_id — no N+1 loop
+        const { error } = await supabase
           .from('profiles')
-          .select('id')
+          .update({ plan, stripe_subscription_id: subscription.id } as never)
           .eq('stripe_customer_id', customerId)
 
-        if (profiles) {
-          for (const profile of profiles as unknown as { id: string }[]) {
-            await supabase
-              .from('profiles')
-              .update({ plan, stripe_subscription_id: subscription.id } as never)
-              .eq('id', profile.id)
-          }
-        }
+        if (error) console.error('subscription.updated error:', error)
         break
       }
 
@@ -74,30 +83,23 @@ export async function POST(request: Request) {
         const subscription = event.data.object as Stripe.Subscription
         const customerId = subscription.customer as string
 
-        const { data: profiles } = await supabase
+        const { error } = await supabase
           .from('profiles')
-          .select('id')
+          .update({ plan: 'free_trial', stripe_subscription_id: null } as never)
           .eq('stripe_customer_id', customerId)
 
-        if (profiles) {
-          for (const profile of profiles as unknown as { id: string }[]) {
-            await supabase
-              .from('profiles')
-              .update({ plan: 'free_trial', stripe_subscription_id: null } as never)
-              .eq('id', profile.id)
-          }
-        }
+        if (error) console.error('subscription.deleted error:', error)
         break
       }
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice
-        console.log(`Payment failed for customer ${invoice.customer}`)
+        console.warn(`Payment failed for Stripe customer ${invoice.customer}`)
         break
       }
 
       default:
-        console.log(`Unhandled event type: ${event.type}`)
+        console.log(`Unhandled Stripe event: ${event.type}`)
     }
   } catch (err) {
     console.error('Webhook handler error:', err)

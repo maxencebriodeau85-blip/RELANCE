@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createClient } from '@/lib/supabase/client'
+import { supabaseAuthError } from '@/lib/auth-errors'
 import { Zap, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react'
 
 export default function ForgotPasswordPage() {
@@ -25,11 +26,11 @@ export default function ForgotPasswordPage() {
       const supabase = createClient()
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${appUrl}/auth/callback?next=/auth/reset-password`,
+        redirectTo: `${appUrl}/auth/reset-password`,
       })
 
       if (resetError) {
-        setError(resetError.message)
+        setError(supabaseAuthError(resetError.message, resetError.status))
         return
       }
 
