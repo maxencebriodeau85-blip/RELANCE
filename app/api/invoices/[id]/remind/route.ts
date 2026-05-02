@@ -85,6 +85,10 @@ export async function POST(
 
     const daysOverdue = getDaysOverdue(inv)
 
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://relanceflow.fr'
+    const paymentToken = (inv as any).payment_token as string | null
+    const paymentUrl = paymentToken ? `${appUrl}/pay/${paymentToken}` : undefined
+
     const templateData: EmailTemplateData = {
       creditorName: profile?.company_name || 'Mon Entreprise',
       creditorEmail: profile?.email || user.email || '',
@@ -94,6 +98,7 @@ export async function POST(
       dueDate: inv.due_date,
       daysOverdue,
       invoiceId: inv.id,
+      paymentUrl,
     }
 
     const emailContent = getEmailTemplate(reminderType, templateData)

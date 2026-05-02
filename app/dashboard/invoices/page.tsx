@@ -1,181 +1,88 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Header } from '@/components/dashboard/header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
 import { StatusBadge } from '@/components/invoices/status-badge'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatEuro, formatDate, getDaysOverdue } from '@/lib/metrics'
-import { Plus, Upload, Search, ChevronLeft, ChevronRight, Eye, Send, FileText, FilterX } from 'lucide-react'
+import {
+  Plus, Upload, Search, ChevronLeft, ChevronRight, Eye, Send,
+  FileText, FilterX, Download, CheckSquare, Trash2, CheckCircle,
+  X, Square,
+} from 'lucide-react'
 import Link from 'next/link'
 import type { Invoice } from '@/lib/database.types'
 import { createClient } from '@/lib/supabase/client'
-
-const MOCK_INVOICES: Invoice[] = [
-  {
-    id: '1',
-    user_id: 'user1',
-    client_name: 'Acme Corp SARL',
-    client_email: 'compta@acme.fr',
-    client_address: '15 rue de la Paix, 75001 Paris',
-    client_siren: '123456789',
-    invoice_number: 'FA-2024-001',
-    amount: 4500,
-    due_date: '2024-01-15',
-    issued_date: '2023-12-15',
-    status: 'reminded',
-    notes: null,
-    created_at: '2023-12-15T10:00:00Z',
-    updated_at: '2024-01-22T10:00:00Z',
-  },
-  {
-    id: '2',
-    user_id: 'user1',
-    client_name: 'TechStart SAS',
-    client_email: 'finance@techstart.fr',
-    client_address: '8 avenue des Entrepreneurs, 69003 Lyon',
-    client_siren: '987654321',
-    invoice_number: 'FA-2024-002',
-    amount: 12800,
-    due_date: '2024-01-30',
-    issued_date: '2023-12-30',
-    status: 'formal_notice',
-    notes: null,
-    created_at: '2023-12-30T10:00:00Z',
-    updated_at: '2024-02-15T10:00:00Z',
-  },
-  {
-    id: '3',
-    user_id: 'user1',
-    client_name: 'Dupont & Fils',
-    client_email: 'dupont@dupont-fils.com',
-    client_address: '22 rue du Commerce, 33000 Bordeaux',
-    client_siren: '456789123',
-    invoice_number: 'FA-2024-003',
-    amount: 2300,
-    due_date: '2024-02-28',
-    issued_date: '2024-01-28',
-    status: 'paid',
-    notes: null,
-    created_at: '2024-01-28T10:00:00Z',
-    updated_at: '2024-03-01T10:00:00Z',
-  },
-  {
-    id: '4',
-    user_id: 'user1',
-    client_name: 'Martin Solutions',
-    client_email: 'contact@martin-solutions.fr',
-    client_address: '5 boulevard Haussmann, 75009 Paris',
-    client_siren: null,
-    invoice_number: 'FA-2024-004',
-    amount: 6750,
-    due_date: '2024-03-15',
-    issued_date: '2024-02-15',
-    status: 'pending',
-    notes: null,
-    created_at: '2024-02-15T10:00:00Z',
-    updated_at: '2024-02-15T10:00:00Z',
-  },
-  {
-    id: '5',
-    user_id: 'user1',
-    client_name: 'Innovatech',
-    client_email: 'billing@innovatech.io',
-    client_address: '3 impasse du Digital, 31000 Toulouse',
-    client_siren: '321654987',
-    invoice_number: 'FA-2024-005',
-    amount: 9200,
-    due_date: '2024-02-01',
-    issued_date: '2024-01-01',
-    status: 'disputed',
-    notes: 'Client conteste la prestation du 15/01',
-    created_at: '2024-01-01T10:00:00Z',
-    updated_at: '2024-02-10T10:00:00Z',
-  },
-  {
-    id: '6',
-    user_id: 'user1',
-    client_name: 'Rénov Pro',
-    client_email: 'contact@renovpro.fr',
-    client_address: null,
-    client_siren: null,
-    invoice_number: 'FA-2024-006',
-    amount: 3400,
-    due_date: '2024-03-01',
-    issued_date: '2024-02-01',
-    status: 'pending',
-    notes: null,
-    created_at: '2024-02-01T10:00:00Z',
-    updated_at: '2024-02-01T10:00:00Z',
-  },
-]
+import { useToast } from '@/hooks/use-toast'
 
 const PAGE_SIZE = 10
 
+function exportToCSV(invoices: Invoice[]) {
+  const headers = ['N° Facture', 'Client', 'Email', 'Montant (€)', 'Échéance', 'Statut', 'Jours de retard']
+  const rows = invoices.map((inv) => [
+    inv.invoice_number,
+    inv.client_name,
+    inv.client_email,
+    inv.amount.toFixed(2).replace('.', ','),
+    inv.due_date,
+    inv.status,
+    getDaysOverdue(inv),
+  ])
+  const csv = [headers, ...rows]
+    .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(';'))
+    .join('\n')
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `factures-${new Date().toISOString().split('T')[0]}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 export default function InvoicesPage() {
+  const { toast } = useToast()
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
-  const [usingDemo, setUsingDemo] = useState(false)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [bulkLoading, setBulkLoading] = useState(false)
 
-  useEffect(() => {
-    const loadInvoices = async () => {
-      setLoading(true)
-      try {
-        const supabase = createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          const { data } = await supabase
-            .from('invoices')
-            .select('*')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false })
-          if (data && data.length > 0) {
-            setInvoices(data as Invoice[])
-            setUsingDemo(false)
-          } else {
-            setInvoices([])
-            setUsingDemo(false)
-          }
-        } else {
-          setInvoices(MOCK_INVOICES)
-          setUsingDemo(true)
-        }
-      } catch {
-        setInvoices(MOCK_INVOICES)
-        setUsingDemo(true)
-      } finally {
-        setLoading(false)
-      }
+  const loadInvoices = useCallback(async () => {
+    setLoading(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data } = await supabase
+        .from('invoices').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
+      setInvoices((data as Invoice[]) ?? [])
+    } catch {
+      setInvoices([])
+    } finally {
+      setLoading(false)
     }
-    loadInvoices()
   }, [])
 
+  useEffect(() => { loadInvoices() }, [loadInvoices])
+
   const filtered = invoices.filter((inv) => {
-    const matchSearch =
-      search === '' ||
-      inv.client_name.toLowerCase().includes(search.toLowerCase()) ||
-      inv.invoice_number.toLowerCase().includes(search.toLowerCase()) ||
-      inv.client_email.toLowerCase().includes(search.toLowerCase())
+    const q = search.toLowerCase()
+    const matchSearch = !search ||
+      inv.client_name.toLowerCase().includes(q) ||
+      inv.invoice_number.toLowerCase().includes(q) ||
+      inv.client_email.toLowerCase().includes(q)
     const matchStatus = statusFilter === 'all' || inv.status === statusFilter
     return matchSearch && matchStatus
   })
@@ -183,57 +90,142 @@ export default function InvoicesPage() {
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  const allPageSelected = paginated.length > 0 && paginated.every((inv) => selected.has(inv.id))
+
+  const toggleSelectAll = () => {
+    if (allPageSelected) {
+      setSelected((prev) => {
+        const next = new Set(prev)
+        paginated.forEach((inv) => next.delete(inv.id))
+        return next
+      })
+    } else {
+      setSelected((prev) => {
+        const next = new Set(prev)
+        paginated.forEach((inv) => next.add(inv.id))
+        return next
+      })
+    }
+  }
+
+  const clearSelection = () => setSelected(new Set())
+
+  const bulkMarkPaid = async () => {
+    setBulkLoading(true)
+    try {
+      const supabase = createClient()
+      await supabase.from('invoices').update({ status: 'paid' } as never).in('id', Array.from(selected))
+      await loadInvoices()
+      const n = selected.size
+      clearSelection()
+      toast({ title: `${n} facture${n > 1 ? 's' : ''} marquée${n > 1 ? 's' : ''} payée${n > 1 ? 's' : ''}` })
+    } catch {
+      toast({ title: 'Erreur', variant: 'destructive' })
+    } finally {
+      setBulkLoading(false)
+    }
+  }
+
+  const bulkSendReminder = async () => {
+    setBulkLoading(true)
+    let sent = 0
+    try {
+      for (const id of Array.from(selected)) {
+        const inv = invoices.find((i) => i.id === id)
+        if (!inv || inv.status === 'paid' || inv.status === 'disputed') continue
+        const res = await fetch(`/api/invoices/${id}/remind`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'email_1' }),
+        })
+        if (res.ok) sent++
+      }
+      await loadInvoices()
+      clearSelection()
+      toast({ title: `${sent} relance${sent > 1 ? 's' : ''} envoyée${sent > 1 ? 's' : ''}` })
+    } catch {
+      toast({ title: 'Erreur', variant: 'destructive' })
+    } finally {
+      setBulkLoading(false)
+    }
+  }
+
+  const bulkDelete = async () => {
+    const n = selected.size
+    if (!confirm(`Supprimer ${n} facture${n > 1 ? 's' : ''} ? Cette action est irréversible.`)) return
+    setBulkLoading(true)
+    try {
+      const supabase = createClient()
+      await supabase.from('invoices').delete().in('id', Array.from(selected))
+      await loadInvoices()
+      clearSelection()
+      toast({ title: `${n} facture${n > 1 ? 's' : ''} supprimée${n > 1 ? 's' : ''}` })
+    } catch {
+      toast({ title: 'Erreur', variant: 'destructive' })
+    } finally {
+      setBulkLoading(false)
+    }
+  }
+
+  const totalAmount = filtered.reduce((s, inv) => s + inv.amount, 0)
+
   return (
     <div>
       <Header
         title="Factures"
-        description={`${filtered.length} facture(s) au total`}
+        description={`${filtered.length} facture${filtered.length !== 1 ? 's' : ''} · ${formatEuro(totalAmount)}`}
         actions={
           <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => exportToCSV(filtered)}>
+              <Download className="mr-2 h-4 w-4" />Exporter
+            </Button>
             <Button variant="outline" size="sm" asChild>
-              <Link href="/dashboard/invoices/import">
-                <Upload className="mr-2 h-4 w-4" />
-                Importer CSV
-              </Link>
+              <Link href="/dashboard/invoices/import"><Upload className="mr-2 h-4 w-4" />Importer</Link>
             </Button>
             <Button size="sm" asChild>
-              <Link href="/dashboard/invoices/new">
-                <Plus className="mr-2 h-4 w-4" />
-                Nouvelle facture
-              </Link>
+              <Link href="/dashboard/invoices/new"><Plus className="mr-2 h-4 w-4" />Nouvelle facture</Link>
             </Button>
           </div>
         }
       />
 
       <div className="p-6 space-y-4">
-        {usingDemo && (
-          <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
-            <span className="font-semibold">Mode démo</span>
-            <span className="text-blue-700">— les factures affichées sont fictives. Connectez-vous pour gérer vos vraies factures.</span>
+        {/* Summary chips */}
+        {!loading && invoices.length > 0 && (
+          <div className="flex gap-2 flex-wrap">
+            {[
+              { label: 'Total créances', value: formatEuro(invoices.reduce((s, i) => s + i.amount, 0)), cls: 'bg-blue-50 text-blue-700 border-blue-100' },
+              { label: 'En retard', value: `${invoices.filter(i => getDaysOverdue(i) > 0 && i.status !== 'paid' && i.status !== 'disputed').length}`, cls: 'bg-red-50 text-red-700 border-red-100' },
+              { label: 'Payées', value: `${invoices.filter(i => i.status === 'paid').length}`, cls: 'bg-green-50 text-green-700 border-green-100' },
+            ].map((chip) => (
+              <div key={chip.label} className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold ${chip.cls}`}>
+                <span className="opacity-70 font-normal">{chip.label}</span>
+                <span>{chip.value}</span>
+              </div>
+            ))}
           </div>
         )}
+
         {/* Filters */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Rechercher par client ou n° facture..."
+              placeholder="Client, n° facture, email…"
               value={search}
-              onChange={(e) => {
-                setSearch(e.target.value)
-                setPage(1)
-              }}
+              onChange={(e) => { setSearch(e.target.value); setPage(1) }}
               className="pl-9"
             />
           </div>
-          <Select
-            value={statusFilter}
-            onValueChange={(val) => {
-              setStatusFilter(val)
-              setPage(1)
-            }}
-          >
+          <Select value={statusFilter} onValueChange={(val) => { setStatusFilter(val); setPage(1) }}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="Tous les statuts" />
             </SelectTrigger>
@@ -248,11 +240,44 @@ export default function InvoicesPage() {
           </Select>
         </div>
 
+        {/* Bulk action bar */}
+        {selected.size > 0 && (
+          <div className="flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5">
+            <span className="text-sm font-semibold text-blue-900">
+              {selected.size} sélectionnée{selected.size > 1 ? 's' : ''}
+            </span>
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" onClick={bulkMarkPaid} disabled={bulkLoading} className="h-7 text-xs">
+                <CheckCircle className="mr-1.5 h-3.5 w-3.5 text-green-600" />Marquer payé
+              </Button>
+              <Button size="sm" variant="outline" onClick={bulkSendReminder} disabled={bulkLoading} className="h-7 text-xs">
+                <Send className="mr-1.5 h-3.5 w-3.5 text-blue-600" />Relancer
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => exportToCSV(invoices.filter(i => selected.has(i.id)))} className="h-7 text-xs">
+                <Download className="mr-1.5 h-3.5 w-3.5" />Exporter
+              </Button>
+              <Button size="sm" variant="outline" onClick={bulkDelete} disabled={bulkLoading} className="h-7 text-xs text-red-600 hover:text-red-700 hover:border-red-300">
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" />Supprimer
+              </Button>
+            </div>
+            <button onClick={clearSelection} className="ml-auto text-blue-400 hover:text-blue-600 transition-colors">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
         {/* Table */}
         <div className="rounded-lg border bg-white overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50">
+                <TableHead className="w-10 pl-4">
+                  <button onClick={toggleSelectAll} className="flex items-center justify-center" aria-label="Tout sélectionner">
+                    {allPageSelected
+                      ? <CheckSquare className="h-4 w-4 text-blue-600" />
+                      : <Square className="h-4 w-4 text-gray-400" />}
+                  </button>
+                </TableHead>
                 <TableHead>Client</TableHead>
                 <TableHead>N° Facture</TableHead>
                 <TableHead className="text-right">Montant</TableHead>
@@ -265,7 +290,8 @@ export default function InvoicesPage() {
             <TableBody>
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={`skeleton-${i}`}>
+                  <TableRow key={i}>
+                    <TableCell><Skeleton className="h-4 w-4 ml-1" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-40" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell className="text-right"><Skeleton className="h-4 w-20 ml-auto" /></TableCell>
@@ -277,48 +303,25 @@ export default function InvoicesPage() {
                 ))
               ) : paginated.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="p-0">
+                  <TableCell colSpan={8} className="p-0">
                     {invoices.length === 0 ? (
                       <EmptyState
                         icon={FileText}
-                        title="Aucune facture pour le moment"
-                        description="Importez vos factures depuis votre logiciel de facturation ou créez-en une manuellement pour commencer à automatiser vos relances."
+                        title="Aucune facture"
+                        description="Importez depuis votre logiciel ou créez manuellement."
                         action={
                           <>
-                            <Button asChild>
-                              <Link href="/dashboard/invoices/import">
-                                <Upload className="mr-2 h-4 w-4" />
-                                Importer un CSV
-                              </Link>
-                            </Button>
-                            <Button variant="outline" asChild>
-                              <Link href="/dashboard/invoices/new">
-                                <Plus className="mr-2 h-4 w-4" />
-                                Créer manuellement
-                              </Link>
-                            </Button>
+                            <Button asChild><Link href="/dashboard/invoices/import"><Upload className="mr-2 h-4 w-4" />Importer CSV</Link></Button>
+                            <Button variant="outline" asChild><Link href="/dashboard/invoices/new"><Plus className="mr-2 h-4 w-4" />Créer</Link></Button>
                           </>
                         }
                       />
                     ) : (
                       <EmptyState
-                        icon={FilterX}
-                        iconColor="text-gray-400"
-                        iconBg="bg-gray-100"
+                        icon={FilterX} iconColor="text-gray-400" iconBg="bg-gray-100"
                         title="Aucun résultat"
-                        description={`Aucune facture ne correspond ${search ? `à "${search}"` : ''}${search && statusFilter !== 'all' ? ' avec ' : ''}${statusFilter !== 'all' ? 'ce statut' : ''}. Essayez d'élargir vos filtres.`}
-                        action={
-                          <Button
-                            variant="outline"
-                            onClick={() => {
-                              setSearch('')
-                              setStatusFilter('all')
-                              setPage(1)
-                            }}
-                          >
-                            Réinitialiser les filtres
-                          </Button>
-                        }
+                        description="Aucune facture ne correspond à vos filtres."
+                        action={<Button variant="outline" onClick={() => { setSearch(''); setStatusFilter('all'); setPage(1) }}>Réinitialiser</Button>}
                       />
                     )}
                   </TableCell>
@@ -326,43 +329,41 @@ export default function InvoicesPage() {
               ) : (
                 paginated.map((invoice) => {
                   const daysOverdue = getDaysOverdue(invoice)
+                  const isSelected = selected.has(invoice.id)
                   return (
-                    <TableRow key={invoice.id} className="hover:bg-gray-50">
+                    <TableRow key={invoice.id} className={`hover:bg-gray-50 transition-colors ${isSelected ? 'bg-blue-50/60' : ''}`}>
+                      <TableCell className="pl-4">
+                        <button onClick={() => toggleSelect(invoice.id)} aria-label="Sélectionner">
+                          {isSelected
+                            ? <CheckSquare className="h-4 w-4 text-blue-600" />
+                            : <Square className="h-4 w-4 text-gray-300 hover:text-gray-500" />}
+                        </button>
+                      </TableCell>
                       <TableCell>
-                        <div>
-                          <div className="font-medium text-sm">{invoice.client_name}</div>
-                          <div className="text-xs text-gray-400">{invoice.client_email}</div>
-                        </div>
+                        <div className="font-medium text-sm">{invoice.client_name}</div>
+                        <div className="text-xs text-gray-400">{invoice.client_email}</div>
                       </TableCell>
-                      <TableCell className="font-mono text-sm">{invoice.invoice_number}</TableCell>
-                      <TableCell className="text-right font-semibold">
-                        {formatEuro(invoice.amount)}
-                      </TableCell>
-                      <TableCell className="text-sm">{formatDate(invoice.due_date)}</TableCell>
+                      <TableCell className="font-mono text-sm text-gray-600">{invoice.invoice_number}</TableCell>
+                      <TableCell className="text-right font-semibold text-sm">{formatEuro(invoice.amount)}</TableCell>
+                      <TableCell className="text-sm text-gray-600">{formatDate(invoice.due_date)}</TableCell>
                       <TableCell>
                         {daysOverdue > 0 ? (
-                          <span className="text-sm font-medium text-red-600">
+                          <span className={`text-sm font-semibold ${daysOverdue > 60 ? 'text-red-600' : daysOverdue > 30 ? 'text-orange-500' : 'text-amber-600'}`}>
                             {daysOverdue}j
                           </span>
                         ) : (
                           <span className="text-sm text-gray-400">–</span>
                         )}
                       </TableCell>
-                      <TableCell>
-                        <StatusBadge status={invoice.status} />
-                      </TableCell>
+                      <TableCell><StatusBadge status={invoice.status} /></TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
-                          <Button variant="ghost" size="icon" asChild>
-                            <Link href={`/dashboard/invoices/${invoice.id}`}>
-                              <Eye className="h-4 w-4" />
-                            </Link>
+                          <Button variant="ghost" size="icon" asChild className="h-8 w-8">
+                            <Link href={`/dashboard/invoices/${invoice.id}`}><Eye className="h-4 w-4" /></Link>
                           </Button>
                           {invoice.status !== 'paid' && invoice.status !== 'disputed' && (
-                            <Button variant="ghost" size="icon" asChild>
-                              <Link href={`/dashboard/invoices/${invoice.id}?action=remind`}>
-                                <Send className="h-4 w-4" />
-                              </Link>
+                            <Button variant="ghost" size="icon" asChild className="h-8 w-8">
+                              <Link href={`/dashboard/invoices/${invoice.id}?action=remind`}><Send className="h-4 w-4" /></Link>
                             </Button>
                           )}
                         </div>
@@ -379,24 +380,13 @@ export default function InvoicesPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-500">
-              {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} sur{' '}
-              {filtered.length}
+              {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} sur {filtered.length}
             </p>
             <div className="flex gap-1">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-              >
+              <Button variant="outline" size="icon" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-              >
+              <Button variant="outline" size="icon" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>

@@ -14,6 +14,7 @@ import {
   Clock,
   HelpCircle,
   ChevronRight,
+  BarChart3,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -24,6 +25,7 @@ const navItems = [
   { href: '/dashboard/invoices', label: 'Factures', icon: FileText },
   { href: '/dashboard/scenarios', label: 'Scénarios', icon: Bell },
   { href: '/dashboard/mise-en-demeure', label: 'Mise en demeure', icon: AlertTriangle },
+  { href: '/dashboard/stats', label: 'Statistiques', icon: BarChart3 },
   { href: '/dashboard/settings', label: 'Paramètres', icon: Settings },
 ]
 

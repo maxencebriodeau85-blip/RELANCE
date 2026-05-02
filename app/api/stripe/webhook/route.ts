@@ -30,16 +30,26 @@ export async function POST(request: Request) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
+
+        // ── Case A: debtor paying an invoice directly ──────────────────────
+        const invoiceId = session.metadata?.invoice_id
+        if (invoiceId && session.mode === 'payment') {
+          const { error } = await supabase
+            .from('invoices')
+            .update({ status: 'paid' } as never)
+            .eq('id', invoiceId)
+          if (error) console.error('invoice payment update error:', error)
+          break
+        }
+
+        // ── Case B: user subscribing to a plan ────────────────────────────
         const userId = session.metadata?.userId
         const customerId = session.customer as string
         const subscriptionId = session.subscription as string
 
         if (!userId || !subscriptionId) break
 
-        // Verify the subscription exists in Stripe before trusting it
         const subscription = await stripe.subscriptions.retrieve(subscriptionId)
-
-        // Verify the customer from Stripe matches the session customer
         if (subscription.customer !== customerId) {
           console.error('Stripe customer mismatch in webhook')
           break
@@ -48,8 +58,6 @@ export async function POST(request: Request) {
         const priceId = subscription.items.data[0]?.price.id
         const plan = getPlanFromPriceId(priceId) || 'starter'
 
-        // Only update the specific user — userId comes from Stripe session metadata
-        // which was set server-side when creating the checkout session.
         const { error } = await supabase
           .from('profiles')
           .update({

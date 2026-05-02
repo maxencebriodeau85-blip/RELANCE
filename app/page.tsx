@@ -28,7 +28,7 @@ const stats = [
   { value: '+34%', label: 'de créances récupérées' },
   { value: '52j → 28j', label: 'DSO moyen ramené' },
   { value: '3h', label: 'économisées / semaine' },
-  { value: '98%', label: "taux d'ouverture SMS" },
+  { value: '1 clic', label: 'mise en demeure légale' },
 ]
 
 const painPoints = [
@@ -60,12 +60,12 @@ const features = [
     badge: null,
   },
   {
-    icon: Smartphone,
-    title: 'SMS & courrier recommandé',
+    icon: Euro,
+    title: 'Paiement en ligne intégré',
     description:
-      'Relancez par SMS (98% d\'ouverture) ou par courrier recommandé automatisé. Trois canaux, un seul outil, zéro effort.',
-    color: 'bg-purple-100 text-purple-600',
-    badge: 'Bientôt',
+      'Chaque email de relance contient un bouton "Payer maintenant" sécurisé (Stripe). Votre client règle en 30 secondes, sans friction. La facture est marquée payée automatiquement.',
+    color: 'bg-emerald-100 text-emerald-600',
+    badge: null,
   },
   {
     icon: Plug,
