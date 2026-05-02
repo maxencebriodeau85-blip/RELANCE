@@ -46,7 +46,11 @@ export async function registerAction(
     password,
     options: {
       data: { company_name: companyName },
-      emailRedirectTo: `${appUrl}/auth/callback`,
+      // /auth/confirm is a client page that handles all three token formats:
+      // PKCE (?code=), OTP (?token_hash=&type=), and implicit (#access_token=).
+      // The implicit format puts tokens in the URL hash which never reaches the
+      // server — only a client page can read window.location.hash.
+      emailRedirectTo: `${appUrl}/auth/confirm`,
     },
   })
 

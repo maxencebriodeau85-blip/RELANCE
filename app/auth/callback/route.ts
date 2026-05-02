@@ -59,5 +59,9 @@ export async function GET(request: NextRequest) {
     )
   }
 
-  return NextResponse.redirect(`${origin}/auth/login?error=missing_token`)
+  // No recognisable token — the link may use the implicit flow where Supabase
+  // puts tokens in the URL hash (#access_token=…). The hash is never sent to
+  // the server so we forward to the client-side /auth/confirm page which can
+  // read window.location.hash and call setSession() directly.
+  return NextResponse.redirect(`${origin}/auth/confirm`)
 }
