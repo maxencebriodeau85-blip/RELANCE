@@ -106,6 +106,8 @@ export default async function DashboardPage() {
 
   const hasInvoices = invoices.length > 0
   const companyName = profile?.company_name ?? null
+  const profileComplete = !!(profile?.company_name && profile?.siren)
+  const onboardingDone = [true, profileComplete].filter(Boolean).length // step 1 always actionable
 
   const todayLabel = today.toLocaleDateString('fr-FR', {
     weekday: 'long',
@@ -186,7 +188,9 @@ export default async function DashboardPage() {
                 <h3 className="font-semibold text-gray-900">Démarrage — 3 étapes</h3>
                 <p className="text-xs text-gray-500 mt-0.5">Complétez ces étapes pour activer votre recouvrement automatique</p>
               </div>
-              <span className="text-xs font-medium text-gray-400 bg-gray-100 rounded-full px-3 py-1">0 / 3</span>
+              <span className={`text-xs font-medium rounded-full px-3 py-1 ${onboardingDone >= 2 ? 'bg-green-100 text-green-700' : 'text-gray-400 bg-gray-100'}`}>
+                {onboardingDone} / 3
+              </span>
             </div>
             <div className="divide-y">
               {[
@@ -197,25 +201,28 @@ export default async function DashboardPage() {
                   desc: 'Glissez-déposez un CSV depuis votre logiciel (Sage, Ciel, QuickBooks, FreshBooks…) ou saisissez manuellement.',
                   href: '/dashboard/invoices/import',
                   cta: 'Importer maintenant',
+                  done: false,
                   active: true,
                 },
                 {
                   n: 2,
                   icon: Bell,
                   title: 'Choisissez votre scénario de relance',
-                  desc: 'Cordial (J+7), Ferme (J+15/J+30) ou Pré-contentieux (J+45/J+60 + mise en demeure). Chaque étape est automatique.',
+                  desc: 'Cordial (J+7), Ferme (J+15/J+30) ou Pré-contentieux (J+45). Chaque étape est automatique.',
                   href: '/dashboard/scenarios',
                   cta: 'Voir les scénarios',
+                  done: false,
                   active: false,
                 },
                 {
                   n: 3,
                   icon: FileText,
                   title: 'Complétez votre profil entreprise',
-                  desc: 'Raison sociale, SIREN, adresse — ces informations figurent dans vos mises en demeure et emails de relance.',
+                  desc: 'Raison sociale et SIREN figurent dans vos mises en demeure et emails de relance.',
                   href: '/dashboard/settings',
-                  cta: 'Configurer',
-                  active: false,
+                  cta: profileComplete ? 'Profil complet ✓' : 'Configurer',
+                  done: profileComplete,
+                  active: !profileComplete,
                 },
               ].map((step) => {
                 const Icon = step.icon
@@ -227,27 +234,29 @@ export default async function DashboardPage() {
                   >
                     <div
                       className={`mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold ${
-                        step.active
+                        step.done
+                          ? 'bg-green-100 text-green-600'
+                          : step.active
                           ? 'bg-blue-600 text-white'
                           : 'bg-gray-100 text-gray-400'
                       }`}
                     >
-                      {step.n}
+                      {step.done ? <CheckCircle className="h-4 w-4" /> : step.n}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <Icon className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                        <span className={`text-sm font-semibold ${step.active ? 'text-blue-700' : 'text-gray-700'}`}>
+                        <span className={`text-sm font-semibold ${step.done ? 'text-green-700 line-through opacity-60' : step.active ? 'text-blue-700' : 'text-gray-700'}`}>
                           {step.title}
                         </span>
                       </div>
                       <p className="text-xs text-gray-500 mt-1">{step.desc}</p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0 mt-0.5">
-                      <span className={`text-xs font-medium ${step.active ? 'text-blue-600' : 'text-gray-400'}`}>
+                      <span className={`text-xs font-medium ${step.done ? 'text-green-600' : step.active ? 'text-blue-600' : 'text-gray-400'}`}>
                         {step.cta}
                       </span>
-                      <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-blue-500 transition-colors" />
+                      {!step.done && <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-blue-500 transition-colors" />}
                     </div>
                   </Link>
                 )
