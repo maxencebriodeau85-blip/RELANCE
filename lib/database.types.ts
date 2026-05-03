@@ -20,6 +20,11 @@ export type Database = {
           stripe_subscription_id: string | null
           invoice_count_month: number
           trial_ends_at: string | null
+          auto_reminders: boolean
+          address: string | null
+          postal_code: string | null
+          city: string | null
+          phone: string | null
           created_at: string
           updated_at: string
         }
@@ -33,6 +38,11 @@ export type Database = {
           stripe_subscription_id?: string | null
           invoice_count_month?: number
           trial_ends_at?: string | null
+          auto_reminders?: boolean
+          address?: string | null
+          postal_code?: string | null
+          city?: string | null
+          phone?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -46,6 +56,11 @@ export type Database = {
           stripe_subscription_id?: string | null
           invoice_count_month?: number
           trial_ends_at?: string | null
+          auto_reminders?: boolean
+          address?: string | null
+          postal_code?: string | null
+          city?: string | null
+          phone?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -65,6 +80,7 @@ export type Database = {
           issued_date: string
           status: 'pending' | 'reminded' | 'formal_notice' | 'paid' | 'disputed'
           notes: string | null
+          payment_token: string | null
           created_at: string
           updated_at: string
         }
@@ -81,6 +97,7 @@ export type Database = {
           issued_date?: string
           status?: 'pending' | 'reminded' | 'formal_notice' | 'paid' | 'disputed'
           notes?: string | null
+          payment_token?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -97,6 +114,7 @@ export type Database = {
           issued_date?: string
           status?: 'pending' | 'reminded' | 'formal_notice' | 'paid' | 'disputed'
           notes?: string | null
+          payment_token?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -204,18 +222,10 @@ export type Database = {
         Relationships: []
       }
     }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+    Views: { [_ in never]: never }
+    Functions: { [_ in never]: never }
+    Enums: { [_ in never]: never }
+    CompositeTypes: { [_ in never]: never }
   }
 }
 

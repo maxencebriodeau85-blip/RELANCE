@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
@@ -17,6 +16,12 @@ import {
   Save,
   CheckCircle,
   Clock,
+  Bell,
+  BellOff,
+  Shield,
+  Zap,
+  Star,
+  Rocket,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Profile } from '@/lib/database.types'
@@ -29,29 +34,64 @@ const PLAN_LABELS: Record<string, string> = {
 }
 
 const PLAN_COLORS: Record<string, string> = {
-  free_trial: 'bg-gray-100 text-gray-700',
-  starter: 'bg-blue-100 text-blue-700',
-  pro: 'bg-purple-100 text-purple-700',
-  business: 'bg-yellow-100 text-yellow-700',
+  free_trial: 'bg-gray-100 text-gray-700 border-gray-200',
+  starter: 'bg-blue-100 text-blue-700 border-blue-200',
+  pro: 'bg-purple-100 text-purple-700 border-purple-200',
+  business: 'bg-amber-100 text-amber-700 border-amber-200',
 }
+
+const PLANS = [
+  {
+    id: 'starter',
+    name: 'Starter',
+    price: '19',
+    limit: '30 factures/mois',
+    features: ['Relances automatiques', 'Templates emails', 'Tableau de bord'],
+    icon: Zap,
+    color: 'text-blue-600',
+    border: 'border-blue-200 hover:border-blue-400',
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    price: '49',
+    limit: '200 factures/mois',
+    features: ['Tout Starter +', 'Mise en demeure légale', 'Paiement en ligne', 'Statistiques avancées'],
+    icon: Star,
+    color: 'text-purple-600',
+    border: 'border-purple-200 hover:border-purple-400',
+    recommended: true,
+  },
+  {
+    id: 'business',
+    name: 'Business',
+    price: '99',
+    limit: '1000 factures/mois',
+    features: ['Tout Pro +', 'API & webhooks', 'Export comptable', 'Support prioritaire'],
+    icon: Rocket,
+    color: 'text-amber-600',
+    border: 'border-amber-200 hover:border-amber-400',
+  },
+]
 
 export default function SettingsPage() {
   const { toast } = useToast()
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [userEmail, setUserEmail] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [savingNotif, setSavingNotif] = useState(false)
 
   const [form, setForm] = useState({
     company_name: '',
     siren: '',
-    email: '',
+    address: '',
+    postal_code: '',
+    city: '',
+    phone: '',
   })
 
-  const [emailConfig, setEmailConfig] = useState({
-    senderName: '',
-    replyTo: '',
-  })
-  const [savingEmail, setSavingEmail] = useState(false)
+  const [autoReminders, setAutoReminders] = useState(true)
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -59,31 +99,25 @@ export default function SettingsPage() {
       try {
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          const { data } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single()
+        if (!user) return
+        setUserEmail(user.email || '')
 
-          if (data) {
-            setProfile(data as Profile)
-            setForm({
-              company_name: data.company_name || '',
-              siren: data.siren || '',
-              email: data.email || user.email || '',
-            })
-            // Load email config from localStorage
-            const saved = localStorage.getItem('relanceflow_email_config')
-            if (saved) {
-              setEmailConfig(JSON.parse(saved))
-            } else {
-              setEmailConfig({ senderName: data.company_name || '', replyTo: data.email || user.email || '' })
-            }
-          }
+        const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+        if (data) {
+          const p = data as Profile
+          setProfile(p)
+          setForm({
+            company_name: p.company_name || '',
+            siren: p.siren || '',
+            address: (p as any).address || '',
+            postal_code: (p as any).postal_code || '',
+            city: (p as any).city || '',
+            phone: (p as any).phone || '',
+          })
+          setAutoReminders((p as any).auto_reminders ?? true)
         }
       } catch {
-        // use empty form
+        // silent
       } finally {
         setLoading(false)
       }
@@ -96,43 +130,50 @@ export default function SettingsPage() {
     try {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Non authentifié')
 
-      if (user) {
-        const { error } = await supabase
-          .from('profiles')
-          .update({
-            company_name: form.company_name,
-            siren: form.siren,
-          })
-          .eq('id', user.id)
+      const { error } = await supabase.from('profiles').update({
+        company_name: form.company_name || null,
+        siren: form.siren || null,
+        address: form.address || null,
+        postal_code: form.postal_code || null,
+        city: form.city || null,
+        phone: form.phone || null,
+      } as never).eq('id', user.id)
 
-        if (error) throw error
-      }
+      if (error) throw error
 
-      toast({
-        title: 'Paramètres sauvegardés',
-        description: 'Vos informations ont été mises à jour avec succès.',
-      })
+      toast({ title: 'Profil sauvegardé', description: 'Vos informations ont été mises à jour.' })
     } catch {
-      toast({
-        title: 'Paramètres sauvegardés',
-        description: 'Vos informations ont été mises à jour.',
-      })
+      toast({ title: 'Erreur', description: 'Impossible de sauvegarder.', variant: 'destructive' })
     } finally {
       setSaving(false)
     }
   }
 
-  const handleSaveEmailConfig = async () => {
-    setSavingEmail(true)
+  const handleSaveNotifications = async () => {
+    setSavingNotif(true)
     try {
-      localStorage.setItem('relanceflow_email_config', JSON.stringify(emailConfig))
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Non authentifié')
+
+      const { error } = await supabase.from('profiles').update({
+        auto_reminders: autoReminders,
+      } as never).eq('id', user.id)
+
+      if (error) throw error
+
       toast({
-        title: 'Configuration email sauvegardée',
-        description: 'Vos préférences d\'envoi ont été enregistrées.',
+        title: autoReminders ? 'Relances automatiques activées' : 'Relances automatiques désactivées',
+        description: autoReminders
+          ? 'RelanceFlow enverra les relances selon votre scénario actif.'
+          : 'Les relances automatiques sont suspendues. Vous pouvez les envoyer manuellement.',
       })
+    } catch {
+      toast({ title: 'Erreur', description: 'Impossible de sauvegarder.', variant: 'destructive' })
     } finally {
-      setSavingEmail(false)
+      setSavingNotif(false)
     }
   }
 
@@ -140,109 +181,126 @@ export default function SettingsPage() {
     if (!profile?.stripe_customer_id) {
       toast({
         title: 'Portail de facturation',
-        description: 'Abonnez-vous d\'abord à un plan pour accéder au portail de facturation.',
+        description: "Abonnez-vous d'abord à un plan payant.",
         variant: 'destructive',
       })
       return
     }
-
     try {
-      const response = await fetch('/api/stripe/portal', {
+      const res = await fetch('/api/stripe/portal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customerId: profile.stripe_customer_id,
-          returnUrl: window.location.href,
-        }),
+        body: JSON.stringify({ customerId: profile.stripe_customer_id, returnUrl: window.location.href }),
       })
-      const data = await response.json()
+      const data = await res.json()
       if (data.url) window.location.href = data.url
     } catch {
-      toast({ title: 'Erreur', description: 'Impossible d\'accéder au portail', variant: 'destructive' })
+      toast({ title: 'Erreur', description: "Impossible d'accéder au portail.", variant: 'destructive' })
     }
   }
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-gray-500">Chargement...</div>
+      <div className="flex h-full items-center justify-center text-sm text-gray-400">
+        Chargement des paramètres…
       </div>
     )
   }
 
   const currentPlan = profile?.plan || 'free_trial'
   const trialEndsAt = profile?.trial_ends_at
-  const isOnTrial = currentPlan === 'free_trial' && trialEndsAt
+  const isOnTrial = currentPlan === 'free_trial' && !!trialEndsAt
+  const trialDaysLeft = isOnTrial
+    ? Math.max(0, Math.ceil((new Date(trialEndsAt!).getTime() - Date.now()) / 86400000))
+    : null
 
   return (
     <div>
-      <Header title="Paramètres" description="Gérez votre compte et votre abonnement" />
+      <Header title="Paramètres" description="Gérez votre compte, abonnement et notifications" />
 
       <div className="p-6 space-y-6 max-w-2xl">
-        {/* Plan info */}
+        {/* Trial banner */}
+        {isOnTrial && (
+          <Alert className="border-amber-200 bg-amber-50">
+            <Clock className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="text-amber-800">
+              <strong>Essai gratuit</strong> — il vous reste{' '}
+              <strong>{trialDaysLeft} jour{trialDaysLeft !== 1 ? 's' : ''}</strong>. Passez à un plan
+              payant pour ne pas interrompre vos relances.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Current plan */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-base">Abonnement actuel</CardTitle>
-                <CardDescription>Votre plan et ses limites</CardDescription>
+                <CardTitle className="text-base">Abonnement</CardTitle>
+                <CardDescription>Gérez votre plan et votre facturation</CardDescription>
               </div>
-              <span
-                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                  PLAN_COLORS[currentPlan]
-                }`}
-              >
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold border ${PLAN_COLORS[currentPlan]}`}>
                 {PLAN_LABELS[currentPlan]}
               </span>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {isOnTrial && (
-              <Alert>
-                <Clock className="h-4 w-4" />
-                <AlertDescription>
-                  Votre période d&apos;essai gratuit se termine le{' '}
-                  <strong>
-                    {new Date(trialEndsAt!).toLocaleDateString('fr-FR', {
-                      day: '2-digit',
-                      month: 'long',
-                      year: 'numeric',
-                    })}
-                  </strong>
-                  . Passez à un plan payant pour continuer à utiliser RelanceFlow.
-                </AlertDescription>
-              </Alert>
-            )}
-
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { name: 'Starter', price: '19 €/mois', limit: '30 factures' },
-                { name: 'Pro', price: '49 €/mois', limit: '200 factures' },
-                { name: 'Business', price: '99 €/mois', limit: '1000 factures' },
-              ].map((plan) => (
-                <div
-                  key={plan.name}
-                  className="rounded-lg border p-3 text-center hover:border-blue-300 cursor-pointer transition-colors"
-                >
-                  <div className="font-semibold text-sm">{plan.name}</div>
-                  <div className="text-lg font-bold text-blue-600 mt-1">{plan.price}</div>
-                  <div className="text-xs text-gray-500 mt-1">{plan.limit}</div>
-                </div>
-              ))}
+            {/* Plan cards */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {PLANS.map((plan) => {
+                const Icon = plan.icon
+                const isCurrent = currentPlan === plan.id
+                return (
+                  <div
+                    key={plan.id}
+                    className={`relative rounded-xl border-2 p-4 transition-all ${plan.border} ${isCurrent ? 'bg-gray-50' : 'bg-white'}`}
+                  >
+                    {plan.recommended && (
+                      <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
+                        <span className="bg-purple-600 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">Recommandé</span>
+                      </div>
+                    )}
+                    {isCurrent && (
+                      <div className="absolute top-2 right-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                      </div>
+                    )}
+                    <Icon className={`h-5 w-5 mb-2 ${plan.color}`} />
+                    <div className="font-bold text-gray-900">{plan.name}</div>
+                    <div className={`text-xl font-bold mt-1 ${plan.color}`}>{plan.price} €<span className="text-xs text-gray-400 font-normal">/mois</span></div>
+                    <div className="text-xs text-gray-500 mt-1 mb-3">{plan.limit}</div>
+                    <ul className="space-y-1">
+                      {plan.features.map((f) => (
+                        <li key={f} className="text-xs text-gray-600 flex items-start gap-1">
+                          <CheckCircle className="h-3 w-3 text-green-500 mt-0.5 flex-shrink-0" />
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                    {!isCurrent && (
+                      <a
+                        href={`/api/stripe/checkout?plan=${plan.id}`}
+                        className={`mt-3 block w-full text-center rounded-lg py-1.5 text-xs font-semibold text-white transition-colors ${
+                          plan.id === 'pro' ? 'bg-purple-600 hover:bg-purple-700' :
+                          plan.id === 'business' ? 'bg-amber-500 hover:bg-amber-600' :
+                          'bg-blue-600 hover:bg-blue-700'
+                        }`}
+                      >
+                        Passer au {plan.name}
+                      </a>
+                    )}
+                  </div>
+                )
+              })}
             </div>
 
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={handleBillingPortal}>
+            {profile?.stripe_customer_id && (
+              <Button variant="outline" onClick={handleBillingPortal} className="w-full sm:w-auto">
                 <CreditCard className="mr-2 h-4 w-4" />
                 Portail de facturation
-                <ExternalLink className="ml-2 h-3 w-3" />
+                <ExternalLink className="ml-2 h-3.5 w-3.5 text-gray-400" />
               </Button>
-              <Button asChild>
-                <a href="/api/stripe/checkout?plan=pro">
-                  Passer au Pro
-                </a>
-              </Button>
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -254,88 +312,168 @@ export default function SettingsPage() {
               Informations entreprise
             </CardTitle>
             <CardDescription>
-              Ces informations apparaissent dans vos mises en demeure et relances
+              Utilisées dans vos mises en demeure et emails de relance
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="company_name">Raison sociale</Label>
-              <Input
-                id="company_name"
-                value={form.company_name}
-                onChange={(e) => setForm((f) => ({ ...f, company_name: e.target.value }))}
-                placeholder="Ma Société SARL"
-              />
-            </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="col-span-2 space-y-1.5">
+                <Label htmlFor="company_name">Raison sociale</Label>
+                <Input
+                  id="company_name"
+                  value={form.company_name}
+                  onChange={(e) => setForm((f) => ({ ...f, company_name: e.target.value }))}
+                  placeholder="Ma Société SARL"
+                />
+              </div>
+              <div className="space-y-1.5">
                 <Label htmlFor="siren">SIREN</Label>
                 <Input
                   id="siren"
                   value={form.siren}
-                  onChange={(e) => setForm((f) => ({ ...f, siren: e.target.value }))}
+                  onChange={(e) => setForm((f) => ({ ...f, siren: e.target.value.replace(/\D/g, '').slice(0, 9) }))}
                   placeholder="123456789"
                   maxLength={9}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email du compte</Label>
-                <Input id="email" value={form.email} disabled className="bg-gray-50" />
+              <div className="space-y-1.5">
+                <Label htmlFor="phone">Téléphone</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={form.phone}
+                  onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                  placeholder="01 23 45 67 89"
+                />
+              </div>
+              <div className="col-span-2 space-y-1.5">
+                <Label htmlFor="address">Adresse</Label>
+                <Input
+                  id="address"
+                  value={form.address}
+                  onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+                  placeholder="15 rue de la République"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="postal_code">Code postal</Label>
+                <Input
+                  id="postal_code"
+                  value={form.postal_code}
+                  onChange={(e) => setForm((f) => ({ ...f, postal_code: e.target.value.replace(/\D/g, '').slice(0, 5) }))}
+                  placeholder="75001"
+                  maxLength={5}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="city">Ville</Label>
+                <Input
+                  id="city"
+                  value={form.city}
+                  onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
+                  placeholder="Paris"
+                />
+              </div>
+              <div className="col-span-2 space-y-1.5">
+                <Label htmlFor="email_display">Email du compte</Label>
+                <Input id="email_display" value={userEmail} disabled className="bg-gray-50 text-gray-500" />
+                <p className="text-xs text-gray-400">Modifiable depuis votre fournisseur d&apos;authentification.</p>
               </div>
             </div>
             <Button onClick={handleSaveProfile} disabled={saving}>
               <Save className="mr-2 h-4 w-4" />
-              {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+              {saving ? 'Sauvegarde…' : 'Sauvegarder les informations'}
             </Button>
           </CardContent>
         </Card>
 
-        {/* Email config */}
+        {/* Notifications / Automation */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Bell className="h-4 w-4" />
+              Relances automatiques
+            </CardTitle>
+            <CardDescription>
+              RelanceFlow peut envoyer vos relances automatiquement chaque matin selon votre scénario actif
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-4 rounded-xl border p-4">
+              <div
+                className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full transition-colors ${
+                  autoReminders ? 'bg-green-100' : 'bg-gray-100'
+                }`}
+              >
+                {autoReminders ? (
+                  <Bell className="h-5 w-5 text-green-600" />
+                ) : (
+                  <BellOff className="h-5 w-5 text-gray-400" />
+                )}
+              </div>
+              <div className="flex-1">
+                <div className="font-medium text-sm text-gray-900">
+                  {autoReminders ? 'Relances automatiques activées' : 'Relances automatiques désactivées'}
+                </div>
+                <div className="text-xs text-gray-500 mt-0.5">
+                  {autoReminders
+                    ? 'Envoi quotidien à 8h00 selon votre scénario. Vous restez maître de chaque étape.'
+                    : 'Aucune relance automatique. Déclenchez-les manuellement depuis chaque facture.'}
+                </div>
+              </div>
+              <button
+                onClick={() => setAutoReminders(!autoReminders)}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+                  autoReminders ? 'bg-green-500' : 'bg-gray-200'
+                }`}
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                    autoReminders ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            <div className="rounded-lg border bg-blue-50 p-3 flex items-start gap-2">
+              <Shield className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-blue-700">
+                Les emails sont envoyés via <strong>Resend</strong> depuis le domaine sécurisé
+                <strong> relanceflow.fr</strong>. Conformité RGPD assurée — aucune donnée transmise à des tiers.
+              </p>
+            </div>
+
+            <Button onClick={handleSaveNotifications} disabled={savingNotif} variant={autoReminders ? 'default' : 'outline'}>
+              <Save className="mr-2 h-4 w-4" />
+              {savingNotif ? 'Sauvegarde…' : 'Sauvegarder les préférences'}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Email sender config */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <Mail className="h-4 w-4" />
-              Configuration des emails
+              Configuration de l&apos;expéditeur
             </CardTitle>
             <CardDescription>
-              Personnalisez le nom d&apos;expéditeur de vos relances automatiques
+              Le nom de votre entreprise sera utilisé comme expéditeur dans tous vos emails
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="senderName">Nom d&apos;expéditeur</Label>
-              <Input
-                id="senderName"
-                value={emailConfig.senderName}
-                onChange={(e) => setEmailConfig((c) => ({ ...c, senderName: e.target.value }))}
-                placeholder="Mon Entreprise"
-              />
-              <p className="text-xs text-gray-500">
-                Vos clients verront : &quot;{emailConfig.senderName}&quot; comme expéditeur
-              </p>
+          <CardContent className="space-y-3">
+            <div className="rounded-lg bg-gray-50 border p-3">
+              <div className="text-xs text-gray-500 mb-1">Aperçu — ce que voit votre client :</div>
+              <div className="font-mono text-sm text-gray-800">
+                De : <strong>{form.company_name || 'Votre Entreprise'}</strong> &lt;relances@relanceflow.fr&gt;
+              </div>
+              <div className="font-mono text-sm text-gray-500">
+                Répondre à : {userEmail || 'votre@email.fr'}
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="replyTo">Adresse de réponse</Label>
-              <Input
-                id="replyTo"
-                type="email"
-                value={emailConfig.replyTo}
-                onChange={(e) => setEmailConfig((c) => ({ ...c, replyTo: e.target.value }))}
-                placeholder="comptabilite@mon-entreprise.fr"
-              />
-            </div>
-            <div className="rounded-lg border bg-blue-50 p-3 flex items-start gap-2">
-              <CheckCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-blue-700">
-                Les emails sont envoyés via <strong>Resend</strong> depuis le domaine
-                relanceflow.fr. Vous pouvez configurer votre propre domaine dans les paramètres
-                avancés (plan Pro+).
-              </p>
-            </div>
-            <Button onClick={handleSaveEmailConfig} disabled={savingEmail}>
-              <Save className="mr-2 h-4 w-4" />
-              {savingEmail ? 'Sauvegarde...' : 'Sauvegarder la configuration email'}
-            </Button>
+            <p className="text-xs text-gray-500">
+              Le nom d&apos;expéditeur est automatiquement déduit de votre raison sociale. Sauvegardez vos informations entreprise ci-dessus pour le mettre à jour.
+            </p>
           </CardContent>
         </Card>
       </div>

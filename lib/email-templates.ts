@@ -18,6 +18,7 @@ export interface EmailTemplateData {
   dueDate: string
   daysOverdue: number
   invoiceId?: string
+  paymentUrl?: string
 }
 
 function formatEuro(amount: number): string {
