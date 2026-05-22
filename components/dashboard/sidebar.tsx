@@ -15,6 +15,7 @@ import {
   HelpCircle,
   ChevronRight,
   BarChart3,
+  Plug,
   X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -26,6 +27,7 @@ const navItems = [
   { href: '/dashboard/invoices', label: 'Factures', icon: FileText },
   { href: '/dashboard/scenarios', label: 'Scénarios', icon: Bell },
   { href: '/dashboard/mise-en-demeure', label: 'Mise en demeure', icon: AlertTriangle },
+  { href: '/dashboard/integrations', label: 'Intégrations', icon: Plug },
   { href: '/dashboard/stats', label: 'Statistiques', icon: BarChart3 },
   { href: '/dashboard/settings', label: 'Paramètres', icon: Settings },
 ]
