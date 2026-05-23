@@ -23,6 +23,7 @@ import {
   BarChart3,
   Bell,
   ChevronRight,
+  Kanban,
 } from 'lucide-react'
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -63,6 +64,7 @@ export default async function DashboardPage() {
   // ── auth: unauthenticated users go to login, not demo ──────────────────────
   let invoices: Invoice[] = []
   let profile: Profile | null = null
+  let contacts: { id: string; pipeline_stage: string; deal_amount: number | null }[] = []
 
   try {
     const supabase = await createClient()
@@ -72,17 +74,22 @@ export default async function DashboardPage() {
 
     if (!user) redirect('/auth/login')
 
-    const [profileRes, invoicesRes] = await Promise.all([
+    const [profileRes, invoicesRes, contactsRes] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', user.id).single(),
       supabase
         .from('invoices')
         .select('*')
         .eq('user_id', user.id)
         .order('due_date', { ascending: true }),
+      supabase
+        .from('contacts')
+        .select('id, pipeline_stage, deal_amount')
+        .eq('user_id', user.id),
     ])
 
     profile = (profileRes.data as Profile) ?? null
     invoices = (invoicesRes.data as Invoice[]) ?? []
+    contacts = (contactsRes.data as { id: string; pipeline_stage: string; deal_amount: number | null }[]) ?? []
   } catch {
     redirect('/auth/login')
   }
@@ -310,6 +317,18 @@ export default async function DashboardPage() {
 
   const overdueTotal = urgentInvoices.reduce((s, inv) => s + inv.amount, 0)
 
+  // Pipeline stats
+  const pipelineStages = ['prospect', 'qualified', 'proposal', 'signed', 'lost'] as const
+  const pipelineCounts = Object.fromEntries(
+    pipelineStages.map(s => [s, contacts.filter(c => c.pipeline_stage === s).length])
+  )
+  const pipelineValue = contacts
+    .filter(c => c.pipeline_stage !== 'lost')
+    .reduce((s, c) => s + (c.deal_amount || 0), 0)
+  const signedValue = contacts
+    .filter(c => c.pipeline_stage === 'signed')
+    .reduce((s, c) => s + (c.deal_amount || 0), 0)
+
   return (
     <div className="min-h-full bg-gray-50">
       {/* Page header */}
@@ -392,6 +411,41 @@ export default async function DashboardPage() {
             accent: 'gray',
           })}
         </div>
+
+        {/* Pipeline strip */}
+        {contacts.length > 0 && (
+          <Link href="/dashboard/pipeline" className="block rounded-xl border bg-white p-4 hover:shadow-md transition-shadow group">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Kanban className="h-4 w-4 text-blue-600" />
+                <h3 className="text-sm font-semibold text-gray-900">Pipeline commercial</h3>
+              </div>
+              <div className="flex items-center gap-3 text-xs text-gray-500">
+                <span>{contacts.length} contact{contacts.length > 1 ? 's' : ''}</span>
+                <span className="font-semibold text-gray-800">{formatEuro(pipelineValue)} en cours</span>
+                <ChevronRight className="h-3.5 w-3.5 text-gray-300 group-hover:text-blue-500 transition-colors" />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              {[
+                { key: 'prospect',  label: 'Prospect',    color: 'bg-blue-500' },
+                { key: 'qualified', label: 'Qualifié',    color: 'bg-violet-500' },
+                { key: 'proposal',  label: 'Proposition', color: 'bg-amber-500' },
+                { key: 'signed',    label: 'Signé',       color: 'bg-green-500' },
+              ].map(s => (
+                <div key={s.key} className="flex-1 text-center">
+                  <div className={`h-1.5 w-full rounded-full ${s.color} mb-1.5 opacity-${pipelineCounts[s.key] > 0 ? '100' : '20'}`} />
+                  <p className="text-lg font-bold text-gray-900">{pipelineCounts[s.key]}</p>
+                  <p className="text-xs text-gray-400">{s.label}</p>
+                </div>
+              ))}
+              <div className="flex-1 text-center border-l pl-2">
+                <p className="text-xs text-gray-400 mb-1">Signés</p>
+                <p className="text-sm font-bold text-green-600">{formatEuro(signedValue)}</p>
+              </div>
+            </div>
+          </Link>
+        )}
 
         {/* Main grid */}
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
@@ -543,10 +597,10 @@ export default async function DashboardPage() {
               </div>
               <div className="divide-y">
                 {[
+                  { label: 'Pipeline commercial', sub: 'Voir vos deals en cours', icon: Kanban, href: '/dashboard/pipeline' },
                   { label: 'Envoyer des relances', sub: 'Lancer une relance manuelle', icon: Send, href: '/dashboard/invoices' },
                   { label: 'Mise en demeure', sub: 'Générer un document légal', icon: FileText, href: '/dashboard/mise-en-demeure' },
                   { label: 'Scénarios', sub: 'Configurer les automatisations', icon: Bell, href: '/dashboard/scenarios' },
-                  { label: 'Importer des factures', sub: 'Ajouter via CSV', icon: Upload, href: '/dashboard/invoices/import' },
                 ].map((action) => {
                   const Icon = action.icon
                   return (

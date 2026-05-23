@@ -245,3 +245,58 @@ export type InvoiceStatus = Invoice['status']
 export type ReminderType = Reminder['type']
 export type ReminderChannel = Reminder['channel']
 export type Plan = Profile['plan']
+
+// CRM types (added by migration 005)
+export type PipelineStage = 'prospect' | 'qualified' | 'proposal' | 'signed' | 'lost'
+export type JournalEntryType = 'call' | 'email' | 'note' | 'meeting'
+export type NotificationType = 'reminder' | 'sequence_step' | 'deal_signed' | 'follow_up' | 'invoice_overdue'
+
+export interface Contact {
+  id: string
+  user_id: string
+  name: string
+  company: string | null
+  email: string | null
+  phone: string | null
+  tags: string[]
+  pipeline_stage: PipelineStage
+  deal_amount: number | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface JournalEntry {
+  id: string
+  contact_id: string
+  user_id: string
+  type: JournalEntryType
+  content: string
+  duration_minutes: number | null
+  occurred_at: string
+  created_at: string
+}
+
+export interface ContactSequence {
+  id: string
+  contact_id: string
+  user_id: string
+  status: 'active' | 'paused' | 'completed' | 'cancelled'
+  current_step: number
+  next_send_at: string | null
+  started_at: string
+  created_at: string
+  updated_at: string
+}
+
+export interface Notification {
+  id: string
+  user_id: string
+  contact_id: string | null
+  type: NotificationType
+  title: string
+  body: string | null
+  read: boolean
+  action_url: string | null
+  created_at: string
+}

@@ -16,6 +16,7 @@ import {
   ChevronRight,
   BarChart3,
   Plug,
+  Kanban,
   X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -24,6 +25,7 @@ import type { Profile } from '@/lib/database.types'
 
 const navItems = [
   { href: '/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
+  { href: '/dashboard/pipeline', label: 'Pipeline', icon: Kanban },
   { href: '/dashboard/invoices', label: 'Factures', icon: FileText },
   { href: '/dashboard/scenarios', label: 'Scénarios', icon: Bell },
   { href: '/dashboard/mise-en-demeure', label: 'Mise en demeure', icon: AlertTriangle },
