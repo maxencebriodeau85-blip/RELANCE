@@ -47,15 +47,15 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // Retrieve session — wrapped in try/catch so a Supabase outage or network
-  // error never takes the whole site down with a 500.
+  // Use getSession() — reads the JWT from the cookie locally, zero network
+  // call. getUser() makes an HTTP request to Supabase on every request and
+  // causes MIDDLEWARE_INVOCATION_TIMEOUT on Vercel's Edge Runtime.
+  // Server components use getUser() for the actual security check.
   let user = null
   try {
-    const { data } = await supabase.auth.getUser()
-    user = data.user
+    const { data } = await supabase.auth.getSession()
+    user = data.session?.user ?? null
   } catch {
-    // Supabase unreachable — let the request through; protected pages will
-    // handle authentication at the server component level.
     return supabaseResponse
   }
 
