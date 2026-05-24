@@ -100,13 +100,16 @@ export default async function StatsPage() {
   const maxFunnelCount = Math.max(...funnelData.map(d => d.count), 1)
 
   // ── Top clients (by total invoiced)
-  const clientMap = new Map<string, { invoiced: number; paid: number; count: number }>()
+  const clientMap = new Map<string, { invoiced: number; paid: number; count: number; hasOverdue: boolean }>()
+  const today = new Date().toISOString().split('T')[0]
   for (const inv of invoices) {
-    const cur = clientMap.get(inv.client_name) || { invoiced: 0, paid: 0, count: 0 }
+    const cur = clientMap.get(inv.client_name) || { invoiced: 0, paid: 0, count: 0, hasOverdue: false }
+    const isOverdue = inv.status !== 'paid' && inv.status !== 'disputed' && inv.due_date < today
     clientMap.set(inv.client_name, {
       invoiced: cur.invoiced + inv.amount,
       paid: cur.paid + (inv.status === 'paid' ? inv.amount : 0),
       count: cur.count + 1,
+      hasOverdue: cur.hasOverdue || isOverdue,
     })
   }
   const topClients = Array.from(clientMap.entries())
@@ -313,6 +316,11 @@ export default async function StatsPage() {
                               <span className="text-xs font-bold text-gray-400 w-4">#{i + 1}</span>
                               <span className="text-sm font-medium text-gray-900">{name}</span>
                               <span className="text-xs text-gray-400">{data.count} fact.</span>
+                              {data.hasOverdue && (
+                                <span className="inline-flex items-center rounded-full bg-red-100 px-1.5 py-0.5 text-xs font-semibold text-red-600">
+                                  En retard
+                                </span>
+                              )}
                             </div>
                             <div className="text-right">
                               <span className="text-sm font-bold text-gray-900">{formatEuro(data.invoiced)}</span>

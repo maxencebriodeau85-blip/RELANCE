@@ -43,7 +43,7 @@ export default function CGUPage() {
 
       <h2>4. Essai gratuit</h2>
       <p>
-        Tout nouvel utilisateur bénéficie d&apos;une période d&apos;essai gratuit de 14 jours, sans
+        Tout nouvel utilisateur bénéficie d&apos;une période d&apos;essai gratuit de 30 jours, sans
         engagement et sans carte bancaire. À l&apos;issue de cette période, l&apos;utilisateur peut
         souscrire à l&apos;une des formules payantes ou cesser d&apos;utiliser le Service.
       </p>

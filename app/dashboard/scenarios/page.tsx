@@ -93,6 +93,7 @@ const stepTypeLabel = {
 export default function ScenariosPage() {
   const { toast } = useToast()
   const [activeScenarioId, setActiveScenarioId] = useState<string>('standard')
+  const [initialScenarioId, setInitialScenarioId] = useState<string>('standard')
   const [autoReminders, setAutoReminders] = useState(true)
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -112,12 +113,11 @@ export default function ScenariosPage() {
 
         if (data) {
           setAutoReminders((data as any).auto_reminders ?? true)
-        }
-
-        // Load saved scenario from localStorage (or DB in future)
-        const saved = localStorage.getItem('relanceflow_active_scenario')
-        if (saved && SCENARIOS.find((s) => s.id === saved)) {
-          setActiveScenarioId(saved)
+          const saved = (data as any).active_scenario
+          if (saved && SCENARIOS.find((s) => s.id === saved)) {
+            setActiveScenarioId(saved)
+            setInitialScenarioId(saved)
+          }
         }
       } catch { /* silent */ } finally {
         setLoading(false)
@@ -126,9 +126,15 @@ export default function ScenariosPage() {
     load()
   }, [])
 
-  const handleSelectScenario = (id: string) => {
+  const handleSelectScenario = async (id: string) => {
     setActiveScenarioId(id)
-    localStorage.setItem('relanceflow_active_scenario', id)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        await supabase.from('profiles').update({ active_scenario: id } as never).eq('id', user.id)
+      }
+    } catch { /* silent — scenario still applied locally */ }
   }
 
   const handleToggleAutoReminders = async () => {
@@ -193,6 +199,19 @@ export default function ScenariosPage() {
             {saving ? '…' : autoReminders ? 'Désactiver' : 'Activer'}
           </Button>
         </div>
+
+        {/* Retroactive warning */}
+        {activeScenarioId !== initialScenarioId && (
+          <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-amber-800">Changement de scénario — effet futur uniquement</p>
+              <p className="text-xs text-amber-700 mt-0.5 leading-relaxed">
+                Le nouveau scénario s&apos;applique aux relances à venir. Les factures déjà en cours de traitement continueront sur l&apos;ancien rythme jusqu&apos;à leur prochain envoi.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Scenario picker */}
         <div>

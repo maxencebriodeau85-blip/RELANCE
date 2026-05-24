@@ -155,7 +155,7 @@ export default function ModelesPage() {
             href="/auth/register"
             className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 transition-colors"
           >
-            Essai gratuit 14j
+            Essai gratuit 30j
           </Link>
         </div>
       </div>
@@ -253,7 +253,7 @@ export default function ModelesPage() {
             href="/auth/register"
             className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 transition-colors"
           >
-            Automatiser mes relances — Gratuit 14j
+            Automatiser mes relances — Gratuit 30j
             <ChevronRight className="h-4 w-4" />
           </Link>
           <p className="text-xs text-gray-400 mt-3">Sans carte bancaire · Sans engagement</p>

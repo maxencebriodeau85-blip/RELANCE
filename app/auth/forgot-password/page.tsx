@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,16 +10,57 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createClient } from '@/lib/supabase/client'
 import { supabaseAuthError } from '@/lib/auth-errors'
-import { Zap, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react'
+import { Zap, AlertCircle, CheckCircle, ArrowLeft, Clock } from 'lucide-react'
+
+const COUNTDOWN_SECONDS = 8
+const RATE_LIMIT_SECONDS = 60
 
 export default function ForgotPasswordPage() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [sent, setSent] = useState(false)
+  const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS)
+  const [rateLimitRemaining, setRateLimitRemaining] = useState(0)
+  const lastSentAt = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (!sent) return
+    const interval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval)
+          router.push('/auth/login')
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [sent, router])
+
+  useEffect(() => {
+    if (rateLimitRemaining <= 0) return
+    const interval = setInterval(() => {
+      setRateLimitRemaining((prev) => {
+        if (prev <= 1) { clearInterval(interval); return 0 }
+        return prev - 1
+      })
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [rateLimitRemaining])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (lastSentAt.current && Date.now() - lastSentAt.current < RATE_LIMIT_SECONDS * 1000) {
+      const remaining = Math.ceil((RATE_LIMIT_SECONDS * 1000 - (Date.now() - lastSentAt.current)) / 1000)
+      setRateLimitRemaining(remaining)
+      setError(`Merci de patienter ${remaining}s avant de renvoyer un email.`)
+      return
+    }
+
     setLoading(true)
     setError('')
 
@@ -34,6 +76,8 @@ export default function ForgotPasswordPage() {
         return
       }
 
+      lastSentAt.current = Date.now()
+      setCountdown(COUNTDOWN_SECONDS)
       setSent(true)
     } catch {
       setError('Une erreur inattendue est survenue. Réessayez.')
@@ -60,9 +104,13 @@ export default function ForgotPasswordPage() {
               </div>
               <div>
                 <h2 className="text-xl font-semibold">Email envoyé</h2>
-                <p className="text-gray-500 mt-2">
+                <p className="text-gray-500 mt-2 text-sm">
                   Un lien de réinitialisation a été envoyé à <strong>{email}</strong>. Vérifiez votre boîte de réception (et vos spams).
                 </p>
+              </div>
+              <div className="flex items-center justify-center gap-1.5 text-sm text-gray-400">
+                <Clock className="h-4 w-4" />
+                Redirection automatique dans {countdown}s…
               </div>
               <Button variant="outline" asChild className="w-full">
                 <Link href="/auth/login">
@@ -102,8 +150,12 @@ export default function ForgotPasswordPage() {
                   />
                 </div>
 
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Envoi en cours...' : 'Envoyer le lien de réinitialisation'}
+                <Button type="submit" className="w-full" disabled={loading || rateLimitRemaining > 0}>
+                  {loading
+                    ? 'Envoi en cours...'
+                    : rateLimitRemaining > 0
+                    ? `Réessayer dans ${rateLimitRemaining}s`
+                    : 'Envoyer le lien de réinitialisation'}
                 </Button>
               </form>
             </CardContent>

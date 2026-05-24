@@ -388,6 +388,23 @@ export default function ContactDetailPage() {
       {/* Journal tab */}
       {tab === 'journal' && (
         <div className="space-y-4">
+          {/* Last activity indicator */}
+          {journal.length > 0 && (() => {
+            const last = journal.reduce((a, b) => a.occurred_at > b.occurred_at ? a : b)
+            const jt = JOURNAL_TYPES.find(t => t.key === last.type)!
+            return (
+              <div className="flex items-center gap-2 text-xs text-gray-400">
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border font-medium ${jt.color}`}>
+                  {jt.label}
+                </span>
+                <span>Dernière activité :</span>
+                <span className="text-gray-600 font-medium">
+                  {formatDistanceToNow(new Date(last.occurred_at), { addSuffix: true, locale: fr })}
+                </span>
+              </div>
+            )
+          })()}
+
           {/* Add entry form */}
           <div className="rounded-2xl border border-gray-200 bg-white shadow-sm p-4">
             <div className="flex gap-2 mb-3">

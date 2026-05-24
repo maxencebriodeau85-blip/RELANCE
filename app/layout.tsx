@@ -6,14 +6,14 @@ import { Toaster } from '@/components/ui/toaster'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'RelanceFlow – Recouvrement automatisé pour TPE/PME',
+  title: 'RelanceFlow – Pipeline, relances et facturation pour indépendants',
   description:
-    'Encaissez 15 jours plus tôt, sans relancer un seul client à la main. La solution de recouvrement amiable automatisée pour les TPE et PME françaises.',
-  keywords: ['recouvrement', 'relance client', 'factures impayées', 'TPE', 'PME', 'SaaS'],
+    'Ne laisse plus aucun deal mourir en silence. 30 jours gratuits (beta), sans carte bancaire.',
+  keywords: ['pipeline', 'relance client', 'facturation', 'consultant', 'coach', 'indépendant', 'CRM', 'SaaS'],
   authors: [{ name: 'RelanceFlow' }],
   openGraph: {
-    title: 'RelanceFlow – Recouvrement automatisé',
-    description: 'Encaissez 15 jours plus tôt, sans relancer un seul client à la main.',
+    title: 'RelanceFlow – Pipeline, relances et facturation pour indépendants',
+    description: 'Ne laisse plus aucun deal mourir en silence. 30 jours gratuits (beta), sans carte bancaire.',
     type: 'website',
     locale: 'fr_FR',
   },
