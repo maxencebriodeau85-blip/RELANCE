@@ -4,12 +4,20 @@ import { NextResponse, type NextRequest } from 'next/server'
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
+  // If Supabase env vars are missing (mis-configured deployment), let all requests
+  // pass through so the site doesn't become completely inaccessible.
+  if (
+    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  ) {
+    return supabaseResponse
+  }
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       cookies: {
-        // v0.5.0+ API
         getAll() {
           return request.cookies.getAll()
         },
@@ -20,7 +28,6 @@ export async function middleware(request: NextRequest) {
             supabaseResponse.cookies.set(name, value, options)
           )
         },
-        // v0.3.0 API — used internally by @supabase/ssr ≤ 0.4.x
         get(name: string) {
           return request.cookies.get(name)?.value
         },
@@ -38,34 +45,45 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
   const { pathname } = request.nextUrl
 
-  if (
-    pathname.startsWith('/dashboard') ||
-    pathname.startsWith('/api/invoices') ||
-    pathname.startsWith('/api/stripe/checkout')
-  ) {
-    if (!user) {
-      const redirectUrl = request.nextUrl.clone()
-      redirectUrl.pathname = '/auth/login'
-      redirectUrl.searchParams.set('redirectedFrom', pathname)
-      return NextResponse.redirect(redirectUrl)
-    }
+  // Retrieve session — wrapped in try/catch so a Supabase outage or network
+  // error never takes the whole site down with a 500.
+  let user = null
+  try {
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch {
+    // Supabase unreachable — let the request through; protected pages will
+    // handle authentication at the server component level.
+    return supabaseResponse
   }
 
+  // Protect dashboard and sensitive API routes
+  const isProtected =
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/api/invoices') ||
+    pathname.startsWith('/api/stripe/checkout') ||
+    pathname.startsWith('/api/contacts') ||
+    pathname.startsWith('/api/notifications')
+
+  if (isProtected && !user) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/auth/login'
+    url.searchParams.set('redirectedFrom', pathname)
+    return NextResponse.redirect(url)
+  }
+
+  // Redirect authenticated users away from auth pages
   if (
     user &&
     (pathname === '/auth/login' ||
       pathname === '/auth/register' ||
       pathname === '/auth/forgot-password')
   ) {
-    const redirectUrl = request.nextUrl.clone()
-    redirectUrl.pathname = '/dashboard'
-    return NextResponse.redirect(redirectUrl)
+    const url = request.nextUrl.clone()
+    url.pathname = '/dashboard'
+    return NextResponse.redirect(url)
   }
 
   return supabaseResponse

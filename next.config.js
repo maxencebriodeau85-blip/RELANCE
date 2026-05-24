@@ -10,8 +10,8 @@ const cspHeader = [
   "font-src 'self' https://fonts.gstatic.com data:",
   // Images: self, Supabase storage, Stripe, data URIs
   "img-src 'self' data: blob: https://*.supabase.co https://q.stripe.com",
-  // Fetch/XHR: self + Supabase API + Stripe API
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com",
+  // Fetch/XHR: self + Supabase API + Stripe API + Vercel analytics
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://vitals.vercel-insights.com https://va.vercel-scripts.com",
   // Stripe Checkout iframe
   "frame-src https://js.stripe.com https://checkout.stripe.com https://hooks.stripe.com",
   // Workers for Next.js
@@ -25,9 +25,8 @@ const cspHeader = [
 ].join('; ')
 
 const nextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ['@react-pdf/renderer'],
-  },
+  // Next.js 14.2+ — keep @react-pdf/renderer in Node.js runtime only
+  serverExternalPackages: ['@react-pdf/renderer'],
   images: {
     remotePatterns: [
       {
