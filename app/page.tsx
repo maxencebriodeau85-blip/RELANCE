@@ -4,13 +4,11 @@ import {
   Zap,
   ArrowRight,
   CheckCircle,
-  Star,
   ChevronRight,
   Kanban,
   FileText,
   Bell,
   Mail,
-  Phone,
   MessageSquare,
   TrendingUp,
   Euro,
@@ -88,26 +86,6 @@ const steps = [
   { n: 5, label: 'Payé', color: 'bg-emerald-600', sub: '→ relances J+7/15/30' },
 ]
 
-const testimonials = [
-  {
-    quote: '"J\'ai signé 2 deals supplémentaires ce trimestre juste parce que les relances sont parties automatiquement. Avant, j\'oubliais de rappeler."',
-    name: 'Nicolas P.',
-    role: 'Consultant transformation digitale — Paris',
-    stars: 5,
-  },
-  {
-    quote: '"La facture part toute seule depuis le deal signé. Et si pas payée, la relance aussi. J\'ai récupéré 8 000 € en deux semaines sans lever le petit doigt."',
-    name: 'Lucie M.',
-    role: 'Coach certifiée, 12 clients actifs — Lyon',
-    stars: 5,
-  },
-  {
-    quote: '"Avant j\'avais toujours 4–5 propositions dans le vide. Maintenant je vois exactement où en est chaque prospect. Mon taux de closing a augmenté de 30%."',
-    name: 'Antoine R.',
-    role: 'Freelance stratégie RH — Bordeaux',
-    stars: 5,
-  },
-]
 
 const comparison = [
   { feature: 'Pipeline visuel', rf: true, hub: true, pipe: true },
@@ -174,9 +152,9 @@ export default function HomePage() {
           </h1>
 
           <p className="mt-6 text-lg sm:text-xl text-blue-200/80 max-w-2xl mx-auto leading-relaxed">
-            Le seul outil qui ferme la boucle complète — du premier prospect à l&apos;encaissement.
-            Pipeline, relances automatiques et facturation intégrée.{' '}
-            <strong className="text-blue-300">En français. À 15 €/mois.</strong>
+            Tu envoies des propositions. La moitié ne répond jamais.{' '}
+            <strong className="text-blue-300">RelanceFlow relance à ta place</strong>{' '}
+            — du premier contact à l&apos;encaissement, en automatique.
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -200,12 +178,11 @@ export default function HomePage() {
             Sans carte bancaire · Données hébergées en Europe · Annulation en 1 clic
           </p>
 
-          {/* Mini stats */}
-          <div className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-6 border-t border-white/10 pt-12">
+          {/* Mini stats — only what's defensible */}
+          <div className="mt-16 grid grid-cols-3 gap-6 border-t border-white/10 pt-12 max-w-lg mx-auto">
             {[
-              { value: '+30%', label: 'de taux de closing' },
-              { value: '< 60s', label: 'pour ajouter un contact' },
-              { value: '100%', label: 'en français' },
+              { value: '< 60s', label: 'pour créer un contact' },
+              { value: '100%', label: 'en français natif' },
               { value: '15 €', label: 'par mois, tout inclus' },
             ].map((s) => (
               <div key={s.label} className="text-center">
@@ -466,22 +443,45 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
+      {/* EARLY ADOPTERS — honnête, pas de faux témoignages */}
       <section className="py-20 px-4 bg-gray-50">
-        <div className="mx-auto max-w-6xl">
-          <div className="text-center mb-12">
+        <div className="mx-auto max-w-4xl">
+          <div className="text-center mb-10">
+            <span className="inline-block rounded-full bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 mb-4 uppercase tracking-wider">
+              Accès beta
+            </span>
             <h2 className="text-3xl font-bold text-gray-900">
-              Des consultants qui ont arrêté de perdre des deals
+              Rejoins les premiers utilisateurs
             </h2>
+            <p className="text-gray-500 mt-3 max-w-md mx-auto">
+              RelanceFlow est en accès beta. On cherche des consultants et coaches qui veulent tester le produit — et façonner la suite.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
+            {[
+              { icon: Clock, title: '30 jours gratuits', sub: 'Accès complet pendant la beta, sans carte.' },
+              { icon: MessageSquare, title: 'Feedback direct', sub: 'Tu parles au créateur. Tes retours façonnent le produit.' },
+              { icon: Euro, title: '15 €/mois bloqué', sub: 'Le prix ne bougera pas pour les premiers utilisateurs.' },
+            ].map(({ icon: Icon, title, sub }) => (
+              <div key={title} className="rounded-xl bg-white border p-5 flex items-start gap-4">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-blue-50">
+                  <Icon className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 text-sm">{title}</p>
+                  <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{sub}</p>
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Trust badges */}
-          <div className="flex flex-wrap justify-center gap-4 mb-12">
+          <div className="flex flex-wrap justify-center gap-3">
             {[
               { icon: Shield, label: 'Conforme RGPD', sub: 'Données hébergées en Europe' },
               { icon: CheckCircle, label: 'SSL / TLS chiffré', sub: 'Connexion sécurisée 256-bit' },
-              { icon: Clock, label: 'Moins de 60 secondes', sub: 'Pour créer ton premier contact' },
-              { icon: Users, label: 'Pour travailleurs solo', sub: 'Consultants, coaches, freelances' },
+              { icon: Users, label: 'Pour indépendants', sub: 'Consultants, coaches, freelances' },
             ].map((badge) => {
               const Icon = badge.icon
               return (
@@ -494,23 +494,6 @@ export default function HomePage() {
                 </div>
               )
             })}
-          </div>
-
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-            {testimonials.map((t, i) => (
-              <div key={i} className="rounded-xl bg-white border p-6 flex flex-col gap-4">
-                <div className="flex gap-0.5">
-                  {Array.from({ length: t.stars }).map((_, j) => (
-                    <Star key={j} className="h-4 w-4 fill-amber-400 text-amber-400" />
-                  ))}
-                </div>
-                <p className="text-sm text-gray-700 leading-relaxed italic">{t.quote}</p>
-                <div className="mt-auto">
-                  <p className="text-sm font-semibold text-gray-900">{t.name}</p>
-                  <p className="text-xs text-gray-400">{t.role}</p>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>
@@ -645,33 +628,36 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA FINAL */}
+      {/* FOUNDER CLOSE — humain, pas un 3ème CTA identique */}
       <section className="py-24 px-4 bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900">
-        <div className="mx-auto max-w-3xl text-center">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight">
-            Ton prochain deal ne mourra pas en silence.
-          </h2>
-          <p className="mt-4 text-lg text-blue-200/80 max-w-xl mx-auto">
-            Ajoute ton premier contact en moins de 60 secondes.
-            Les relances tournent toutes seules dès le premier jour.
+        <div className="mx-auto max-w-2xl text-center">
+          <div className="mb-8 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 text-2xl font-bold text-white">
+            M
+          </div>
+          <p className="text-lg sm:text-xl text-blue-100 leading-relaxed italic max-w-xl mx-auto">
+            &ldquo;Je l&apos;ai construit parce que j&apos;avais marre de perdre des deals par oubli —
+            et de passer mes soirées à relancer manuellement. Si tu te reconnais, l&apos;essai est gratuit.&rdquo;
           </p>
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <p className="mt-4 text-sm text-blue-300/70 font-semibold">
+            Maxence — créateur de RelanceFlow
+          </p>
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               href="/auth/register"
               className="group flex items-center gap-2 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-bold px-8 py-4 text-base transition-all shadow-lg shadow-blue-500/30"
             >
-              Démarrer gratuitement — 14 jours
+              Essai gratuit 30 jours — beta
               <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
             </Link>
-            <Link
-              href="/auth/login"
-              className="flex items-center gap-2 rounded-xl border border-white/20 text-white/80 hover:text-white hover:border-white/40 font-medium px-6 py-4 text-base transition-all"
+            <a
+              href="mailto:hello@relanceflow.fr"
+              className="flex items-center gap-2 rounded-xl border border-white/20 text-white/70 hover:text-white hover:border-white/40 font-medium px-6 py-4 text-base transition-all"
             >
-              J&apos;ai déjà un compte
-            </Link>
+              Poser une question →
+            </a>
           </div>
-          <p className="mt-4 text-sm text-blue-300/50">
-            Sans carte bancaire · Sans engagement · 15 €/mois après l&apos;essai
+          <p className="mt-4 text-sm text-blue-300/40">
+            Sans carte bancaire · Feedback bienvenu · 15 €/mois ensuite
           </p>
         </div>
       </section>
@@ -690,6 +676,12 @@ export default function HomePage() {
               Pipeline · Relances auto · Facturation intégrée.
               Pour consultants et coaches indépendants. En français.
             </p>
+            <p className="text-xs text-gray-300 mt-3">
+              Créé par Maxence —{' '}
+              <Link href="/about" className="hover:text-blue-600 underline underline-offset-2">
+                l&apos;histoire du projet →
+              </Link>
+            </p>
           </div>
           <div>
             <h4 className="text-sm font-semibold text-gray-700 mb-3">Produit</h4>
@@ -702,6 +694,7 @@ export default function HomePage() {
           <div>
             <h4 className="text-sm font-semibold text-gray-700 mb-3">Ressources</h4>
             <ul className="space-y-2 text-sm text-gray-500">
+              <li><Link href="/about" className="hover:text-gray-900">À propos</Link></li>
               <li><Link href="/support" className="hover:text-gray-900">Support</Link></li>
               <li><a href="mailto:hello@relanceflow.fr" className="hover:text-gray-900">Contact</a></li>
             </ul>
