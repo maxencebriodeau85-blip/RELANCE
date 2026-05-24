@@ -87,7 +87,7 @@ function WaitlistButton({ name }: { name: string }) {
       }
       className="text-xs text-gray-400 hover:text-blue-600 underline underline-offset-2 transition-colors"
     >
-      M'avertir à la sortie
+      M&apos;avertir à la sortie
     </button>
   )
 }
@@ -352,7 +352,7 @@ function IntegrationsPageInner() {
               Webhook universel
             </CardTitle>
             <CardDescription>
-              Compatible <strong>Zapier</strong>, <strong>Make</strong>, <strong>n8n</strong> et tout outil HTTP. Créez une automatisation pour envoyer vos factures vers cette URL dès qu'elles sont émises.
+              Compatible <strong>Zapier</strong>, <strong>Make</strong>, <strong>n8n</strong> et tout outil HTTP. Créez une automatisation pour envoyer vos factures vers cette URL dès qu&apos;elles sont émises.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -394,7 +394,7 @@ function IntegrationsPageInner() {
             <div className="flex items-start gap-2 rounded-lg bg-orange-50 border border-orange-200 p-3">
               <Info className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
               <p className="text-xs text-orange-700">
-                Le webhook accepte aussi un tableau de factures <code className="bg-orange-100 px-1 rounded">[{'{'}...{'}'}, {'{'}...{'}'}]</code> jusqu'à 100 par appel. Les doublons (même <code className="bg-orange-100 px-1 rounded">invoice_number</code>) sont ignorés automatiquement.
+                Le webhook accepte aussi un tableau de factures <code className="bg-orange-100 px-1 rounded">[{'{'}...{'}'}, {'{'}...{'}'}]</code> jusqu&apos;à 100 par appel. Les doublons (même <code className="bg-orange-100 px-1 rounded">invoice_number</code>) sont ignorés automatiquement.
               </p>
             </div>
           </CardContent>
