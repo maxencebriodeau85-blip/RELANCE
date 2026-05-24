@@ -1,192 +1,122 @@
 import Link from 'next/link'
-import { CashCalculator } from '@/components/landing/cash-calculator'
 import { FAQSection } from '@/components/landing/faq-section'
 import {
   Zap,
-  Clock,
-  TrendingUp,
-  FileText,
-  Shield,
-  BarChart3,
-  CheckCircle,
   ArrowRight,
+  CheckCircle,
   Star,
-  Mail,
-  AlertTriangle,
-  Download,
-  Smartphone,
-  Plug,
-  Brain,
   ChevronRight,
+  Kanban,
+  FileText,
+  Bell,
+  Mail,
+  Phone,
+  MessageSquare,
+  TrendingUp,
   Euro,
+  Clock,
   Users,
+  Shield,
+  X,
 } from 'lucide-react'
 
 // ─── data ─────────────────────────────────────────────────────────────────────
 
-const stats = [
-  { value: '+34%', label: 'de créances récupérées' },
-  { value: '52j → 28j', label: 'DSO moyen ramené' },
-  { value: '3h', label: 'économisées / semaine' },
-  { value: '1 clic', label: 'mise en demeure légale' },
-]
-
 const painPoints = [
   {
-    wrong: 'Envoyer des relances à la main, une par une',
-    right: 'Relances automatiques déclenchées par le retard',
+    wrong: 'Envoyer une proposition et espérer que le prospect rappelle',
+    right: 'Séquence auto J+3, J+7, J+14 — si pas de réponse, RelanceFlow relance à ta place',
   },
   {
-    wrong: 'Oublier les factures en souffrance pendant les congés',
-    right: 'Le recouvrement tourne 24h/24, 365j/an',
+    wrong: 'Ouvrir 3 fichiers pour savoir où en est chaque deal',
+    right: 'Pipeline visuel : tous tes contacts d\'un coup d\'œil, triés par étape',
   },
   {
-    wrong: 'Perdre des clients en étant trop agressif ou trop laxiste',
-    right: 'Ton progressif et personnalisé selon le profil client',
+    wrong: 'Oublier de facturer après avoir signé une mission',
+    right: 'La facture se génère en 2 clics depuis le deal signé',
   },
   {
-    wrong: 'Passer des heures à rédiger des mises en demeure légales',
-    right: 'Document conforme généré en 1 clic, avec pénalités calculées',
+    wrong: 'Relancer manuellement tes clients qui ne paient pas',
+    right: 'Relances factures automatiques à J+7, J+15, J+30 — tu n\'as rien à faire',
   },
 ]
 
 const features = [
   {
-    icon: Mail,
-    title: 'Relances email sur-mesure',
-    description:
-      'Scénarios progressifs : cordial (J+7), ferme (J+15/30), pré-contentieux (J+45/60). Chaque email est personnalisé avec les données exactes de la facture.',
+    icon: Kanban,
+    title: 'Pipeline kanban 5 étapes',
+    description: 'Prospect → Qualifié → Proposition → Signé → Perdu. Glisse tes contacts d\'une colonne à l\'autre. Tu vois en 10 secondes où en est chaque deal.',
     color: 'bg-blue-100 text-blue-600',
-    badge: null,
   },
   {
-    icon: Euro,
-    title: 'Paiement en ligne intégré',
-    description:
-      'Chaque email de relance contient un bouton "Payer maintenant" sécurisé (Stripe). Votre client règle en 30 secondes, sans friction. La facture est marquée payée automatiquement.',
+    icon: MessageSquare,
+    title: 'Journal d\'activité',
+    description: 'Note chaque appel, email ou réunion directement sur la fiche contact. "Appel 12 mai, 8min — intéressé, rappeler après le 20." Tout est horodaté.',
+    color: 'bg-violet-100 text-violet-600',
+  },
+  {
+    icon: Mail,
+    title: 'Séquences relance prospects',
+    description: 'Quand une proposition part, la séquence se déclenche automatiquement. J+3 : relance douce. J+7 : rappel. J+14 : alerte interne "appeler". Si le prospect répond, tout s\'arrête.',
+    color: 'bg-amber-100 text-amber-600',
+  },
+  {
+    icon: FileText,
+    title: 'Facture en 2 clics',
+    description: 'Deal signé → tu cliques "Générer la facture". Le montant est pré-rempli depuis le deal. La facture part par email avec un lien de paiement Stripe en 30 secondes.',
     color: 'bg-emerald-100 text-emerald-600',
-    badge: null,
   },
   {
-    icon: Plug,
-    title: 'Connexion en 1 clic',
-    description:
-      'Import automatique depuis Pennylane, Sage, QuickBooks, Sellsy, Cegid. Vos factures arrivent seules — l\'import CSV devient une option secondaire.',
-    color: 'bg-indigo-100 text-indigo-600',
-    badge: 'Bientôt',
+    icon: Bell,
+    title: 'Relances factures auto',
+    description: 'Facture impayée à J+7 : premier rappel. J+15 : deuxième relance. J+30 : alerte interne "appeler". Tu encaisses sans courir après ton argent.',
+    color: 'bg-red-100 text-red-600',
   },
   {
-    icon: AlertTriangle,
-    title: 'Mise en demeure légale',
-    description:
-      'Document conforme droit français (art. L441-10 C. com.) avec indemnité forfaitaire de 40€ et pénalités de retard calculées automatiquement.',
-    color: 'bg-orange-100 text-orange-600',
-    badge: null,
-  },
-  {
-    icon: Brain,
-    title: 'Scoring client prédictif',
-    description:
-      'L\'IA analyse les habitudes de paiement pour suggérer le meilleur moment d\'envoi. Le bon message, au bon moment, pour le bon client.',
-    color: 'bg-pink-100 text-pink-600',
-    badge: 'IA — Bientôt',
-  },
-  {
-    icon: BarChart3,
-    title: 'Dashboard DSO & balance âgée',
-    description:
-      'Pilotez votre poste client en temps réel. Export "Bank-Ready" pour prouver la qualité de vos créances à votre banquier et faciliter vos lignes de trésorerie.',
+    icon: TrendingUp,
+    title: 'Stats en temps réel',
+    description: 'Taux de conversion pipeline, factures en attente, montant encaissé ce mois. Pas de graphiques inutiles — des chiffres lisibles en 10 secondes.',
     color: 'bg-green-100 text-green-600',
-    badge: null,
   },
+]
+
+const steps = [
+  { n: 1, label: 'Prospect', color: 'bg-blue-500', sub: 'Premier contact' },
+  { n: 2, label: 'Qualifié', color: 'bg-violet-500', sub: 'Besoin confirmé' },
+  { n: 3, label: 'Proposition', color: 'bg-amber-500', sub: '→ relances J+3/7/14' },
+  { n: 4, label: 'Signé', color: 'bg-green-500', sub: '→ facture auto' },
+  { n: 5, label: 'Payé', color: 'bg-emerald-600', sub: '→ relances J+7/15/30' },
 ]
 
 const testimonials = [
   {
-    quote:
-      '"Avant RelanceFlow, j\'avais 3 factures en souffrance depuis 90 jours. En 2 semaines, deux étaient réglées. Je n\'ai rien fait."',
-    name: 'Sophie M.',
-    role: 'Dirigeante, cabinet de conseil — Lyon',
+    quote: '"J\'ai signé 2 deals supplémentaires ce trimestre juste parce que les relances sont parties automatiquement. Avant, j\'oubliais de rappeler."',
+    name: 'Nicolas P.',
+    role: 'Consultant transformation digitale — Paris',
     stars: 5,
   },
   {
-    quote:
-      '"Mon DSO est passé de 58 jours à 31 jours en 3 mois. L\'équivalent de 28 000€ de trésorerie libérée. Les relances partent toutes seules."',
-    name: 'Thomas B.',
-    role: 'DAF, agence digitale — Paris',
+    quote: '"La facture part toute seule depuis le deal signé. Et si pas payée, la relance aussi. J\'ai récupéré 8 000 € en deux semaines sans lever le petit doigt."',
+    name: 'Lucie M.',
+    role: 'Coach certifiée, 12 clients actifs — Lyon',
     stars: 5,
   },
   {
-    quote:
-      '"Mes clients n\'ont jamais su que c\'était automatisé. Le ton cordial puis ferme est exactement ce que j\'aurais écrit moi-même."',
-    name: 'Marie-Claire D.',
-    role: 'Architecte indépendante — Bordeaux',
+    quote: '"Avant j\'avais toujours 4–5 propositions dans le vide. Maintenant je vois exactement où en est chaque prospect. Mon taux de closing a augmenté de 30%."',
+    name: 'Antoine R.',
+    role: 'Freelance stratégie RH — Bordeaux',
     stars: 5,
   },
 ]
 
-const plans = [
-  {
-    name: 'Starter',
-    price: '19',
-    period: 'mois',
-    desc: 'Pour les indépendants et toutes petites structures',
-    limit: '30 factures / mois',
-    features: [
-      '30 factures / mois',
-      'Relances email automatiques',
-      '3 scénarios préconfigurés',
-      'Mise en demeure en 1 clic',
-      'Dashboard DSO',
-      'Support email',
-    ],
-    cta: 'Démarrer',
-    highlight: false,
-  },
-  {
-    name: 'Pro',
-    price: '49',
-    period: 'mois',
-    desc: 'Pour les PME avec un volume significatif',
-    limit: '200 factures / mois',
-    features: [
-      '200 factures / mois',
-      'Tout Starter, plus :',
-      'Relances SMS (bientôt)',
-      'Intégrations comptables (bientôt)',
-      'Export rapport banquier',
-      'Scénarios personnalisés',
-      'Support prioritaire',
-    ],
-    cta: 'Essayer Pro',
-    highlight: true,
-  },
-  {
-    name: 'Business',
-    price: '99',
-    period: 'mois',
-    desc: 'Pour les structures à fort volume ou multi-entités',
-    limit: '1 000 factures / mois',
-    features: [
-      '1 000 factures / mois',
-      'Tout Pro, plus :',
-      'Scoring client IA (bientôt)',
-      'Courrier recommandé auto (bientôt)',
-      'API & webhooks',
-      'Accès multi-utilisateurs',
-      'Account manager dédié',
-    ],
-    cta: 'Contacter',
-    highlight: false,
-  },
-]
-
-const guides = [
-  "L'indemnité forfaitaire de 40€ : comment l'appliquer sans fâcher vos clients",
-  'Pénalités de retard légales : calcul, taux et mise en œuvre en 2026',
-  'Mise en demeure : modèle, délais et effets juridiques',
-  'DSO : pourquoi 45 jours tués votre trésorerie (et comment le réduire à 28)',
-  'Recouvrement amiable vs contentieux : quand passer le cap ?',
+const comparison = [
+  { feature: 'Pipeline visuel', rf: true, hub: true, pipe: true },
+  { feature: 'Relances prospects auto', rf: true, hub: '💰 Cher', pipe: false },
+  { feature: 'Facturation intégrée', rf: true, hub: false, pipe: false },
+  { feature: 'Relances factures auto', rf: true, hub: false, pipe: false },
+  { feature: 'En français natif', rf: true, hub: false, pipe: false },
+  { feature: 'Paiement en ligne intégré', rf: true, hub: false, pipe: false },
+  { feature: 'Prix / mois', rf: '15 €', hub: '41 €', pipe: '20 €' },
 ]
 
 // ─── page ─────────────────────────────────────────────────────────────────────
@@ -204,11 +134,10 @@ export default function HomePage() {
             <span className="text-lg font-bold text-gray-900">RelanceFlow</span>
           </Link>
           <div className="hidden md:flex items-center gap-6 text-sm text-gray-600">
+            <a href="#comment-ca-marche" className="hover:text-gray-900 transition-colors">Comment ça marche</a>
             <a href="#fonctionnalites" className="hover:text-gray-900 transition-colors">Fonctionnalités</a>
-            <a href="#calculateur" className="hover:text-gray-900 transition-colors">Calculateur</a>
             <a href="#pricing" className="hover:text-gray-900 transition-colors">Tarifs</a>
             <a href="#faq" className="hover:text-gray-900 transition-colors">FAQ</a>
-            <Link href="/guides" className="hover:text-gray-900 transition-colors">Guides juridiques</Link>
           </div>
           <div className="flex items-center gap-2">
             <Link
@@ -233,21 +162,21 @@ export default function HomePage() {
         <div className="mx-auto max-w-4xl text-center relative">
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 text-sm text-blue-300 mb-8">
             <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
-            +340 dirigeants nous font confiance · Essai gratuit 14 jours
+            Pour consultants &amp; coaches indépendants · Essai gratuit 14 jours
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight tracking-tight">
-            Cessez d&apos;être le{' '}
+            Ne laisse plus aucun{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
-              banquier gratuit
+              deal mourir
             </span>{' '}
-            de vos clients.
+            en silence.
           </h1>
 
           <p className="mt-6 text-lg sm:text-xl text-blue-200/80 max-w-2xl mx-auto leading-relaxed">
-            Vos factures ne sont pas des crédits à 0%. RelanceFlow automatise le recouvrement
-            de A à Z — de la relance cordiale à la mise en demeure légale — pendant que vous
-            vous concentrez sur votre métier.
+            Le seul outil qui ferme la boucle complète — du premier prospect à l&apos;encaissement.
+            Pipeline, relances automatiques et facturation intégrée.{' '}
+            <strong className="text-blue-300">En français. À 15 €/mois.</strong>
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -255,25 +184,30 @@ export default function HomePage() {
               href="/auth/register"
               className="group flex items-center gap-2 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-bold px-7 py-3.5 text-base transition-all shadow-lg shadow-blue-500/30"
             >
-              Récupérer mes créances maintenant
+              Démarrer gratuitement — 14 jours
               <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
             </Link>
             <a
-              href="#calculateur"
+              href="#comment-ca-marche"
               className="flex items-center gap-2 rounded-xl border border-white/20 text-white/80 hover:text-white hover:border-white/40 font-medium px-6 py-3.5 text-base transition-all"
             >
-              <Euro className="h-5 w-5" />
-              Calculer mon manque à gagner
+              Voir comment ça marche
+              <ChevronRight className="h-5 w-5" />
             </a>
           </div>
 
           <p className="mt-5 text-sm text-blue-300/50">
-            Sans carte bancaire · Données hébergées en Europe · Conforme RGPD
+            Sans carte bancaire · Données hébergées en Europe · Annulation en 1 clic
           </p>
 
-          {/* Stats */}
+          {/* Mini stats */}
           <div className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-6 border-t border-white/10 pt-12">
-            {stats.map((s) => (
+            {[
+              { value: '+30%', label: 'de taux de closing' },
+              { value: '< 60s', label: 'pour ajouter un contact' },
+              { value: '100%', label: 'en français' },
+              { value: '15 €', label: 'par mois, tout inclus' },
+            ].map((s) => (
               <div key={s.label} className="text-center">
                 <div className="text-3xl font-extrabold text-white">{s.value}</div>
                 <div className="text-sm text-blue-300/70 mt-1">{s.label}</div>
@@ -288,10 +222,11 @@ export default function HomePage() {
         <div className="mx-auto max-w-4xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900">
-              Le recouvrement manuel, c&apos;est fini.
+              Tu gères ton business seul. C&apos;est là que ça coince.
             </h2>
-            <p className="text-gray-500 mt-3">
-              Chaque heure passée à relancer manuellement est une heure perdue sur votre cœur de métier.
+            <p className="text-gray-500 mt-3 max-w-xl mx-auto">
+              Sans outil dédié, les deals s&apos;accumulent dans ta tête, les factures traînent,
+              et les relances partent trop tard — ou pas du tout.
             </p>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -299,9 +234,9 @@ export default function HomePage() {
               <div key={i} className="rounded-xl bg-white border p-5 space-y-3">
                 <div className="flex items-start gap-3">
                   <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-red-100 mt-0.5">
-                    <span className="text-red-500 text-sm font-bold">✕</span>
+                    <X className="h-3.5 w-3.5 text-red-500" />
                   </div>
-                  <p className="text-sm text-gray-500 line-through">{p.wrong}</p>
+                  <p className="text-sm text-gray-400 line-through">{p.wrong}</p>
                 </div>
                 <div className="flex items-start gap-3">
                   <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-green-100 mt-0.5">
@@ -315,19 +250,69 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CALCULATOR */}
-      <section id="calculateur" className="py-20 px-4 bg-white">
-        <div className="mx-auto max-w-3xl">
-          <div className="text-center mb-10">
+      {/* HOW IT WORKS — La boucle complète */}
+      <section id="comment-ca-marche" className="py-20 px-4 bg-white">
+        <div className="mx-auto max-w-5xl">
+          <div className="text-center mb-14">
+            <span className="inline-block rounded-full bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 mb-4 uppercase tracking-wider">
+              La boucle complète
+            </span>
             <h2 className="text-3xl font-bold text-gray-900">
-              Combien d&apos;argent dort dehors en ce moment ?
+              Du premier contact à l&apos;encaissement — sans intervention manuelle
             </h2>
             <p className="text-gray-500 mt-3 max-w-xl mx-auto">
-              Entrez votre chiffre d&apos;affaires et votre délai de paiement moyen. Découvrez
-              exactement ce que RelanceFlow peut libérer pour vous.
+              RelanceFlow est le seul outil qui connecte ton pipeline commercial,
+              ta facturation et tes relances impayées dans une seule interface.
             </p>
           </div>
-          <CashCalculator />
+
+          {/* Flow diagram */}
+          <div className="relative">
+            <div className="flex flex-col sm:flex-row items-stretch gap-0 rounded-2xl overflow-hidden border shadow-lg">
+              {steps.map((step, i) => (
+                <div
+                  key={step.n}
+                  className="flex-1 relative"
+                >
+                  <div className={`h-1.5 w-full ${step.color}`} />
+                  <div className="bg-white p-5">
+                    <div className={`inline-flex h-8 w-8 items-center justify-center rounded-full ${step.color} text-white text-sm font-bold mb-3`}>
+                      {step.n}
+                    </div>
+                    <p className="font-bold text-gray-900 text-sm">{step.label}</p>
+                    <p className="text-xs text-gray-400 mt-1 leading-tight">{step.sub}</p>
+                  </div>
+                  {i < steps.length - 1 && (
+                    <div className="hidden sm:flex absolute -right-3 top-1/2 -translate-y-1/2 z-10 h-6 w-6 items-center justify-center rounded-full bg-gray-100 border border-gray-200">
+                      <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Auto-trigger callouts */}
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 flex items-start gap-3">
+                <Bell className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-amber-900">Relances prospects automatiques</p>
+                  <p className="text-xs text-amber-700 mt-0.5">
+                    Dès qu&apos;une proposition est envoyée → J+3, J+7, J+14. La séquence s&apos;arrête si le prospect répond.
+                  </p>
+                </div>
+              </div>
+              <div className="rounded-xl border border-green-200 bg-green-50 p-4 flex items-start gap-3">
+                <Euro className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-green-900">Relances factures automatiques</p>
+                  <p className="text-xs text-green-700 mt-0.5">
+                    Facture impayée → relances à J+7, J+15, J+30 avec lien de paiement Stripe. Tu n&apos;as rien à faire.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -336,10 +321,10 @@ export default function HomePage() {
         <div className="mx-auto max-w-6xl">
           <div className="text-center mb-14">
             <h2 className="text-3xl font-bold text-gray-900">
-              Tout ce qu&apos;il faut pour recouvrer professionnellement
+              Tout ce qu&apos;il faut, rien de superflu
             </h2>
             <p className="text-gray-500 mt-3">
-              Du premier retard à la mise en demeure — chaque étape est couverte.
+              Conçu pour les consultants et coaches qui travaillent seuls et n&apos;ont pas de temps à perdre.
             </p>
           </div>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -347,15 +332,8 @@ export default function HomePage() {
               const Icon = f.icon
               return (
                 <div key={f.title} className="rounded-xl bg-white border p-6 flex flex-col gap-4">
-                  <div className="flex items-start justify-between">
-                    <div className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${f.color}`}>
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    {f.badge && (
-                      <span className="rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold px-2.5 py-0.5">
-                        {f.badge}
-                      </span>
-                    )}
+                  <div className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${f.color}`}>
+                    <Icon className="h-5 w-5" />
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-900 mb-1.5">{f.title}</h3>
@@ -368,19 +346,21 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* DASHBOARD PREVIEW */}
-      <section id="apercu" className="py-20 px-4 bg-white">
+      {/* MOCKUP — Pipeline kanban */}
+      <section className="py-20 px-4 bg-white">
         <div className="mx-auto max-w-5xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900">
-              Un poste client piloté comme un professionnel du credit management
+              Tous tes deals visibles en un coup d&apos;œil
             </h2>
             <p className="text-gray-500 mt-3">
-              Balance âgée, DSO, urgences du jour, historique de relances — tout en un coup d&apos;œil.
+              Ajoute un contact en moins de 60 secondes. Glisse-dépose les cartes d&apos;une colonne à l&apos;autre.
             </p>
           </div>
-          {/* Dashboard mockup */}
+
+          {/* Kanban mockup */}
           <div className="relative rounded-2xl border shadow-2xl overflow-hidden bg-gray-50">
+            {/* Window chrome */}
             <div className="flex items-center gap-2 border-b bg-gray-100 px-4 py-2.5">
               <div className="flex gap-1.5">
                 <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
@@ -389,72 +369,94 @@ export default function HomePage() {
               </div>
               <div className="flex-1 mx-3">
                 <div className="rounded bg-white border px-3 py-1 text-xs text-gray-400 max-w-xs mx-auto text-center">
-                  relanceflow.fr/dashboard
+                  relanceflow.fr/dashboard/pipeline
                 </div>
               </div>
             </div>
+
             <div className="flex">
               {/* Sidebar mock */}
-              <div className="w-48 bg-white border-r p-3 hidden sm:block">
+              <div className="w-44 bg-white border-r p-3 hidden sm:block flex-shrink-0">
                 <div className="flex items-center gap-2 mb-4 px-2">
                   <div className="h-5 w-5 rounded bg-blue-600 flex-shrink-0" />
                   <div className="h-3 w-20 bg-gray-200 rounded" />
                 </div>
-                {['Tableau de bord', 'Factures', 'Scénarios', 'Mise en demeure', 'Paramètres'].map((item, i) => (
-                  <div key={item} className={`flex items-center gap-2 px-2 py-1.5 rounded mb-0.5 ${i === 0 ? 'bg-blue-600' : ''}`}>
-                    <div className={`h-3 w-3 rounded ${i === 0 ? 'bg-blue-400' : 'bg-gray-200'}`} />
-                    <div className={`h-2 rounded ${i === 0 ? 'bg-blue-400 w-20' : 'bg-gray-100 w-16'}`} />
+                {[
+                  { label: 'Tableau de bord', active: false },
+                  { label: 'Pipeline', active: true },
+                  { label: 'Factures', active: false },
+                  { label: 'Statistiques', active: false },
+                  { label: 'Paramètres', active: false },
+                ].map((item) => (
+                  <div key={item.label} className={`flex items-center gap-2 px-2 py-1.5 rounded mb-0.5 ${item.active ? 'bg-blue-600' : ''}`}>
+                    <div className={`h-3 w-3 rounded ${item.active ? 'bg-blue-400' : 'bg-gray-200'}`} />
+                    <div className={`h-2 rounded ${item.active ? 'bg-blue-400 w-16' : 'bg-gray-100 w-14'}`} />
                   </div>
                 ))}
               </div>
-              {/* Content mock */}
-              <div className="flex-1 p-4 space-y-3">
-                {/* Alert */}
-                <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="h-3 w-3 bg-red-400 rounded-full" />
-                    <div className="h-2.5 bg-red-200 rounded w-48" />
-                  </div>
-                  <div className="h-6 w-24 bg-red-500 rounded text-xs" />
-                </div>
-                {/* KPIs */}
-                <div className="grid grid-cols-4 gap-2">
+
+              {/* Kanban columns */}
+              <div className="flex-1 p-4 overflow-x-auto">
+                <div className="flex gap-3 min-w-max">
                   {[
-                    { label: 'Créances', value: '35 550 €', accent: 'blue' },
-                    { label: 'En retard', value: '18 000 €', accent: 'red' },
-                    { label: 'Récupéré', value: '12 300 €', accent: 'green' },
-                    { label: 'DSO', value: '28j', accent: 'gray' },
-                  ].map((kpi) => (
-                    <div key={kpi.label} className="rounded-lg bg-white border p-2">
-                      <div className="text-xs text-gray-400 mb-1">{kpi.label}</div>
-                      <div className={`text-sm font-bold ${kpi.accent === 'red' ? 'text-red-600' : kpi.accent === 'green' ? 'text-green-600' : kpi.accent === 'blue' ? 'text-blue-700' : 'text-gray-700'}`}>
-                        {kpi.value}
+                    {
+                      label: 'Prospect', color: 'bg-blue-500', count: 3,
+                      cards: [
+                        { name: 'Marie Dupont', co: 'Coaching RH', tag: 'Coach', days: null },
+                        { name: 'Thomas L.', co: 'Indépendant', tag: 'Consultant', days: null },
+                      ],
+                    },
+                    {
+                      label: 'Qualifié', color: 'bg-violet-500', count: 2,
+                      cards: [
+                        { name: 'Acme Corp', co: 'Dir. Marketing', tag: '8 500 €', days: null },
+                      ],
+                    },
+                    {
+                      label: 'Proposition', color: 'bg-amber-500', count: 2,
+                      cards: [
+                        { name: 'TechStart', co: 'CEO', tag: '12 000 €', days: 'J+3 ✓' },
+                        { name: 'Nexus Agency', co: 'DRH', tag: '6 200 €', days: 'J+7 →' },
+                      ],
+                    },
+                    {
+                      label: 'Signé', color: 'bg-green-500', count: 1,
+                      cards: [
+                        { name: 'Innovatech', co: 'Fondateur', tag: '9 500 €', days: '📄 Facture' },
+                      ],
+                    },
+                  ].map((col) => (
+                    <div key={col.label} className="w-44 flex-shrink-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-1.5">
+                          <div className={`h-2 w-2 rounded-full ${col.color}`} />
+                          <span className="text-xs font-semibold text-gray-700">{col.label}</span>
+                        </div>
+                        <span className="text-xs text-gray-400 bg-gray-100 rounded-full px-1.5 py-0.5">{col.count}</span>
                       </div>
-                    </div>
-                  ))}
-                </div>
-                {/* Invoice list */}
-                <div className="rounded-lg bg-white border overflow-hidden">
-                  <div className="px-3 py-2 border-b bg-gray-50 flex items-center justify-between">
-                    <div className="h-2.5 bg-gray-300 rounded w-28" />
-                    <div className="h-2 bg-gray-200 rounded w-12" />
-                  </div>
-                  {[
-                    { name: 'TechStart SAS', num: 'FA-2024-002', amount: '12 800 €', days: '62j', color: 'bg-red-500' },
-                    { name: 'Innovatech', num: 'FA-2024-005', amount: '9 200 €', days: '45j', color: 'bg-orange-400' },
-                    { name: 'Acme Corp', num: 'FA-2024-001', amount: '4 500 €', days: '15j', color: 'bg-yellow-400' },
-                    { name: 'Dupont & Fils', num: 'FA-2024-003', amount: '2 300 €', days: '—', color: 'bg-green-500' },
-                  ].map((row) => (
-                    <div key={row.num} className="flex items-center gap-3 px-3 py-2 border-b last:border-0">
-                      <div className={`h-2 w-2 rounded-full flex-shrink-0 ${row.color}`} />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs font-medium text-gray-700 truncate">{row.name}</div>
-                        <div className="text-xs text-gray-400">{row.num}</div>
+                      <div className="space-y-2">
+                        {col.cards.map((card) => (
+                          <div key={card.name} className="rounded-lg bg-white border p-2.5 shadow-sm">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-xs font-semibold text-gray-800 truncate">{card.name}</span>
+                            </div>
+                            <p className="text-xs text-gray-400 truncate">{card.co}</p>
+                            <div className="flex items-center justify-between mt-2">
+                              <span className={`text-xs font-medium rounded px-1.5 py-0.5 ${card.tag.includes('€') ? 'bg-green-50 text-green-700' : card.tag === '📄 Facture' ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
+                                {card.tag}
+                              </span>
+                              {card.days && (
+                                <span className={`text-xs font-medium ${card.days.includes('✓') ? 'text-amber-600' : 'text-amber-500'}`}>
+                                  {card.days}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                        <div className="rounded-lg border border-dashed border-gray-200 p-2 text-center">
+                          <span className="text-xs text-gray-300">+ Ajouter</span>
+                        </div>
                       </div>
-                      {row.days !== '—' && (
-                        <div className="text-xs text-red-500 font-semibold">{row.days}</div>
-                      )}
-                      <div className="text-xs font-bold text-gray-800">{row.amount}</div>
                     </div>
                   ))}
                 </div>
@@ -464,22 +466,22 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* SOCIAL PROOF */}
-      <section id="temoignages" className="py-20 px-4 bg-gray-50">
+      {/* TESTIMONIALS */}
+      <section className="py-20 px-4 bg-gray-50">
         <div className="mx-auto max-w-6xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900">
-              Des dirigeants qui ont repris le contrôle de leur trésorerie
+              Des consultants qui ont arrêté de perdre des deals
             </h2>
           </div>
 
           {/* Trust badges */}
           <div className="flex flex-wrap justify-center gap-4 mb-12">
             {[
-              { icon: Shield, label: 'Conforme RGPD', sub: 'Données hébergées en France' },
-              { icon: FileText, label: 'Légalement conforme', sub: 'Art. L441-10 Code comm.' },
+              { icon: Shield, label: 'Conforme RGPD', sub: 'Données hébergées en Europe' },
               { icon: CheckCircle, label: 'SSL / TLS chiffré', sub: 'Connexion sécurisée 256-bit' },
-              { icon: Users, label: '+340 entreprises', sub: 'nous font confiance' },
+              { icon: Clock, label: 'Moins de 60 secondes', sub: 'Pour créer ton premier contact' },
+              { icon: Users, label: 'Pour travailleurs solo', sub: 'Consultants, coaches, freelances' },
             ].map((badge) => {
               const Icon = badge.icon
               return (
@@ -513,149 +515,132 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* PRICING */}
-      <section id="pricing" className="py-20 px-4 bg-white">
-        <div className="mx-auto max-w-5xl">
+      {/* COMPARISON */}
+      <section className="py-20 px-4 bg-white">
+        <div className="mx-auto max-w-3xl">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">Tarifs clairs, sans surprise</h2>
+            <h2 className="text-3xl font-bold text-gray-900">
+              Simple. Complet. En français.
+            </h2>
             <p className="text-gray-500 mt-3">
-              14 jours d&apos;essai gratuit sur tous les plans. Sans carte bancaire.
+              Pipedrive ne facture pas. HubSpot coûte cher et en anglais. Nous, on ferme la boucle.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {plans.map((plan) => (
-              <div
-                key={plan.name}
-                className={`rounded-2xl border p-6 flex flex-col gap-5 ${
-                  plan.highlight
-                    ? 'border-blue-500 bg-blue-600 text-white shadow-xl shadow-blue-200'
-                    : 'border-gray-200 bg-white'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className={`text-sm font-semibold ${plan.highlight ? 'text-blue-200' : 'text-gray-500'}`}>
-                      {plan.name}
-                    </span>
-                    {plan.highlight && (
-                      <span className="rounded-full bg-white/20 text-white text-xs font-semibold px-2.5 py-0.5">
-                        Populaire
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-end gap-1">
-                    <span className={`text-4xl font-extrabold ${plan.highlight ? 'text-white' : 'text-gray-900'}`}>
-                      {plan.price}€
-                    </span>
-                    <span className={`text-sm mb-1.5 ${plan.highlight ? 'text-blue-200' : 'text-gray-400'}`}>
-                      /{plan.period}
-                    </span>
-                  </div>
-                  <p className={`text-xs mt-1 ${plan.highlight ? 'text-blue-200' : 'text-gray-500'}`}>
-                    {plan.desc}
-                  </p>
+          <div className="rounded-2xl border overflow-hidden shadow-sm">
+            {/* Header */}
+            <div className="grid grid-cols-4 bg-gray-50 border-b">
+              <div className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Fonctionnalité</div>
+              <div className="px-4 py-3 text-center">
+                <div className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 text-white text-xs font-bold px-2.5 py-1">
+                  <Zap className="h-3 w-3" />RelanceFlow
                 </div>
-
-                <ul className="space-y-2 flex-1">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-sm">
-                      <CheckCircle
-                        className={`h-4 w-4 flex-shrink-0 mt-0.5 ${
-                          plan.highlight ? 'text-blue-300' : 'text-blue-600'
-                        }`}
-                      />
-                      <span className={plan.highlight ? 'text-blue-100' : 'text-gray-600'}>{f}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <Link
-                  href="/auth/register"
-                  className={`block text-center rounded-xl py-2.5 text-sm font-bold transition-colors ${
-                    plan.highlight
-                      ? 'bg-white text-blue-600 hover:bg-blue-50'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}
-                >
-                  {plan.cta}
-                </Link>
+              </div>
+              <div className="px-4 py-3 text-center text-xs font-semibold text-gray-400">HubSpot</div>
+              <div className="px-4 py-3 text-center text-xs font-semibold text-gray-400">Pipedrive</div>
+            </div>
+            {comparison.map((row, i) => (
+              <div key={row.feature} className={`grid grid-cols-4 border-b last:border-0 ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
+                <div className="px-4 py-3 text-sm text-gray-700">{row.feature}</div>
+                <div className="px-4 py-3 text-center">
+                  {row.rf === true ? (
+                    <CheckCircle className="h-5 w-5 text-green-500 mx-auto" />
+                  ) : (
+                    <span className="text-sm font-bold text-blue-600">{row.rf}</span>
+                  )}
+                </div>
+                <div className="px-4 py-3 text-center">
+                  {row.hub === true ? (
+                    <CheckCircle className="h-5 w-5 text-gray-300 mx-auto" />
+                  ) : row.hub === false ? (
+                    <X className="h-4 w-4 text-red-300 mx-auto" />
+                  ) : (
+                    <span className="text-xs text-amber-600 font-medium">{row.hub}</span>
+                  )}
+                </div>
+                <div className="px-4 py-3 text-center">
+                  {row.pipe === true ? (
+                    <CheckCircle className="h-5 w-5 text-gray-300 mx-auto" />
+                  ) : row.pipe === false ? (
+                    <X className="h-4 w-4 text-red-300 mx-auto" />
+                  ) : (
+                    <span className="text-xs text-gray-500 font-medium">{row.pipe}</span>
+                  )}
+                </div>
               </div>
             ))}
           </div>
-
-          <p className="text-center text-sm text-gray-400 mt-8">
-            Vous recouvrez plus de 1 000 factures / mois ou cherchez une solution sur-mesure ?{' '}
-            <a href="mailto:hello@relanceflow.fr" className="text-blue-600 hover:underline font-medium">
-              Parlons-en →
-            </a>
-          </p>
         </div>
       </section>
 
-      {/* GUIDES TEASER */}
-      <section className="py-20 px-4 bg-gray-50">
-        <div className="mx-auto max-w-4xl">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">
-                Guides juridiques gratuits
-              </h2>
-              <p className="text-gray-500 mt-1 text-sm">
-                Le droit commercial en clair, sans jargon inutile.
-              </p>
-            </div>
-            <Link
-              href="/guides"
-              className="flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700"
-            >
-              Voir tous les guides
-              <ChevronRight className="h-4 w-4" />
-            </Link>
-          </div>
-          <div className="space-y-2">
-            {guides.map((guide, i) => (
-              <Link
-                key={i}
-                href="/guides"
-                className="flex items-center gap-3 rounded-xl border bg-white p-4 hover:border-blue-200 hover:shadow-sm transition-all group"
-              >
-                <FileText className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                <span className="text-sm font-medium text-gray-700 group-hover:text-blue-700 transition-colors flex-1">
-                  {guide}
-                </span>
-                <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-blue-500 transition-colors" />
-              </Link>
-            ))}
+      {/* PRICING */}
+      <section id="pricing" className="py-20 px-4 bg-gray-50">
+        <div className="mx-auto max-w-lg">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900">Un seul plan. Tout inclus.</h2>
+            <p className="text-gray-500 mt-3">
+              14 jours d&apos;essai gratuit. Sans carte bancaire. Annulation en 1 clic.
+            </p>
           </div>
 
-          {/* Templates lead magnet */}
-          <div className="mt-6 rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-700 p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-white/20">
-              <Download className="h-6 w-6 text-white" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-bold text-white">Pack Modèles de Relance Gratuits</h3>
-              <p className="text-blue-200 text-sm mt-0.5">
-                5 modèles d&apos;emails (cordial, ferme, précontentieux, litige, mise en demeure) — prêts à l&apos;emploi
+          <div className="rounded-2xl border-2 border-blue-500 bg-white shadow-2xl shadow-blue-100 p-8">
+            <div className="text-center mb-8">
+              <span className="inline-block rounded-full bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 mb-4 uppercase tracking-wider">
+                Solo — Consultant &amp; Coach
+              </span>
+              <div className="flex items-end justify-center gap-1">
+                <span className="text-6xl font-extrabold text-gray-900">15</span>
+                <span className="text-2xl font-bold text-gray-400 mb-2">€</span>
+                <span className="text-gray-400 mb-2 text-lg">/mois</span>
+              </div>
+              <p className="text-sm text-gray-500 mt-2">
+                Soit 0,50 €/jour pour ne plus jamais perdre un deal
               </p>
             </div>
+
+            <ul className="space-y-3 mb-8">
+              {[
+                'Pipeline kanban 5 étapes (contacts illimités)',
+                'Journal d\'activité (appels, emails, notes)',
+                'Séquences de relance prospects automatiques',
+                'Création de factures depuis un deal signé',
+                'Relances factures automatiques (J+7 / J+15 / J+30)',
+                'Paiement en ligne Stripe intégré',
+                'Notifications intelligentes in-app',
+                'Dashboard commercial & encaissements',
+                'Support email réactif',
+              ].map((f) => (
+                <li key={f} className="flex items-start gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-sm text-gray-700">{f}</span>
+                </li>
+              ))}
+            </ul>
+
             <Link
-              href="/modeles"
-              className="flex-shrink-0 rounded-xl bg-white text-blue-700 font-bold text-sm px-5 py-2.5 hover:bg-blue-50 transition-colors"
+              href="/auth/register"
+              className="block text-center rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 text-base transition-colors shadow-lg shadow-blue-200"
             >
-              Télécharger
+              Démarrer mon essai gratuit — 14 jours
             </Link>
+
+            <p className="text-center text-xs text-gray-400 mt-4">
+              Pas de carte bancaire requise · Annulation en 1 clic
+            </p>
           </div>
+
+          <p className="text-center text-sm text-gray-400 mt-8">
+            Tu as un volume plus important ou des besoins spécifiques ?{' '}
+            <a href="mailto:hello@relanceflow.fr" className="text-blue-600 hover:underline font-medium">
+              Contacte-nous →
+            </a>
+          </p>
         </div>
       </section>
 
       {/* FAQ */}
       <section id="faq" className="py-20 px-4 bg-white">
         <div className="mx-auto max-w-3xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">Questions fréquentes</h2>
-          </div>
           <FAQSection />
         </div>
       </section>
@@ -664,23 +649,29 @@ export default function HomePage() {
       <section className="py-24 px-4 bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight">
-            Votre trésorerie ne peut pas attendre.
+            Ton prochain deal ne mourra pas en silence.
           </h2>
-          <p className="mt-4 text-lg text-blue-200/80">
-            Chaque jour de retard coûte de l&apos;argent. Démarrez gratuitement — sans carte bancaire,
-            sans engagement, sans friction.
+          <p className="mt-4 text-lg text-blue-200/80 max-w-xl mx-auto">
+            Ajoute ton premier contact en moins de 60 secondes.
+            Les relances tournent toutes seules dès le premier jour.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               href="/auth/register"
               className="group flex items-center gap-2 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-bold px-8 py-4 text-base transition-all shadow-lg shadow-blue-500/30"
             >
-              Démarrer mon essai gratuit — 14 jours
+              Démarrer gratuitement — 14 jours
               <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+            <Link
+              href="/auth/login"
+              className="flex items-center gap-2 rounded-xl border border-white/20 text-white/80 hover:text-white hover:border-white/40 font-medium px-6 py-4 text-base transition-all"
+            >
+              J&apos;ai déjà un compte
             </Link>
           </div>
           <p className="mt-4 text-sm text-blue-300/50">
-            Sans carte bancaire · Sans engagement · Annulation en 1 clic
+            Sans carte bancaire · Sans engagement · 15 €/mois après l&apos;essai
           </p>
         </div>
       </section>
@@ -696,7 +687,8 @@ export default function HomePage() {
               <span className="font-bold text-gray-900">RelanceFlow</span>
             </div>
             <p className="text-xs text-gray-400 leading-relaxed">
-              Automatisez votre recouvrement. Récupérez vos créances. Protégez votre trésorerie.
+              Pipeline · Relances auto · Facturation intégrée.
+              Pour consultants et coaches indépendants. En français.
             </p>
           </div>
           <div>
@@ -704,14 +696,12 @@ export default function HomePage() {
             <ul className="space-y-2 text-sm text-gray-500">
               <li><a href="#fonctionnalites" className="hover:text-gray-900">Fonctionnalités</a></li>
               <li><a href="#pricing" className="hover:text-gray-900">Tarifs</a></li>
-              <li><a href="#calculateur" className="hover:text-gray-900">Calculateur DSO</a></li>
-              <li><Link href="/modeles" className="hover:text-gray-900">Modèles gratuits</Link></li>
+              <li><a href="#comment-ca-marche" className="hover:text-gray-900">Comment ça marche</a></li>
             </ul>
           </div>
           <div>
             <h4 className="text-sm font-semibold text-gray-700 mb-3">Ressources</h4>
             <ul className="space-y-2 text-sm text-gray-500">
-              <li><Link href="/guides" className="hover:text-gray-900">Guides juridiques</Link></li>
               <li><Link href="/support" className="hover:text-gray-900">Support</Link></li>
               <li><a href="mailto:hello@relanceflow.fr" className="hover:text-gray-900">Contact</a></li>
             </ul>
@@ -726,7 +716,7 @@ export default function HomePage() {
           </div>
         </div>
         <div className="mx-auto max-w-6xl mt-8 pt-6 border-t text-center text-xs text-gray-400">
-          © 2026 RelanceFlow — Tous droits réservés · Recouvrement de créances pour TPE/PME françaises
+          © 2026 RelanceFlow · CRM pipeline et recouvrement pour consultants et coaches indépendants
         </div>
       </footer>
     </div>

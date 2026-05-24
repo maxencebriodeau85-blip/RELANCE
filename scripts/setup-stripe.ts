@@ -19,29 +19,29 @@ const PLANS = [
   {
     key: 'starter',
     envVar: 'STRIPE_STARTER_PRICE_ID',
-    name: 'RelanceFlow Starter',
-    description: "Jusqu'à 30 factures suivies/mois — pour freelances et micro-entreprises",
-    amount: 1900, // en centimes
+    name: 'RelanceFlow Solo',
+    description: 'Pour consultants et coaches indépendants — pipeline + relances + facturation',
+    amount: 1500, // 15 € en centimes
     features: [
-      "30 factures/mois",
-      "3 scénarios de relance",
-      "Relances email automatiques",
-      "Tableau de bord DSO",
-      "Support par email",
+      "Pipeline kanban (contacts illimités)",
+      "Journal d'activité",
+      "Séquences relance prospects auto",
+      "Facturation intégrée",
+      "Relances factures auto",
+      "Support email",
     ],
   },
   {
     key: 'pro',
     envVar: 'STRIPE_PRO_PRICE_ID',
     name: 'RelanceFlow Pro',
-    description: "Jusqu'à 200 factures/mois — pour TPE de 1 à 10 salariés",
-    amount: 4900,
+    description: 'Pour consultants avec un volume plus important ou des intégrations',
+    amount: 2900, // 29 € en centimes
     features: [
-      "200 factures/mois",
+      "Tout Solo, plus :",
+      "Intégrations comptables",
+      "Export CSV",
       "Scénarios personnalisables",
-      "Générateur mise en demeure PDF",
-      "Import CSV en masse",
-      "Statistiques avancées",
       "Support prioritaire",
     ],
   },
