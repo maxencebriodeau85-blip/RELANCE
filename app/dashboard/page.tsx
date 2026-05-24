@@ -21,6 +21,7 @@ import {
   ChevronRight,
   BarChart3,
   CheckCircle,
+  Kanban,
 } from 'lucide-react'
 
 function kpiCard({
@@ -87,13 +88,14 @@ export default async function DashboardPage() {
   let invoices: Invoice[] = []
   let profile: Profile | null = null
   let recentReminders: any[] = []
+  let contacts: { id: string; pipeline_stage: string; deal_amount: number | null }[] = []
 
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) redirect('/auth/login')
 
-    const [profileRes, invoicesRes, remindersRes] = await Promise.all([
+    const [profileRes, invoicesRes, remindersRes, contactsRes] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', user.id).single(),
       supabase.from('invoices').select('*').eq('user_id', user.id).order('due_date', { ascending: true }),
       supabase.from('reminders')
@@ -101,11 +103,16 @@ export default async function DashboardPage() {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(5),
+      supabase
+        .from('contacts')
+        .select('id, pipeline_stage, deal_amount')
+        .eq('user_id', user.id),
     ])
 
     profile = (profileRes.data as Profile) ?? null
     invoices = (invoicesRes.data as Invoice[]) ?? []
     recentReminders = remindersRes.data ?? []
+    contacts = (contactsRes.data as { id: string; pipeline_stage: string; deal_amount: number | null }[]) ?? []
   } catch {
     redirect('/auth/login')
   }
@@ -115,6 +122,8 @@ export default async function DashboardPage() {
   const todayLabel = today.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
   const companyName = profile?.company_name ?? null
   const hasInvoices = invoices.length > 0
+  const profileComplete = !!(profile?.company_name && profile?.siren)
+  const onboardingDone = [true, profileComplete].filter(Boolean).length
 
   const urgentInvoices = invoices
     .filter((inv) => inv.status !== 'paid' && inv.status !== 'disputed' && getDaysOverdue(inv) > 0)
@@ -124,7 +133,7 @@ export default async function DashboardPage() {
   const monthlyData = buildMonthlyData(invoices)
   const agingData = metrics.agingBuckets.map((b) => ({ label: b.label, amount: b.amount, count: b.count }))
 
-  // ── EMPTY STATE ────────────────────────────────────────────────────────────
+  // ── EMPTY STATE ─────────────────────────────────────────────────────────────
   if (!hasInvoices) {
     return (
       <div className="min-h-full bg-gray-50">
@@ -166,29 +175,79 @@ export default async function DashboardPage() {
           </div>
           <div className="rounded-xl border bg-white overflow-hidden">
             <div className="px-6 py-4 border-b bg-gray-50 flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900">Démarrage — 3 étapes</h3>
-              <span className="text-xs font-medium text-gray-400 bg-gray-100 rounded-full px-3 py-1">0 / 3</span>
+              <div>
+                <h3 className="font-semibold text-gray-900">Démarrage — 3 étapes</h3>
+                <p className="text-xs text-gray-500 mt-0.5">Complétez ces étapes pour activer votre recouvrement automatique</p>
+              </div>
+              <span className={`text-xs font-medium rounded-full px-3 py-1 ${onboardingDone >= 2 ? 'bg-green-100 text-green-700' : 'text-gray-400 bg-gray-100'}`}>
+                {onboardingDone} / 3
+              </span>
             </div>
             <div className="divide-y">
               {[
-                { n: 1, icon: Upload, title: 'Importez vos factures impayées', desc: "Glissez-déposez un CSV depuis Sage, QuickBooks, Ciel, FreshBooks.", href: '/dashboard/invoices/import', cta: 'Importer', active: true },
-                { n: 2, icon: Bell, title: 'Activez les relances automatiques', desc: "J+7, J+15, J+30, J+45 — les emails partent seuls selon le retard.", href: '/dashboard/scenarios', cta: 'Configurer', active: false },
-                { n: 3, icon: FileText, title: 'Complétez votre profil', desc: "Raison sociale, SIREN — apparaissent dans vos mises en demeure.", href: '/dashboard/settings', cta: 'Compléter', active: false },
+                {
+                  n: 1,
+                  icon: Upload,
+                  title: 'Importez vos factures impayées',
+                  desc: 'Glissez-déposez un CSV depuis votre logiciel (Sage, Ciel, QuickBooks, FreshBooks…) ou saisissez manuellement.',
+                  href: '/dashboard/invoices/import',
+                  cta: 'Importer maintenant',
+                  done: false,
+                  active: true,
+                },
+                {
+                  n: 2,
+                  icon: Bell,
+                  title: 'Choisissez votre scénario de relance',
+                  desc: 'Cordial (J+7), Ferme (J+15/J+30) ou Pré-contentieux (J+45). Chaque étape est automatique.',
+                  href: '/dashboard/scenarios',
+                  cta: 'Voir les scénarios',
+                  done: false,
+                  active: false,
+                },
+                {
+                  n: 3,
+                  icon: FileText,
+                  title: 'Complétez votre profil entreprise',
+                  desc: 'Raison sociale et SIREN figurent dans vos mises en demeure et emails de relance.',
+                  href: '/dashboard/settings',
+                  cta: profileComplete ? 'Profil complet ✓' : 'Configurer',
+                  done: profileComplete,
+                  active: !profileComplete,
+                },
               ].map((step) => {
                 const Icon = step.icon
                 return (
-                  <Link key={step.n} href={step.href} className="flex items-start gap-4 px-6 py-4 hover:bg-gray-50 transition-colors group">
-                    <div className={`mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold ${step.active ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400'}`}>{step.n}</div>
+                  <Link
+                    key={step.n}
+                    href={step.href}
+                    className="flex items-start gap-4 px-6 py-4 hover:bg-gray-50 transition-colors group"
+                  >
+                    <div
+                      className={`mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+                        step.done
+                          ? 'bg-green-100 text-green-600'
+                          : step.active
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-400'
+                      }`}
+                    >
+                      {step.done ? <CheckCircle className="h-4 w-4" /> : step.n}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <Icon className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                        <span className={`text-sm font-semibold ${step.active ? 'text-blue-700' : 'text-gray-700'}`}>{step.title}</span>
+                        <span className={`text-sm font-semibold ${step.done ? 'text-green-700 line-through opacity-60' : step.active ? 'text-blue-700' : 'text-gray-700'}`}>
+                          {step.title}
+                        </span>
                       </div>
                       <p className="text-xs text-gray-500 mt-1">{step.desc}</p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0 mt-0.5">
-                      <span className={`text-xs font-medium ${step.active ? 'text-blue-600' : 'text-gray-400'}`}>{step.cta}</span>
-                      <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-blue-500 transition-colors" />
+                      <span className={`text-xs font-medium ${step.done ? 'text-green-600' : step.active ? 'text-blue-600' : 'text-gray-400'}`}>
+                        {step.cta}
+                      </span>
+                      {!step.done && <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-blue-500 transition-colors" />}
                     </div>
                   </Link>
                 )
@@ -200,7 +259,20 @@ export default async function DashboardPage() {
     )
   }
 
-  // ── FULL DASHBOARD ─────────────────────────────────────────────────────────
+  // ── FULL DASHBOARD ──────────────────────────────────────────────────────────
+
+  // Pipeline stats
+  const pipelineStages = ['prospect', 'qualified', 'proposal', 'signed', 'lost'] as const
+  const pipelineCounts = Object.fromEntries(
+    pipelineStages.map(s => [s, contacts.filter(c => c.pipeline_stage === s).length])
+  )
+  const pipelineValue = contacts
+    .filter(c => c.pipeline_stage !== 'lost')
+    .reduce((s, c) => s + (c.deal_amount || 0), 0)
+  const signedValue = contacts
+    .filter(c => c.pipeline_stage === 'signed')
+    .reduce((s, c) => s + (c.deal_amount || 0), 0)
+
   return (
     <div className="min-h-full bg-gray-50">
       <div className="bg-white border-b px-6 py-4 flex items-start justify-between">
@@ -248,8 +320,44 @@ export default async function DashboardPage() {
           {kpiCard({ label: 'DSO moyen', value: metrics.dso > 0 ? `${metrics.dso}j` : '—', sub: 'Délai moyen', accent: 'gray', trend: metrics.dso > 0 ? { dir: metrics.dso < 45 ? 'up' : 'down', label: `${metrics.dso}j` } : undefined })}
         </div>
 
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Pipeline strip */}
+        {contacts.length > 0 && (
+          <Link href="/dashboard/pipeline" className="block rounded-xl border bg-white p-4 hover:shadow-md transition-shadow group">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Kanban className="h-4 w-4 text-blue-600" />
+                <h3 className="text-sm font-semibold text-gray-900">Pipeline commercial</h3>
+              </div>
+              <div className="flex items-center gap-3 text-xs text-gray-500">
+                <span>{contacts.length} contact{contacts.length > 1 ? 's' : ''}</span>
+                <span className="font-semibold text-gray-800">{formatEuro(pipelineValue)} en cours</span>
+                <ChevronRight className="h-3.5 w-3.5 text-gray-300 group-hover:text-blue-500 transition-colors" />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              {[
+                { key: 'prospect',  label: 'Prospect',    color: 'bg-blue-500' },
+                { key: 'qualified', label: 'Qualifié',    color: 'bg-violet-500' },
+                { key: 'proposal',  label: 'Proposition', color: 'bg-amber-500' },
+                { key: 'signed',    label: 'Signé',       color: 'bg-green-500' },
+              ].map(s => (
+                <div key={s.key} className="flex-1 text-center">
+                  <div className={`h-1.5 w-full rounded-full ${s.color} mb-1.5 ${pipelineCounts[s.key] > 0 ? 'opacity-100' : 'opacity-20'}`} />
+                  <p className="text-lg font-bold text-gray-900">{pipelineCounts[s.key]}</p>
+                  <p className="text-xs text-gray-400">{s.label}</p>
+                </div>
+              ))}
+              <div className="flex-1 text-center border-l pl-2">
+                <p className="text-xs text-gray-400 mb-1">Signés</p>
+                <p className="text-sm font-bold text-green-600">{formatEuro(signedValue)}</p>
+              </div>
+            </div>
+          </Link>
+        )}
+
+        {/* Main grid */}
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+          {/* Collections chart — 2/3 */}
           <div className="lg:col-span-2 rounded-xl border bg-white overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b">
               <div>
@@ -265,6 +373,7 @@ export default async function DashboardPage() {
             </div>
           </div>
 
+          {/* Aging chart — 1/3 */}
           <div className="rounded-xl border bg-white overflow-hidden">
             <div className="px-5 py-4 border-b">
               <h3 className="font-semibold text-gray-900 text-sm">Balance âgée</h3>
@@ -399,10 +508,10 @@ export default async function DashboardPage() {
               </div>
               <div className="divide-y">
                 {[
-                  { label: 'Envoyer des relances', sub: 'Relances manuelles', icon: Send, href: '/dashboard/invoices' },
-                  { label: 'Mise en demeure', sub: 'Document légal', icon: FileText, href: '/dashboard/mise-en-demeure' },
+                  { label: 'Pipeline commercial', sub: 'Voir vos deals en cours', icon: Kanban, href: '/dashboard/pipeline' },
+                  { label: 'Envoyer des relances', sub: 'Lancer une relance manuelle', icon: Send, href: '/dashboard/invoices' },
+                  { label: 'Mise en demeure', sub: 'Générer un document légal', icon: FileText, href: '/dashboard/mise-en-demeure' },
                   { label: 'Statistiques', sub: 'Analytics détaillées', icon: BarChart3, href: '/dashboard/stats' },
-                  { label: 'Importer des factures', sub: 'Via CSV', icon: Upload, href: '/dashboard/invoices/import' },
                 ].map((action) => {
                   const Icon = action.icon
                   return (

@@ -1,110 +1,86 @@
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
 import { Header } from '@/components/dashboard/header'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { createClient } from '@/lib/supabase/server'
+import { Button } from '@/components/ui/button'
+import { useToast } from '@/hooks/use-toast'
 import {
   Mail,
   Clock,
   AlertTriangle,
   CheckCircle,
   MessageSquare,
-  ArrowRight,
+  Bell,
+  BellOff,
+  Zap,
+  Info,
 } from 'lucide-react'
-import type { ReminderScenario, ScenarioStep } from '@/lib/database.types'
+import { createClient } from '@/lib/supabase/client'
+import type { Profile } from '@/lib/database.types'
 
-const DEFAULT_SCENARIOS: ReminderScenario[] = [
+interface ScenarioStep {
+  day: number
+  type: 'email_1' | 'email_2' | 'email_3' | 'formal_notice'
+  subject: string
+  tone: 'cordial' | 'ferme' | 'precontentieux' | 'formal_notice'
+  channel: 'email' | 'sms' | 'courrier'
+}
+
+interface Scenario {
+  id: string
+  name: string
+  description: string
+  steps: ScenarioStep[]
+  badge?: string
+  badgeColor?: string
+}
+
+const SCENARIOS: Scenario[] = [
   {
-    id: 'cordial',
-    user_id: null,
-    name: 'Cordial',
-    description: 'Relance amicale pour les clients habituellement sérieux. Ton poli, suppose un oubli.',
+    id: 'standard',
+    name: 'Standard',
+    badge: 'Recommandé',
+    badgeColor: 'bg-blue-100 text-blue-700',
+    description: 'Couverture complète de J+7 à J+45. Convient à 80 % des situations — passe de cordial à ferme puis pré-contentieux.',
     steps: [
-      {
-        day: 7,
-        type: 'email_1',
-        subject: 'Rappel : Facture {invoice_number} arrive à échéance',
-        tone: 'cordial',
-        channel: 'email',
-      },
+      { day: 7,  type: 'email_1', subject: 'Rappel amiable — Facture {n°}', tone: 'cordial', channel: 'email' },
+      { day: 15, type: 'email_2', subject: 'Relance — Facture {n°} en retard', tone: 'ferme', channel: 'email' },
+      { day: 30, type: 'email_2', subject: '2ème relance — Action requise', tone: 'ferme', channel: 'email' },
+      { day: 45, type: 'email_3', subject: 'Dernière relance avant mise en demeure', tone: 'precontentieux', channel: 'email' },
     ],
-    is_default: true,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
   },
   {
-    id: 'ferme',
-    user_id: null,
+    id: 'soft',
+    name: 'Soft',
+    badge: 'Clients fidèles',
+    badgeColor: 'bg-green-100 text-green-700',
+    description: 'Deux rappels doux espacés. Pour les bons payeurs habituels — préserve la relation commerciale.',
+    steps: [
+      { day: 7,  type: 'email_1', subject: 'Petit rappel — Facture {n°}', tone: 'cordial', channel: 'email' },
+      { day: 21, type: 'email_2', subject: 'Rappel — Facture {n°} toujours en attente', tone: 'cordial', channel: 'email' },
+    ],
+  },
+  {
+    id: 'firm',
     name: 'Ferme',
-    description:
-      'Deux relances successives avec un ton de plus en plus ferme. Idéal pour les retards récurrents.',
+    badge: 'Mauvais payeurs',
+    badgeColor: 'bg-orange-100 text-orange-700',
+    description: 'Escalade rapide avec mise en demeure. Pour les clients avec historique de retard ou montants importants.',
     steps: [
-      {
-        day: 15,
-        type: 'email_1',
-        subject: 'Relance : Facture {invoice_number} en retard de paiement',
-        tone: 'ferme',
-        channel: 'email',
-      },
-      {
-        day: 30,
-        type: 'email_2',
-        subject: '2ème relance : Facture {invoice_number} - Action requise',
-        tone: 'ferme',
-        channel: 'email',
-      },
+      { day: 7,  type: 'email_1', subject: 'Relance — Facture {n°} impayée', tone: 'ferme', channel: 'email' },
+      { day: 15, type: 'email_2', subject: '2ème relance ferme — Facture {n°}', tone: 'ferme', channel: 'email' },
+      { day: 30, type: 'email_3', subject: 'Ultime rappel avant procédure', tone: 'precontentieux', channel: 'email' },
+      { day: 45, type: 'formal_notice', subject: 'MISE EN DEMEURE — Facture {n°}', tone: 'formal_notice', channel: 'email' },
     ],
-    is_default: true,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 'precontentieux',
-    user_id: null,
-    name: 'Pré-contentieux',
-    description: 'Escalade progressive avec mise en demeure finale. Pour les impayés persistants.',
-    steps: [
-      {
-        day: 45,
-        type: 'email_1',
-        subject: 'Relance urgente : Facture {invoice_number} en souffrance',
-        tone: 'precontentieux',
-        channel: 'email',
-      },
-      {
-        day: 60,
-        type: 'email_2',
-        subject: 'Dernière relance avant mise en demeure - Facture {invoice_number}',
-        tone: 'precontentieux',
-        channel: 'email',
-      },
-      {
-        day: 75,
-        type: 'formal_notice',
-        subject: 'MISE EN DEMEURE - Facture {invoice_number}',
-        tone: 'formal_notice',
-        channel: 'courrier',
-      },
-    ],
-    is_default: true,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
   },
 ]
 
 const toneConfig = {
-  cordial: { label: 'Cordial', color: 'bg-blue-100 text-blue-700', icon: MessageSquare },
-  ferme: { label: 'Ferme', color: 'bg-yellow-100 text-yellow-700', icon: Clock },
-  precontentieux: { label: 'Pré-contentieux', color: 'bg-orange-100 text-orange-700', icon: AlertTriangle },
-  formal_notice: { label: 'Mise en demeure', color: 'bg-red-100 text-red-700', icon: AlertTriangle },
-}
-
-const channelConfig = {
-  email: { label: 'Email', icon: Mail },
-  sms: { label: 'SMS', icon: MessageSquare },
-  courrier: { label: 'Courrier LRAR', icon: Mail },
+  cordial:        { label: 'Cordial',           color: 'bg-blue-100 text-blue-700',   dot: 'bg-blue-500' },
+  ferme:          { label: 'Ferme',             color: 'bg-yellow-100 text-yellow-700', dot: 'bg-yellow-500' },
+  precontentieux: { label: 'Pré-contentieux',   color: 'bg-orange-100 text-orange-700', dot: 'bg-orange-500' },
+  formal_notice:  { label: 'Mise en demeure',   color: 'bg-red-100 text-red-700',     dot: 'bg-red-500' },
 }
 
 const stepTypeLabel = {
@@ -114,174 +90,245 @@ const stepTypeLabel = {
   formal_notice: 'Mise en demeure',
 }
 
-const scenarioColorClass = {
-  Cordial: 'border-blue-200 bg-blue-50',
-  Ferme: 'border-yellow-200 bg-yellow-50',
-  'Pré-contentieux': 'border-orange-200 bg-orange-50',
-}
+export default function ScenariosPage() {
+  const { toast } = useToast()
+  const [activeScenarioId, setActiveScenarioId] = useState<string>('standard')
+  const [autoReminders, setAutoReminders] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(true)
 
-export default async function ScenariosPage() {
-  let scenarios: ReminderScenario[] = DEFAULT_SCENARIOS
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
 
-  try {
-    const supabase = await createClient()
-    const { data } = await supabase
-      .from('reminder_scenarios')
-      .select('*')
-      .order('created_at', { ascending: true })
+        const { data } = await supabase
+          .from('profiles')
+          .select('auto_reminders')
+          .eq('id', user.id)
+          .single()
 
-    if (data && data.length > 0) {
-      scenarios = data as ReminderScenario[]
+        if (data) {
+          setAutoReminders((data as any).auto_reminders ?? true)
+        }
+
+        // Load saved scenario from localStorage (or DB in future)
+        const saved = localStorage.getItem('relanceflow_active_scenario')
+        if (saved && SCENARIOS.find((s) => s.id === saved)) {
+          setActiveScenarioId(saved)
+        }
+      } catch { /* silent */ } finally {
+        setLoading(false)
+      }
     }
-  } catch {
-    // use defaults
+    load()
+  }, [])
+
+  const handleSelectScenario = (id: string) => {
+    setActiveScenarioId(id)
+    localStorage.setItem('relanceflow_active_scenario', id)
   }
+
+  const handleToggleAutoReminders = async () => {
+    const next = !autoReminders
+    setSaving(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error()
+      await supabase.from('profiles').update({ auto_reminders: next } as never).eq('id', user.id)
+      setAutoReminders(next)
+      toast({
+        title: next ? 'Relances automatiques activées' : 'Relances automatiques désactivées',
+        description: next
+          ? 'Le cron quotidien à 8h00 appliquera le scénario actif.'
+          : 'Plus aucune relance ne partira automatiquement.',
+      })
+    } catch {
+      toast({ title: 'Erreur', description: 'Impossible de sauvegarder.', variant: 'destructive' })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const activeScenario = SCENARIOS.find((s) => s.id === activeScenarioId) ?? SCENARIOS[0]
 
   return (
     <div>
       <Header
         title="Scénarios de relance"
-        description="Choisissez et configurez vos stratégies de recouvrement automatisées"
+        description="Choisissez votre stratégie de recouvrement automatisée"
       />
 
-      <div className="p-6 space-y-6">
-        <div className="rounded-lg border bg-blue-50 border-blue-200 p-4">
-          <div className="flex items-start gap-3">
-            <CheckCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+      <div className="p-6 space-y-6 max-w-5xl">
+        {/* Automation status banner */}
+        <div className={`flex items-center justify-between rounded-xl border p-4 ${autoReminders ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
+          <div className="flex items-center gap-3">
+            <div className={`flex h-9 w-9 items-center justify-center rounded-full ${autoReminders ? 'bg-green-100' : 'bg-gray-200'}`}>
+              {autoReminders
+                ? <Bell className="h-4 w-4 text-green-600" />
+                : <BellOff className="h-4 w-4 text-gray-400" />
+              }
+            </div>
             <div>
-              <p className="font-medium text-blue-800">Scénarios préconfigurés</p>
-              <p className="text-sm text-blue-600 mt-1">
-                Trois scénarios adaptés à différentes situations sont disponibles par défaut.
-                Chaque scénario définit une séquence d&apos;actions automatiques déclenchées selon les
-                jours de retard.
+              <p className={`text-sm font-semibold ${autoReminders ? 'text-green-800' : 'text-gray-600'}`}>
+                {autoReminders ? 'Relances automatiques activées' : 'Relances automatiques désactivées'}
+              </p>
+              <p className={`text-xs mt-0.5 ${autoReminders ? 'text-green-600' : 'text-gray-400'}`}>
+                {autoReminders
+                  ? `Scénario "${activeScenario.name}" actif · Envoi quotidien à 8h00 UTC`
+                  : 'Vous devez déclencher les relances manuellement depuis chaque facture'}
               </p>
             </div>
           </div>
+          <Button
+            variant={autoReminders ? 'outline' : 'default'}
+            size="sm"
+            onClick={handleToggleAutoReminders}
+            disabled={saving || loading}
+            className={autoReminders ? 'border-green-300 text-green-700 hover:bg-green-100' : ''}
+          >
+            {saving ? '…' : autoReminders ? 'Désactiver' : 'Activer'}
+          </Button>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {scenarios.map((scenario) => (
-            <Card key={scenario.id} className="overflow-hidden">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-base">{scenario.name}</CardTitle>
-                    {scenario.is_default && (
-                      <Badge variant="secondary" className="mt-1 text-xs">
-                        Scénario par défaut
-                      </Badge>
-                    )}
+        {/* Scenario picker */}
+        <div>
+          <h2 className="text-sm font-semibold text-gray-700 mb-3">Scénario actif</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {SCENARIOS.map((scenario) => {
+              const isActive = scenario.id === activeScenarioId
+              return (
+                <button
+                  key={scenario.id}
+                  onClick={() => handleSelectScenario(scenario.id)}
+                  className={`relative text-left rounded-xl border-2 p-4 transition-all ${
+                    isActive
+                      ? 'border-blue-500 bg-blue-50 shadow-sm'
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}
+                >
+                  {isActive && (
+                    <div className="absolute top-3 right-3">
+                      <CheckCircle className="h-4 w-4 text-blue-600" />
+                    </div>
+                  )}
+                  <div className="flex items-start gap-2 mb-2">
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${scenario.badgeColor}`}>
+                      {scenario.badge}
+                    </span>
                   </div>
-                  <Badge variant="outline" className="text-xs">
-                    {(scenario.steps as unknown as ScenarioStep[]).length} étape
-                    {(scenario.steps as unknown as ScenarioStep[]).length > 1 ? 's' : ''}
-                  </Badge>
-                </div>
-                <CardDescription className="text-sm mt-2">{scenario.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {/* Timeline of steps */}
-                <div className="relative">
-                  {(scenario.steps as unknown as ScenarioStep[]).map((step, index) => {
-                    const ToneIcon = toneConfig[step.tone]?.icon || Mail
-                    const ChannelIcon = channelConfig[step.channel]?.icon || Mail
-                    const isLast = index === (scenario.steps as unknown as ScenarioStep[]).length - 1
-
-                    return (
-                      <div key={index} className="relative flex gap-3 pb-4">
-                        {/* Vertical line */}
-                        {!isLast && (
-                          <div className="absolute left-3.5 top-7 bottom-0 w-px bg-gray-200" />
-                        )}
-
-                        {/* Step indicator */}
-                        <div
-                          className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                            step.type === 'formal_notice'
-                              ? 'bg-red-100 text-red-700'
-                              : index === 0
-                              ? 'bg-blue-100 text-blue-700'
-                              : 'bg-yellow-100 text-yellow-700'
-                          }`}
-                        >
-                          {step.day}j
-                        </div>
-
-                        {/* Step content */}
-                        <div className="flex-1 min-w-0 pt-0.5">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-sm font-medium text-gray-900">
-                              {stepTypeLabel[step.type]}
-                            </span>
-                            <span
-                              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-                                toneConfig[step.tone]?.color || 'bg-gray-100 text-gray-700'
-                              }`}
-                            >
-                              {toneConfig[step.tone]?.label}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
-                            <ChannelIcon className="h-3 w-3" />
-                            <span>{channelConfig[step.channel]?.label}</span>
-                            <span className="mx-1">·</span>
-                            <Clock className="h-3 w-3" />
-                            <span>J+{step.day} après échéance</span>
-                          </div>
-                          <p className="text-xs text-gray-400 mt-1 truncate" title={step.subject}>
-                            {step.subject}
-                          </p>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                  <p className="font-bold text-gray-900">{scenario.name}</p>
+                  <p className="text-xs text-gray-500 mt-1 leading-relaxed">{scenario.description}</p>
+                  <div className="mt-3 flex flex-wrap gap-1">
+                    {scenario.steps.map((step, i) => (
+                      <span key={i} className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium ${toneConfig[step.tone].color}`}>
+                        J+{step.day}
+                      </span>
+                    ))}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
         </div>
 
-        {/* Info section */}
+        {/* Active scenario detail */}
         <Card>
-          <CardContent className="pt-6">
-            <h3 className="font-semibold text-gray-900 mb-3">Comment fonctionnent les scénarios ?</h3>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <div className="flex items-start gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 flex-shrink-0">
-                  <Clock className="h-4 w-4 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Déclenchement automatique</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Les relances partent automatiquement selon les jours de retard configurés dans
-                    chaque étape.
-                  </p>
-                </div>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-blue-600" />
+                  Détail du scénario — {activeScenario.name}
+                </CardTitle>
+                <CardDescription className="mt-1">{activeScenario.description}</CardDescription>
               </div>
-              <div className="flex items-start gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100 flex-shrink-0">
-                  <Mail className="h-4 w-4 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Emails personnalisés</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Chaque email est automatiquement personnalisé avec les informations du client et
-                    de la facture.
-                  </p>
-                </div>
+              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${activeScenario.badgeColor}`}>
+                {activeScenario.badge}
+              </span>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="relative">
+              <div className="absolute left-4 top-0 bottom-0 w-px bg-gray-100" />
+              <div className="space-y-4">
+                {activeScenario.steps.map((step, i) => {
+                  const tone = toneConfig[step.tone]
+                  return (
+                    <div key={i} className="relative flex gap-4">
+                      {/* Day bubble */}
+                      <div className={`relative flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold border-2 border-white shadow-sm z-10 ${
+                        step.tone === 'formal_notice' ? 'bg-red-100 text-red-700' :
+                        step.tone === 'precontentieux' ? 'bg-orange-100 text-orange-700' :
+                        step.tone === 'ferme' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-blue-100 text-blue-700'
+                      }`}>
+                        {step.day}
+                      </div>
+                      <div className="flex-1 pb-2">
+                        <div className="flex flex-wrap items-center gap-2 mb-0.5">
+                          <span className="text-sm font-semibold text-gray-900">
+                            J+{step.day} — {stepTypeLabel[step.type]}
+                          </span>
+                          <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${tone.color}`}>
+                            {tone.label}
+                          </span>
+                          <span className="flex items-center gap-1 text-xs text-gray-400">
+                            <Mail className="h-3 w-3" />
+                            {step.channel === 'email' ? 'Email' : step.channel === 'sms' ? 'SMS' : 'Courrier LRAR'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 italic">{step.subject}</p>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
-              <div className="flex items-start gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100 flex-shrink-0">
-                  <AlertTriangle className="h-4 w-4 text-orange-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Escalade progressive</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Le ton et l&apos;urgence augmentent à chaque étape pour maximiser les chances de
-                    recouvrement.
-                  </p>
-                </div>
-              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* How it works */}
+        <Card className="border-blue-100 bg-blue-50/40">
+          <CardContent className="pt-5">
+            <div className="flex items-start gap-2 mb-4">
+              <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+              <h3 className="text-sm font-semibold text-blue-900">Comment fonctionne l&apos;automatisation ?</h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {[
+                {
+                  icon: Clock,
+                  title: 'Chaque matin à 8h00',
+                  body: "Un job automatique analyse toutes vos factures impayées et déclenche les relances dues selon le scénario actif.",
+                },
+                {
+                  icon: Mail,
+                  title: 'Zéro doublon',
+                  body: "Si une relance d'un type donné a déjà été envoyée pour une facture, elle ne sera jamais renvoyée automatiquement.",
+                },
+                {
+                  icon: CheckCircle,
+                  title: 'Vous restez maître',
+                  body: "Vous pouvez envoyer une relance manuellement à tout moment depuis la page facture, indépendamment du cron.",
+                },
+              ].map((item) => {
+                const Icon = item.icon
+                return (
+                  <div key={item.title} className="flex items-start gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 flex-shrink-0">
+                      <Icon className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-blue-900">{item.title}</p>
+                      <p className="text-xs text-blue-700/70 mt-0.5 leading-relaxed">{item.body}</p>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </CardContent>
         </Card>

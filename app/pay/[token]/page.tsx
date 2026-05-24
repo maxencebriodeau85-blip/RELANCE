@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
-import { Zap, CheckCircle, AlertCircle, Loader2, CreditCard, Shield, Lock } from 'lucide-react'
+import { useParams, useSearchParams } from 'next/navigation'
+import { Zap, CheckCircle, AlertCircle, Loader2, CreditCard, Shield, Lock, PartyPopper } from 'lucide-react'
 import Link from 'next/link'
 
 interface InvoicePublic {
@@ -26,14 +26,25 @@ function formatDate(dateStr: string) {
 
 export default function PaymentPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const token = params.token as string
+  const justPaid = searchParams.get('paid') === 'true'
 
   const [invoice, setInvoice] = useState<InvoicePublic | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!justPaid)
   const [paying, setPaying] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
+    if (justPaid) {
+      // After Stripe redirect — show success immediately, then quietly load invoice details
+      fetch(`/api/pay/invoice?token=${token}`)
+        .then((r) => r.json())
+        .then((data) => { if (!data.error) setInvoice(data) })
+        .catch(() => null)
+      return
+    }
+
     fetch(`/api/pay/invoice?token=${token}`)
       .then((r) => r.json())
       .then((data) => {
@@ -42,7 +53,7 @@ export default function PaymentPage() {
       })
       .catch(() => setError('Impossible de charger la facture.'))
       .finally(() => setLoading(false))
-  }, [token])
+  }, [token, justPaid])
 
   const handlePay = async () => {
     setPaying(true)
@@ -65,6 +76,8 @@ export default function PaymentPage() {
     }
   }
 
+  const isPaid = justPaid || invoice?.status === 'paid'
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex flex-col items-center justify-center p-4">
       <Link href="/" className="flex items-center gap-2.5 mb-8">
@@ -75,36 +88,66 @@ export default function PaymentPage() {
       </Link>
 
       <div className="w-full max-w-md">
-        {loading && (
+        {/* Loading state */}
+        {loading && !justPaid && (
           <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
             <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-3" />
             <p className="text-sm text-gray-500">Chargement de la facture…</p>
           </div>
         )}
 
-        {!loading && error && (
+        {/* Error state */}
+        {!loading && !justPaid && error && (
           <div className="bg-white rounded-2xl shadow-xl p-8 text-center space-y-4">
             <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center mx-auto">
               <AlertCircle className="h-6 w-6 text-red-600" />
             </div>
-            <h2 className="text-lg font-semibold text-gray-900">Lien invalide</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Lien invalide ou expiré</h2>
             <p className="text-sm text-gray-500">{error}</p>
+            <p className="text-xs text-gray-400">Contactez votre créancier pour obtenir un nouveau lien de paiement.</p>
           </div>
         )}
 
-        {!loading && invoice && invoice.status === 'paid' && (
+        {/* Success state — shown immediately after Stripe redirect, or if already paid */}
+        {isPaid && (
           <div className="bg-white rounded-2xl shadow-xl p-8 text-center space-y-4">
-            <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mx-auto">
-              <CheckCircle className="h-6 w-6 text-green-600" />
+            <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">
+              {justPaid ? (
+                <PartyPopper className="h-8 w-8 text-green-600" />
+              ) : (
+                <CheckCircle className="h-8 w-8 text-green-600" />
+              )}
             </div>
-            <h2 className="text-lg font-semibold text-gray-900">Facture déjà réglée</h2>
-            <p className="text-sm text-gray-500">
-              La facture {invoice.invoice_number} a déjà été payée. Merci !
-            </p>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">
+                {justPaid ? 'Paiement confirmé !' : 'Facture déjà réglée'}
+              </h2>
+              {invoice && (
+                <p className="text-sm text-gray-500 mt-1">
+                  Facture {invoice.invoice_number} · {formatEuro(invoice.amount)}
+                </p>
+              )}
+            </div>
+            {justPaid ? (
+              <div className="rounded-xl bg-green-50 border border-green-200 p-4 text-left space-y-1.5">
+                <div className="flex items-center gap-2 text-sm text-green-800 font-medium">
+                  <CheckCircle className="h-4 w-4 flex-shrink-0" />
+                  Paiement reçu et traité
+                </div>
+                <p className="text-xs text-green-700 pl-6">
+                  Votre créancier a été notifié automatiquement. Vous recevrez une confirmation par email sous peu.
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">
+                Cette facture a déjà été payée. Merci !
+              </p>
+            )}
           </div>
         )}
 
-        {!loading && invoice && invoice.status !== 'paid' && (
+        {/* Payment form — shown only when not paid and no error */}
+        {!loading && !justPaid && !error && invoice && invoice.status !== 'paid' && (
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5 text-white">
@@ -132,7 +175,7 @@ export default function PaymentPage() {
                 {invoice.days_overdue > 0 && (
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-500">Retard</span>
-                    <span className="text-sm font-semibold text-red-600">{invoice.days_overdue} jours</span>
+                    <span className="text-sm font-semibold text-red-600">{invoice.days_overdue} jour{invoice.days_overdue > 1 ? 's' : ''}</span>
                   </div>
                 )}
                 <div className="pt-2 border-t border-gray-200 flex items-center justify-between">
@@ -144,7 +187,7 @@ export default function PaymentPage() {
               <button
                 onClick={handlePay}
                 disabled={paying}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-white font-semibold text-base hover:bg-blue-700 disabled:opacity-60 transition-colors"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-white font-semibold text-base hover:bg-blue-700 disabled:opacity-60 transition-colors shadow-lg shadow-blue-600/20"
               >
                 {paying ? (
                   <>
@@ -154,7 +197,7 @@ export default function PaymentPage() {
                 ) : (
                   <>
                     <CreditCard className="h-5 w-5" />
-                    Payer {formatEuro(invoice.amount)}
+                    Payer {formatEuro(invoice.amount)} maintenant
                   </>
                 )}
               </button>
@@ -163,22 +206,22 @@ export default function PaymentPage() {
                 <p className="text-xs text-red-600 text-center">{error}</p>
               )}
 
-              <div className="flex items-center justify-center gap-4 pt-1">
-                <div className="flex items-center gap-1 text-xs text-gray-400">
+              <div className="flex items-center justify-center gap-6 pt-1">
+                <div className="flex items-center gap-1.5 text-xs text-gray-400">
                   <Lock className="h-3 w-3" />
-                  Paiement sécurisé
+                  Connexion chiffrée TLS
                 </div>
-                <div className="flex items-center gap-1 text-xs text-gray-400">
+                <div className="flex items-center gap-1.5 text-xs text-gray-400">
                   <Shield className="h-3 w-3" />
-                  Stripe
+                  Sécurisé par Stripe
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        <p className="text-center text-xs text-blue-300/50 mt-6">
-          Propulsé par RelanceFlow · Paiement sécurisé par Stripe
+        <p className="text-center text-xs text-blue-300/40 mt-6">
+          Propulsé par RelanceFlow · Paiement sécurisé Stripe
         </p>
       </div>
     </div>

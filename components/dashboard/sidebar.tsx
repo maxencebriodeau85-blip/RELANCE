@@ -15,6 +15,9 @@ import {
   HelpCircle,
   ChevronRight,
   BarChart3,
+  Plug,
+  Kanban,
+  X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -22,9 +25,11 @@ import type { Profile } from '@/lib/database.types'
 
 const navItems = [
   { href: '/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
+  { href: '/dashboard/pipeline', label: 'Pipeline', icon: Kanban },
   { href: '/dashboard/invoices', label: 'Factures', icon: FileText },
   { href: '/dashboard/scenarios', label: 'Scénarios', icon: Bell },
   { href: '/dashboard/mise-en-demeure', label: 'Mise en demeure', icon: AlertTriangle },
+  { href: '/dashboard/integrations', label: 'Intégrations', icon: Plug },
   { href: '/dashboard/stats', label: 'Statistiques', icon: BarChart3 },
   { href: '/dashboard/settings', label: 'Paramètres', icon: Settings },
 ]
@@ -41,25 +46,18 @@ function daysUntil(date: string): number {
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)))
 }
 
-export function Sidebar() {
-  const pathname = usePathname()
+function SidebarContent({
+  profile,
+  email,
+  pathname,
+  onClose,
+}: {
+  profile: Profile | null
+  email: string
+  pathname: string
+  onClose?: () => void
+}) {
   const router = useRouter()
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [email, setEmail] = useState<string>('')
-
-  useEffect(() => {
-    const supabase = createClient()
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user) return
-      setEmail(user.email || '')
-      const { data } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-      if (data) setProfile(data as Profile)
-    })
-  }, [])
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -81,17 +79,25 @@ export function Sidebar() {
       : null
 
   return (
-    <aside className="flex h-full w-60 flex-col border-r bg-white">
+    <div className="flex h-full flex-col bg-white">
       {/* Logo */}
-      <Link
-        href="/dashboard"
-        className="flex h-14 items-center gap-2.5 border-b px-5 hover:bg-gray-50 transition-colors flex-shrink-0"
-      >
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 flex-shrink-0">
-          <Zap className="h-4 w-4 text-white" />
-        </div>
-        <span className="text-base font-bold text-gray-900 tracking-tight">RelanceFlow</span>
-      </Link>
+      <div className="flex h-14 items-center justify-between border-b px-5 flex-shrink-0">
+        <Link
+          href="/dashboard"
+          onClick={onClose}
+          className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
+        >
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 flex-shrink-0">
+            <Zap className="h-4 w-4 text-white" />
+          </div>
+          <span className="text-base font-bold text-gray-900 tracking-tight">RelanceFlow</span>
+        </Link>
+        {onClose && (
+          <button onClick={onClose} className="p-1 rounded-md hover:bg-gray-100 text-gray-500">
+            <X className="h-5 w-5" />
+          </button>
+        )}
+      </div>
 
       {/* Navigation */}
       <nav className="flex-1 px-2 py-3 overflow-y-auto space-y-0.5">
@@ -106,6 +112,7 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onClose}
               className={cn(
                 'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                 isActive
@@ -131,6 +138,7 @@ export function Sidebar() {
           </div>
           <Link
             href="/dashboard/settings"
+            onClick={onClose}
             className="flex items-center justify-between rounded-md bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium px-2.5 py-1.5 transition-colors"
           >
             Choisir un plan
@@ -142,6 +150,7 @@ export function Sidebar() {
       {/* Help */}
       <Link
         href="/support"
+        onClick={onClose}
         className="mx-2 mb-1 flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
       >
         <HelpCircle className="h-3.5 w-3.5" />
@@ -171,6 +180,90 @@ export function Sidebar() {
           Se déconnecter
         </button>
       </div>
+    </div>
+  )
+}
+
+export function Sidebar() {
+  const pathname = usePathname()
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [email, setEmail] = useState<string>('')
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return
+      setEmail(user.email || '')
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+      if (data) setProfile(data as Profile)
+    })
+  }, [])
+
+  return (
+    <aside className="hidden md:flex h-full w-60 flex-col border-r flex-shrink-0">
+      <SidebarContent profile={profile} email={email} pathname={pathname} />
     </aside>
+  )
+}
+
+export function MobileNav() {
+  const pathname = usePathname()
+  const [open, setOpen] = useState(false)
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [email, setEmail] = useState<string>('')
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return
+      setEmail(user.email || '')
+      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+      if (data) setProfile(data as Profile)
+    })
+  }, [])
+
+  // Close on route change
+  useEffect(() => { setOpen(false) }, [pathname])
+
+  return (
+    <>
+      {/* Hamburger button — only visible on mobile */}
+      <button
+        onClick={() => setOpen(true)}
+        className="md:hidden flex items-center justify-center h-9 w-9 rounded-lg hover:bg-gray-100 text-gray-600"
+        aria-label="Ouvrir le menu"
+      >
+        <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      {/* Backdrop */}
+      {open && (
+        <div
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm md:hidden"
+          onClick={() => setOpen(false)}
+        />
+      )}
+
+      {/* Drawer */}
+      <div
+        className={cn(
+          'fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out md:hidden',
+          open ? 'translate-x-0' : '-translate-x-full'
+        )}
+      >
+        <SidebarContent
+          profile={profile}
+          email={email}
+          pathname={pathname}
+          onClose={() => setOpen(false)}
+        />
+      </div>
+    </>
   )
 }

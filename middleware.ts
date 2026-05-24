@@ -1,74 +1,57 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request })
+// Synchronous middleware — zero network calls, zero SDK overhead.
+//
+// Supabase recommends calling auth.getUser() in middleware, but on Vercel's
+// Edge Runtime that HTTP round-trip consistently causes
+// MIDDLEWARE_INVOCATION_TIMEOUT (504).
+//
+// Solution: check for the presence of the Supabase session cookie directly.
+// Expired or invalid tokens are caught by createClient().auth.getUser() in
+// every Server Component / Route Handler, which has a much higher timeout
+// budget and runs in the Node.js runtime (not Edge).
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        // v0.5.0+ API
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
-        // v0.3.0 API — used internally by @supabase/ssr ≤ 0.4.x
-        get(name: string) {
-          return request.cookies.get(name)?.value
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set(name, value)
-          supabaseResponse = NextResponse.next({ request })
-          supabaseResponse.cookies.set(name, value, options)
-        },
-        remove(name: string, options: CookieOptions) {
-          request.cookies.set(name, '')
-          supabaseResponse = NextResponse.next({ request })
-          supabaseResponse.cookies.set(name, '', options)
-        },
-      },
-    }
+function hasSessionCookie(request: NextRequest): boolean {
+  // @supabase/ssr stores the session in a cookie named:
+  //   sb-<project-ref>-auth-token          (small JWTs)
+  //   sb-<project-ref>-auth-token.0/.1/…  (chunked large JWTs)
+  return request.cookies.getAll().some(
+    (c) => c.name.startsWith('sb-') && c.name.includes('-auth-token')
   )
+}
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+  const loggedIn = hasSessionCookie(request)
 
-  if (
+  // ── Protected routes ──────────────────────────────────────────────────────
+  const isProtected =
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/api/invoices') ||
+    pathname.startsWith('/api/contacts') ||
+    pathname.startsWith('/api/notifications') ||
     pathname.startsWith('/api/stripe/checkout')
-  ) {
-    if (!user) {
-      const redirectUrl = request.nextUrl.clone()
-      redirectUrl.pathname = '/auth/login'
-      redirectUrl.searchParams.set('redirectedFrom', pathname)
-      return NextResponse.redirect(redirectUrl)
-    }
+
+  if (isProtected && !loggedIn) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/auth/login'
+    url.searchParams.set('redirectedFrom', pathname)
+    return NextResponse.redirect(url)
   }
 
+  // ── Redirect authenticated users away from auth pages ────────────────────
   if (
-    user &&
+    loggedIn &&
     (pathname === '/auth/login' ||
       pathname === '/auth/register' ||
       pathname === '/auth/forgot-password')
   ) {
-    const redirectUrl = request.nextUrl.clone()
-    redirectUrl.pathname = '/dashboard'
-    return NextResponse.redirect(redirectUrl)
+    const url = request.nextUrl.clone()
+    url.pathname = '/dashboard'
+    return NextResponse.redirect(url)
   }
 
-  return supabaseResponse
+  return NextResponse.next()
 }
 
 export const config = {

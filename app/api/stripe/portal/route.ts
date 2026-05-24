@@ -1,29 +1,38 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { createBillingPortalSession } from '@/lib/stripe'
+import type { Profile } from '@/lib/database.types'
 
 export async function POST(request: Request) {
   try {
     const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
 
-    const body = await request.json()
-    const { customerId, returnUrl } = body
+    // Always fetch customerId from the DB — never trust client-supplied IDs.
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('stripe_customer_id')
+      .eq('id', user.id)
+      .single()
+
+    const profile = profileData as Pick<Profile, 'stripe_customer_id'> | null
+    const customerId = profile?.stripe_customer_id
 
     if (!customerId) {
-      return NextResponse.json({ error: 'ID client Stripe manquant' }, { status: 400 })
+      return NextResponse.json({ error: 'Aucun abonnement Stripe trouvé' }, { status: 400 })
     }
 
-    const session = await createBillingPortalSession({
-      customerId,
-      returnUrl: returnUrl || `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings`,
-    })
+    const body = await request.json().catch(() => ({}))
+    const returnUrl =
+      typeof body.returnUrl === 'string' && body.returnUrl.startsWith('/')
+        ? `${process.env.NEXT_PUBLIC_APP_URL || ''}${body.returnUrl}`
+        : `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings`
+
+    const session = await createBillingPortalSession({ customerId, returnUrl })
 
     return NextResponse.json({ url: session.url })
   } catch (err) {
