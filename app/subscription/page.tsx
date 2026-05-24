@@ -6,9 +6,9 @@ import { SignOutButton } from '@/components/auth/sign-out-button'
 import { STRIPE_PLANS } from '@/lib/stripe'
 
 const PLANS: { key: 'starter' | 'pro' | 'business'; popular: boolean; desc: string }[] = [
-  { key: 'starter', popular: false, desc: 'Idéal pour les TPE et freelances' },
-  { key: 'pro', popular: true, desc: 'Le choix des PME en croissance' },
-  { key: 'business', popular: false, desc: "Pour les équipes et comptables" },
+  { key: 'starter', popular: false, desc: 'Pour consultants et coaches indépendants' },
+  { key: 'pro', popular: true, desc: 'Volume plus important et intégrations' },
+  { key: 'business', popular: false, desc: 'Multi-utilisateurs et API dédiée' },
 ]
 
 export default async function SubscriptionPage() {

@@ -153,7 +153,7 @@ export default function GuidesPage() {
             return (
               <div
                 key={guide.slug}
-                className="rounded-xl border bg-white p-5 flex flex-col gap-3 hover:border-blue-200 hover:shadow-sm transition-all group cursor-default"
+                className="rounded-xl border bg-white p-5 flex flex-col gap-3"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${categoryColors[guide.category]?.replace('text-', 'text-').split(' ')[0] || 'bg-gray-100'}`}>
@@ -170,17 +170,10 @@ export default function GuidesPage() {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-sm font-bold text-gray-900 mb-1.5 leading-snug group-hover:text-blue-700 transition-colors">
+                  <h2 className="text-sm font-bold text-gray-900 mb-1.5 leading-snug">
                     {guide.title}
                   </h2>
-                  <p className="text-xs text-gray-500 leading-relaxed line-clamp-3">{guide.desc}</p>
-                </div>
-                <div className="flex items-center justify-between pt-1 border-t border-gray-50">
-                  <span className="text-xs text-gray-400">Guide #{i + 1}</span>
-                  <span className="flex items-center gap-1 text-xs font-semibold text-blue-600 group-hover:gap-1.5 transition-all">
-                    Lire le guide
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  </span>
+                  <p className="text-xs text-gray-500 leading-relaxed">{guide.desc}</p>
                 </div>
               </div>
             )

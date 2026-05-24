@@ -126,6 +126,10 @@ export default function SettingsPage() {
   }, [])
 
   const handleSaveProfile = async () => {
+    if (form.siren && form.siren.length !== 9) {
+      toast({ title: 'SIREN invalide', description: 'Le SIREN doit comporter exactement 9 chiffres.', variant: 'destructive' })
+      return
+    }
     setSaving(true)
     try {
       const supabase = createClient()
