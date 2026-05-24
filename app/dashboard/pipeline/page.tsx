@@ -226,6 +226,39 @@ export default function PipelinePage() {
 
       {/* Kanban board */}
       <div className="flex-1 overflow-x-auto overflow-y-hidden">
+        {!loading && totalContacts === 0 ? (
+          <div className="flex h-full items-center justify-center p-8">
+            <div className="text-center max-w-sm">
+              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50">
+                <TrendingUp className="h-8 w-8 text-blue-500" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Ton pipeline est vide</h2>
+              <p className="text-gray-500 text-sm mb-6 leading-relaxed">
+                Ajoute ton premier prospect et glisse-le d&apos;une colonne à l&apos;autre au fil de la conversation. Dès qu&apos;il passe en &laquo; Proposition &raquo;, les relances démarrent automatiquement.
+              </p>
+              <button
+                onClick={() => { setShowAdd(true); setFormErr('') }}
+                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                Ajouter mon premier contact
+              </button>
+              <div className="mt-8 grid grid-cols-3 gap-3 text-left">
+                {[
+                  { step: '1', label: 'Ajoute un prospect', sub: 'Nom, email, montant du deal' },
+                  { step: '2', label: 'Envoie ta proposition', sub: 'Glisse-le dans la colonne' },
+                  { step: '3', label: 'RelanceFlow relance', sub: 'J+3, J+7, J+14 automatiquement' },
+                ].map(({ step, label, sub }) => (
+                  <div key={step} className="rounded-xl border border-gray-100 bg-gray-50 p-3">
+                    <div className="text-xs font-bold text-blue-600 mb-1">Étape {step}</div>
+                    <div className="text-xs font-semibold text-gray-800">{label}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">{sub}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
         <div className="flex h-full gap-3 p-4 min-w-max">
           {STAGES.map(stage => {
             const cards = filteredByStage(stage.key)
@@ -302,6 +335,7 @@ export default function PipelinePage() {
             )
           })}
         </div>
+        )}
       </div>
 
       {/* Add Contact Modal */}
