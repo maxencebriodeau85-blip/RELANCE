@@ -95,49 +95,50 @@ export async function GET(request: Request) {
     }
 
     const emailContent = getEmailTemplate(step.type, templateData)
-    let resendId: string | null = null
-    let sendStatus: 'sent' | 'failed' = 'sent'
+    const isDryRun = !process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.includes('placeholder')
 
-    if (process.env.RESEND_API_KEY && !process.env.RESEND_API_KEY.includes('placeholder')) {
-      try {
-        const { Resend } = await import('resend')
-        const resend = new Resend(process.env.RESEND_API_KEY)
-        const fromName = sanitizeFromName(profile.company_name || 'RelanceFlow')
-        const fromEmail = process.env.RESEND_FROM_EMAIL || 'relances@relanceflow.fr'
-
-        const { data: emailData, error: emailError } = await resend.emails.send({
-          from: `${fromName} <${fromEmail}>`,
-          to: [inv.client_email],
-          subject: emailContent.subject,
-          html: emailContent.html,
-          text: emailContent.text,
-          reply_to: profile.email,
-          tags: [
-            { name: 'type', value: step.type },
-            { name: 'invoice_id', value: inv.id },
-            { name: 'auto', value: 'true' },
-          ],
-        })
-
-        if (emailError) {
-          console.error(`Cron email error for invoice ${inv.id}:`, emailError)
-          sendStatus = 'failed'
-          errors.push(`${inv.id}: ${emailError.message}`)
-        } else {
-          resendId = emailData?.id || null
-          sent++
-        }
-      } catch (e: any) {
-        sendStatus = 'failed'
-        errors.push(`${inv.id}: ${e.message}`)
-      }
-    } else {
-      // Dry run — log but count as sent
+    if (isDryRun) {
       console.log(`[DRY RUN] Would send ${step.type} to ${inv.client_email} for invoice ${inv.invoice_number}`)
-      sent++
+      skipped++
+      continue
     }
 
-    // Record the reminder
+    let resendId: string | null = null
+    let sendStatus: 'sent' | 'failed' = 'failed'
+
+    try {
+      const { Resend } = await import('resend')
+      const resend = new Resend(process.env.RESEND_API_KEY)
+      const fromName = sanitizeFromName(profile.company_name || 'RelanceFlow')
+      const fromEmail = process.env.RESEND_FROM_EMAIL || 'relances@relanceflow.fr'
+
+      const { data: emailData, error: emailError } = await resend.emails.send({
+        from: `${fromName} <${fromEmail}>`,
+        to: [inv.client_email],
+        subject: emailContent.subject,
+        html: emailContent.html,
+        text: emailContent.text,
+        reply_to: profile.email,
+        tags: [
+          { name: 'type', value: step.type },
+          { name: 'invoice_id', value: inv.id },
+          { name: 'auto', value: 'true' },
+        ],
+      })
+
+      if (emailError) {
+        console.error(`Cron email error for invoice ${inv.id}:`, emailError)
+        errors.push(`${inv.id}: ${emailError.message}`)
+      } else {
+        resendId = emailData?.id || null
+        sendStatus = 'sent'
+        sent++
+      }
+    } catch (e: any) {
+      errors.push(`${inv.id}: ${e.message}`)
+    }
+
+    // Record the reminder with actual send status
     await supabase.from('reminders').insert({
       invoice_id: inv.id,
       user_id: profile.id,
@@ -149,11 +150,13 @@ export async function GET(request: Request) {
       resend_id: resendId,
     } as never)
 
-    // Update invoice status
-    await supabase
-      .from('invoices')
-      .update({ status: 'reminded' } as never)
-      .eq('id', inv.id)
+    // Only mark as reminded when email was actually delivered
+    if (sendStatus === 'sent') {
+      await supabase
+        .from('invoices')
+        .update({ status: 'reminded' } as never)
+        .eq('id', inv.id)
+    }
   }
 
   console.log(`Cron reminders: sent=${sent} skipped=${skipped} errors=${errors.length}`)

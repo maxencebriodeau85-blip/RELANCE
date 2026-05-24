@@ -137,24 +137,33 @@ export default function InvoicesPage() {
   const bulkSendReminder = async () => {
     setBulkLoading(true)
     let sent = 0
-    try {
-      for (const id of Array.from(selected)) {
-        const inv = invoices.find((i) => i.id === id)
-        if (!inv || inv.status === 'paid' || inv.status === 'disputed') continue
+    let failed = 0
+    for (const id of Array.from(selected)) {
+      const inv = invoices.find((i) => i.id === id)
+      if (!inv || inv.status === 'paid' || inv.status === 'disputed') continue
+      try {
         const res = await fetch(`/api/invoices/${id}/remind`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ type: 'email_1' }),
         })
         if (res.ok) sent++
+        else failed++
+      } catch {
+        failed++
       }
-      await loadInvoices()
-      clearSelection()
+    }
+    await loadInvoices()
+    clearSelection()
+    setBulkLoading(false)
+    if (failed === 0) {
       toast({ title: `${sent} relance${sent > 1 ? 's' : ''} envoyée${sent > 1 ? 's' : ''}` })
-    } catch {
-      toast({ title: 'Erreur', variant: 'destructive' })
-    } finally {
-      setBulkLoading(false)
+    } else {
+      toast({
+        title: `${sent} envoyée${sent > 1 ? 's' : ''}, ${failed} échouée${failed > 1 ? 's' : ''}`,
+        description: 'Vérifiez la configuration Resend pour les échecs.',
+        variant: 'destructive',
+      })
     }
   }
 
