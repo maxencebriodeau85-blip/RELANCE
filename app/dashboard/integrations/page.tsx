@@ -484,7 +484,7 @@ function IntegrationsPageInner() {
 
 export default function IntegrationsPage() {
   return (
-    <Suspense>
+    <Suspense fallback={<div className="flex-1 p-8 animate-pulse bg-gray-50" />}>
       <IntegrationsPageInner />
     </Suspense>
   )

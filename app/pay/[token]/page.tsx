@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { Zap, CheckCircle, AlertCircle, Loader2, CreditCard, Shield, Lock, PartyPopper } from 'lucide-react'
 import Link from 'next/link'
@@ -24,7 +24,7 @@ function formatDate(dateStr: string) {
   return new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date(dateStr))
 }
 
-export default function PaymentPage() {
+function PaymentPageInner() {
   const params = useParams()
   const searchParams = useSearchParams()
   const token = params.token as string
@@ -225,5 +225,17 @@ export default function PaymentPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+export default function PaymentPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
+      </div>
+    }>
+      <PaymentPageInner />
+    </Suspense>
   )
 }
