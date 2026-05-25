@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Header } from '@/components/dashboard/header'
 import { Button } from '@/components/ui/button'
@@ -38,7 +38,7 @@ function addDays(date: string, days: number): string {
   return d.toISOString().split('T')[0]
 }
 
-export default function NewInvoicePage() {
+function NewInvoiceForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
@@ -61,7 +61,7 @@ export default function NewInvoicePage() {
     notes: '',
   })
 
-  const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm((f) => ({ ...f, [field]: e.target.value }))
     if (fieldErrors[field]) setFieldErrors((fe) => ({ ...fe, [field]: undefined }))
   }
@@ -110,7 +110,6 @@ export default function NewInvoicePage() {
     }
   }
 
-  // Auto-fill due date when issued_date changes
   const handleIssuedDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value
     setForm((f) => ({
@@ -272,7 +271,6 @@ export default function NewInvoicePage() {
                   className={fieldErrors.due_date ? 'border-red-400 focus-visible:ring-red-400' : ''}
                 />
                 <FieldError msg={fieldErrors.due_date} />
-                {/* Quick shortcuts */}
                 <div className="flex gap-1.5">
                   {[30, 45, 60, 90].map((d) => (
                     <button
@@ -309,7 +307,7 @@ export default function NewInvoicePage() {
                 <select
                   id="vat_mention"
                   value={form.vat_mention}
-                  onChange={(e) => setForm((f) => ({ ...f, vat_mention: e.target.value }))}
+                  onChange={set('vat_mention')}
                   className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <option value="TVA non applicable, art. 293B du CGI">TVA non applicable, art. 293B du CGI (auto-entrepreneur)</option>
@@ -349,5 +347,13 @@ export default function NewInvoicePage() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function NewInvoicePage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-sm text-gray-400">Chargement…</div>}>
+      <NewInvoiceForm />
+    </Suspense>
   )
 }

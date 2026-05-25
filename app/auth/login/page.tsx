@@ -127,7 +127,7 @@ function LoginForm() {
             <p className="text-gray-500 mt-1 text-sm">Connecte-toi à ton espace RelanceFlow</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             {error && (
               <Alert variant="destructive" className="py-3">
                 <AlertCircle className="h-4 w-4" />
