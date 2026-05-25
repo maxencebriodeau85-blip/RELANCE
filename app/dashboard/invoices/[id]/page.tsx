@@ -351,9 +351,19 @@ export default function InvoiceDetailPage() {
                       )}
                     </div>
                   </div>
+                  {invoice.description && (
+                    <div className="col-span-2">
+                      <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Désignation / prestation</div>
+                      <div className="text-sm text-gray-700 bg-gray-50 rounded p-2">{invoice.description}</div>
+                    </div>
+                  )}
+                  <div className="col-span-2">
+                    <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Mention TVA</div>
+                    <div className="text-sm text-gray-600 italic">{invoice.vat_mention}</div>
+                  </div>
                   {invoice.notes && (
                     <div className="col-span-2">
-                      <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Notes</div>
+                      <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Notes internes</div>
                       <div className="text-sm text-gray-600 bg-gray-50 rounded p-2">{invoice.notes}</div>
                     </div>
                   )}

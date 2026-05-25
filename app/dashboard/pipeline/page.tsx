@@ -6,7 +6,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
   Plus, Phone, Mail, Building2, Tag, Trash2,
-  Search, X, TrendingUp, CheckCircle2, ChevronRight,
+  Search, X, TrendingUp, CheckCircle2, ChevronRight, FileText,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -299,6 +299,7 @@ export default function PipelinePage() {
                       <ContactCard
                         key={contact.id}
                         contact={contact}
+                        stage={stage.key}
                         isDragging={draggedId === contact.id}
                         onDragStart={onDragStart}
                         onDelete={() => handleDelete(contact.id, stage.key)}
@@ -420,11 +421,13 @@ export default function PipelinePage() {
 
 function ContactCard({
   contact,
+  stage,
   isDragging,
   onDragStart,
   onDelete,
 }: {
   contact: Contact
+  stage: PipelineStage
   isDragging: boolean
   onDragStart: (e: React.DragEvent, id: string) => void
   onDelete: () => void
@@ -524,6 +527,17 @@ function ContactCard({
           </span>
         </div>
       </Link>
+
+      {stage === 'signed' && contact.email && (
+        <Link
+          href={`/dashboard/invoices/new?client_name=${encodeURIComponent(contact.name)}&client_email=${encodeURIComponent(contact.email)}${contact.deal_amount ? `&amount=${contact.deal_amount}` : ''}`}
+          className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-100 transition-colors"
+          onClick={e => e.stopPropagation()}
+        >
+          <FileText className="h-3.5 w-3.5" />
+          Créer une facture
+        </Link>
+      )}
     </div>
   )
 }

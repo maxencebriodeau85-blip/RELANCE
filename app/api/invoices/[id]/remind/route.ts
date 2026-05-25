@@ -99,6 +99,7 @@ export async function POST(
       daysOverdue,
       invoiceId: inv.id,
       paymentUrl,
+      description: inv.description,
     }
 
     const emailContent = getEmailTemplate(reminderType, templateData)

@@ -80,6 +80,8 @@ export type Database = {
           issued_date: string
           status: 'pending' | 'reminded' | 'formal_notice' | 'paid' | 'disputed'
           notes: string | null
+          description: string | null
+          vat_mention: string
           payment_token: string | null
           created_at: string
           updated_at: string
@@ -97,6 +99,8 @@ export type Database = {
           issued_date?: string
           status?: 'pending' | 'reminded' | 'formal_notice' | 'paid' | 'disputed'
           notes?: string | null
+          description?: string | null
+          vat_mention?: string
           payment_token?: string | null
           created_at?: string
           updated_at?: string
@@ -114,6 +118,8 @@ export type Database = {
           issued_date?: string
           status?: 'pending' | 'reminded' | 'formal_notice' | 'paid' | 'disputed'
           notes?: string | null
+          description?: string | null
+          vat_mention?: string
           payment_token?: string | null
           created_at?: string
           updated_at?: string

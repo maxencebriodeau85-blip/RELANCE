@@ -62,6 +62,8 @@ export async function POST(request: Request) {
     if (clientSiren && clientSiren.length !== 9) errors.client_siren = 'SIREN invalide (9 chiffres)'
 
     const notes = String(body.notes || '').trim().slice(0, 1000) || null
+    const description = String(body.description || '').trim().slice(0, 500) || null
+    const vatMention = String(body.vat_mention || 'TVA non applicable, art. 293B du CGI').trim().slice(0, 200)
 
     if (Object.keys(errors).length > 0) {
       return NextResponse.json({ error: 'Validation échouée', fields: errors }, { status: 422 })
@@ -127,6 +129,8 @@ export async function POST(request: Request) {
         due_date: dueDate,
         issued_date: issuedDate,
         notes,
+        description,
+        vat_mention: vatMention,
         status: 'pending',
       } as never)
       .select('id')

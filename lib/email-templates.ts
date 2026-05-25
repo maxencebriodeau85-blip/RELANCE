@@ -19,6 +19,7 @@ export interface EmailTemplateData {
   daysOverdue: number
   invoiceId?: string
   paymentUrl?: string
+  description?: string | null
 }
 
 function formatEuro(amount: number): string {
@@ -54,13 +55,14 @@ export function getEmailCordial(data: EmailTemplateData): {
   html: string
   text: string
 } {
-  const { creditorName, clientName, invoiceNumber, amount, dueDate } = data
+  const { creditorName, clientName, invoiceNumber, amount, dueDate, description } = data
   const subject = EMAIL_SUBJECTS.email_cordial(invoiceNumber)
 
   // Escape all user-controlled values
   const eName = escapeHtml(creditorName)
   const eClient = escapeHtml(clientName)
   const eInvoice = escapeHtml(invoiceNumber)
+  const eDesc = description ? escapeHtml(description) : null
 
   const html = `<!DOCTYPE html>
 <html lang="fr">
@@ -76,6 +78,7 @@ export function getEmailCordial(data: EmailTemplateData): {
 
   <div style="background: #F0F9FF; border-left: 4px solid #3B82F6; padding: 16px; margin: 24px 0; border-radius: 4px;">
     <p style="margin: 4px 0;"><strong>Facture n° :</strong> ${eInvoice}</p>
+    ${eDesc ? `<p style="margin: 4px 0;"><strong>Objet :</strong> ${eDesc}</p>` : ''}
     <p style="margin: 4px 0;"><strong>Montant TTC :</strong> ${formatEuro(amount)}</p>
     <p style="margin: 4px 0;"><strong>Date d'échéance :</strong> ${formatDate(dueDate)}</p>
   </div>
@@ -119,12 +122,13 @@ export function getEmailFerme(data: EmailTemplateData): {
   html: string
   text: string
 } {
-  const { creditorName, clientName, invoiceNumber, amount, dueDate, daysOverdue } = data
+  const { creditorName, clientName, invoiceNumber, amount, dueDate, daysOverdue, description } = data
   const subject = EMAIL_SUBJECTS.email_ferme(invoiceNumber)
 
   const eName = escapeHtml(creditorName)
   const eClient = escapeHtml(clientName)
   const eInvoice = escapeHtml(invoiceNumber)
+  const eDesc = description ? escapeHtml(description) : null
 
   const html = `<!DOCTYPE html>
 <html lang="fr">
@@ -141,6 +145,7 @@ export function getEmailFerme(data: EmailTemplateData): {
 
   <div style="background: #FFFBEB; border-left: 4px solid #F59E0B; padding: 16px; margin: 24px 0; border-radius: 4px;">
     <p style="margin: 4px 0;"><strong>Facture n° :</strong> ${eInvoice}</p>
+    ${eDesc ? `<p style="margin: 4px 0;"><strong>Objet :</strong> ${eDesc}</p>` : ''}
     <p style="margin: 4px 0;"><strong>Montant TTC :</strong> <span style="color: #DC2626; font-size: 18px; font-weight: bold;">${formatEuro(amount)}</span></p>
     <p style="margin: 4px 0;"><strong>Échéance :</strong> ${formatDate(dueDate)}</p>
     <p style="margin: 4px 0;"><strong>Jours de retard :</strong> ${daysOverdue} jour(s)</p>
@@ -188,12 +193,13 @@ export function getEmailPrecontentieux(data: EmailTemplateData): {
   html: string
   text: string
 } {
-  const { creditorName, clientName, invoiceNumber, amount, dueDate, daysOverdue } = data
+  const { creditorName, clientName, invoiceNumber, amount, dueDate, daysOverdue, description } = data
   const subject = EMAIL_SUBJECTS.email_precontentieux(invoiceNumber)
 
   const eName = escapeHtml(creditorName)
   const eClient = escapeHtml(clientName)
   const eInvoice = escapeHtml(invoiceNumber)
+  const eDesc = description ? escapeHtml(description) : null
 
   const html = `<!DOCTYPE html>
 <html lang="fr">
@@ -210,6 +216,7 @@ export function getEmailPrecontentieux(data: EmailTemplateData): {
 
   <div style="background: #FEF2F2; border-left: 4px solid #DC2626; padding: 16px; margin: 24px 0; border-radius: 4px;">
     <p style="margin: 4px 0;"><strong>Facture n° :</strong> ${eInvoice}</p>
+    ${eDesc ? `<p style="margin: 4px 0;"><strong>Objet :</strong> ${eDesc}</p>` : ''}
     <p style="margin: 4px 0;"><strong>Montant principal :</strong> <span style="color: #DC2626; font-size: 20px; font-weight: bold;">${formatEuro(amount)}</span></p>
     <p style="margin: 4px 0;"><strong>Échéance initiale :</strong> ${formatDate(dueDate)}</p>
     <p style="margin: 4px 0;"><strong>Retard :</strong> ${daysOverdue} jours</p>
