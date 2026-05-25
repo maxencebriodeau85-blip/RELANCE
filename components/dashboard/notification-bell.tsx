@@ -157,15 +157,20 @@ export function NotificationBell() {
             )}
           </div>
 
-          {notifs.length > 0 && (
-            <div className="border-t px-4 py-2.5">
-              <p className="text-xs text-gray-400 text-center">
-                {notifs.filter(n => !n.read).length === 0
-                  ? 'Tout lu'
-                  : `${notifs.filter(n => !n.read).length} non lu${notifs.filter(n => !n.read).length > 1 ? 'es' : ''}`}
-              </p>
-            </div>
-          )}
+          <div className="border-t px-4 py-2.5 flex items-center justify-between">
+            <p className="text-xs text-gray-400">
+              {notifs.filter(n => !n.read).length === 0
+                ? 'Tout lu'
+                : `${notifs.filter(n => !n.read).length} non lu${notifs.filter(n => !n.read).length > 1 ? 'es' : ''}`}
+            </p>
+            <Link
+              href="/dashboard/notifications"
+              onClick={() => setOpen(false)}
+              className="text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline"
+            >
+              Voir tout →
+            </Link>
+          </div>
         </div>
       )}
     </div>

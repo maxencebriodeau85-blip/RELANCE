@@ -28,7 +28,7 @@ import type { Profile } from '@/lib/database.types'
 
 const PLAN_LABELS: Record<string, string> = {
   free_trial: 'Essai gratuit',
-  starter: 'Starter',
+  starter: 'Solo',
   pro: 'Pro',
   business: 'Business',
 }
@@ -43,10 +43,10 @@ const PLAN_COLORS: Record<string, string> = {
 const PLANS = [
   {
     id: 'starter',
-    name: 'Starter',
-    price: '19',
-    limit: '30 factures/mois',
-    features: ['Relances automatiques', 'Templates emails', 'Tableau de bord'],
+    name: 'Solo',
+    price: '15',
+    limit: 'Contacts illimités',
+    features: ['Pipeline kanban 5 étapes', 'Séquences relance prospects auto', 'Facturation & relances factures', 'Dashboard commercial'],
     icon: Zap,
     color: 'text-blue-600',
     border: 'border-blue-200 hover:border-blue-400',
@@ -54,9 +54,9 @@ const PLANS = [
   {
     id: 'pro',
     name: 'Pro',
-    price: '49',
-    limit: '200 factures/mois',
-    features: ['Tout Starter +', 'Mise en demeure légale', 'Paiement en ligne', 'Statistiques avancées'],
+    price: '29',
+    limit: 'Volume plus important',
+    features: ['Tout Solo +', 'Intégrations comptables', 'Export CSV', 'Scénarios personnalisables', 'Support prioritaire'],
     icon: Star,
     color: 'text-purple-600',
     border: 'border-purple-200 hover:border-purple-400',
@@ -65,9 +65,9 @@ const PLANS = [
   {
     id: 'business',
     name: 'Business',
-    price: '99',
-    limit: '1000 factures/mois',
-    features: ['Tout Pro +', 'API & webhooks', 'Export comptable', 'Support prioritaire'],
+    price: '49',
+    limit: 'Factures illimitées',
+    features: ['Tout Pro +', 'API & webhooks', 'Multi-utilisateurs', 'Account manager', 'SLA 99.9%'],
     icon: Rocket,
     color: 'text-amber-600',
     border: 'border-amber-200 hover:border-amber-400',
@@ -126,6 +126,10 @@ export default function SettingsPage() {
   }, [])
 
   const handleSaveProfile = async () => {
+    if (form.siren && form.siren.replace(/\s/g, '').length !== 9) {
+      toast({ title: 'SIREN invalide', description: 'Le SIREN doit contenir exactement 9 chiffres.', variant: 'destructive' })
+      return
+    }
     setSaving(true)
     try {
       const supabase = createClient()

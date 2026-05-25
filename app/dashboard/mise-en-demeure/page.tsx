@@ -66,7 +66,8 @@ function MiseEnDemeurContent() {
   const searchParams = useSearchParams()
   const { toast } = useToast()
 
-  const [invoices, setInvoices] = useState<Invoice[]>(MOCK_INVOICES)
+  const [invoices, setInvoices] = useState<Invoice[]>([])
+  const [loadedFromDb, setLoadedFromDb] = useState(false)
   const [selectedInvoiceId, setSelectedInvoiceId] = useState(searchParams.get('invoice') || '')
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
   const [showPreview, setShowPreview] = useState(false)
@@ -91,22 +92,21 @@ function MiseEnDemeurContent() {
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
         if (user) {
-          const { data } = await supabase
-            .from('invoices')
-            .select('*')
-            .eq('user_id', user.id)
-            .neq('status', 'paid')
-            .order('due_date', { ascending: true })
-          if (data && data.length > 0) {
-            setInvoices(data as Invoice[])
+          const [invoicesRes, profileRes] = await Promise.all([
+            supabase
+              .from('invoices')
+              .select('*')
+              .eq('user_id', user.id)
+              .neq('status', 'paid')
+              .order('due_date', { ascending: true }),
+            supabase.from('profiles').select('*').eq('id', user.id).single(),
+          ])
+          setInvoices((invoicesRes.data as Invoice[]) ?? [])
+          setLoadedFromDb(true)
+          if (invoicesRes.data?.length) {
+            setSelectedInvoiceId(s => s || invoicesRes.data![0].id)
           }
-
-          // Load profile for creditor info
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single()
+          const profile = profileRes.data
           if (profile) {
             setCreditorInfo((c) => ({
               ...c,
@@ -117,7 +117,7 @@ function MiseEnDemeurContent() {
           }
         }
       } catch {
-        // use mock
+        setLoadedFromDb(true)
       }
     }
     loadInvoices()
@@ -182,7 +182,23 @@ function MiseEnDemeurContent() {
       />
 
       <div className="p-6 space-y-6">
-        {/* Legal notice */}
+        {/* Empty state when user has no unpaid invoices */}
+        {loadedFromDb && invoices.length === 0 && (
+          <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-12 text-center">
+            <AlertTriangle className="h-10 w-10 text-gray-200 mx-auto mb-3" />
+            <p className="text-sm font-medium text-gray-600">Aucune facture impayée</p>
+            <p className="text-xs text-gray-400 mt-1 max-w-sm mx-auto">
+              La mise en demeure s&apos;applique aux factures dont l&apos;échéance est dépassée. Ajoutez une facture ou vérifiez que les factures ne sont pas déjà marquées &quot;Payée&quot;.
+            </p>
+            <a href="/dashboard/invoices/new" className="mt-4 inline-block rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700 transition-colors">
+              Créer une facture
+            </a>
+          </div>
+        )}
+
+        {/* Legal notice + form — only when invoices available */}
+        {(invoices.length > 0 || !loadedFromDb) && (
+        <>
         <Alert>
           <Info className="h-4 w-4" />
           <AlertTitle>Base légale</AlertTitle>
@@ -440,6 +456,8 @@ function MiseEnDemeurContent() {
             d&apos;envoi et l&apos;accusé de réception dans votre dossier.
           </AlertDescription>
         </Alert>
+        </>
+        )}
       </div>
 
       {/* Print styles */}

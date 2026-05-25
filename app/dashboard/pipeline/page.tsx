@@ -132,6 +132,14 @@ export default function PipelinePage() {
 
   const handleAdd = async () => {
     if (!form.name.trim()) { setFormErr('Le nom est requis'); return }
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      setFormErr('Email invalide')
+      return
+    }
+    if (form.deal_amount && parseFloat(form.deal_amount) <= 0) {
+      setFormErr('Le montant doit être supérieur à 0')
+      return
+    }
     setSaving(true)
     setFormErr('')
     const tags = form.tags.split(',').map(t => t.trim()).filter(Boolean)
