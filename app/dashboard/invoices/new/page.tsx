@@ -68,6 +68,7 @@ function NewInvoiceForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (loading) return
     setLoading(true)
     setFieldErrors({})
     setGlobalError('')

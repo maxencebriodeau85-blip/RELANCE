@@ -100,6 +100,7 @@ export async function POST(
       invoiceId: inv.id,
       paymentUrl,
       description: inv.description,
+      vat_mention: (inv as any).vat_mention,
     }
 
     const emailContent = getEmailTemplate(reminderType, templateData)

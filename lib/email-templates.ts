@@ -20,6 +20,7 @@ export interface EmailTemplateData {
   invoiceId?: string
   paymentUrl?: string
   description?: string | null
+  vat_mention?: string | null
 }
 
 function formatEuro(amount: number): string {
@@ -263,6 +264,92 @@ ${creditorName}`
   return { subject, html, text }
 }
 
+export function getEmailFormalNotice(data: EmailTemplateData): {
+  subject: string
+  html: string
+  text: string
+} {
+  const { creditorName, creditorEmail, clientName, invoiceNumber, amount, dueDate, daysOverdue, description, paymentUrl } = data
+  const subject = EMAIL_SUBJECTS.formal_notice(invoiceNumber)
+
+  const eName = escapeHtml(creditorName)
+  const eClient = escapeHtml(clientName)
+  const eInvoice = escapeHtml(invoiceNumber)
+  const eDesc = description ? escapeHtml(description) : null
+  const eEmail = escapeHtml(creditorEmail)
+
+  const paymentButton = paymentUrl
+    ? `<div style="text-align:center;margin:24px 0;"><a href="${escapeHtml(paymentUrl)}" style="background:#DC2626;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:15px;">Régler la facture maintenant</a></div>`
+    : ''
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: #991B1B; padding: 16px; margin-bottom: 24px; border-radius: 8px; text-align:center;">
+    <h2 style="color: #FFF; margin: 0; font-size:18px; letter-spacing:1px;">MISE EN DEMEURE</h2>
+    <p style="color: #FCA5A5; margin: 4px 0; font-size:13px;">${eName}</p>
+  </div>
+
+  <p>Bonjour ${eClient},</p>
+
+  <p>Par la présente, nous vous adressons une <strong>mise en demeure</strong> de régler la créance suivante, demeurée impayée depuis <strong>${daysOverdue} jours</strong> malgré nos relances successives.</p>
+
+  <div style="background: #FEF2F2; border: 2px solid #DC2626; padding: 16px; margin: 24px 0; border-radius: 6px;">
+    <p style="margin: 4px 0;"><strong>Facture n° :</strong> ${eInvoice}</p>
+    ${eDesc ? `<p style="margin: 4px 0;"><strong>Objet :</strong> ${eDesc}</p>` : ''}
+    <p style="margin: 4px 0;"><strong>Échéance contractuelle :</strong> ${formatDate(dueDate)}</p>
+    <p style="margin: 4px 0;"><strong>Retard :</strong> ${daysOverdue} jours</p>
+    <p style="margin: 8px 0 4px 0;"><strong>Montant principal dû :</strong> <span style="color:#DC2626;font-size:20px;font-weight:bold;">${formatEuro(amount)}</span></p>
+    <p style="margin: 4px 0; font-size:12px; color:#6B7280;">+ pénalités de retard (taux BCE + 10 points) et indemnité forfaitaire de recouvrement de 40 € (art. L441-10 C.com.)</p>
+  </div>
+
+  <p>Vous êtes mis en demeure de procéder au règlement intégral de cette somme dans un délai de <strong>8 jours</strong> à compter de la réception de cet avis.</p>
+
+  ${paymentButton}
+
+  <div style="background: #FFF7ED; border: 1px solid #F59E0B; padding: 16px; margin: 16px 0; border-radius: 4px;">
+    <p style="margin: 0; font-size:13px; color:#92400E;">
+      À défaut de règlement dans ce délai, nous nous réserverons le droit d'engager toute procédure judiciaire de recouvrement (injonction de payer, assignation en référé) sans autre avertissement préalable, les frais et dépens étant mis à votre charge.
+    </p>
+  </div>
+
+  <p>Si vous estimez cette créance injustifiée, contactez-nous immédiatement à <a href="mailto:${eEmail}">${eEmail}</a> en joignant les justificatifs correspondants.</p>
+
+  <p>Le Service Comptabilité,<br><strong>${eName}</strong></p>
+
+  <div style="border-top: 1px solid #E5E7EB; padding-top: 16px; margin-top: 24px; font-size: 12px; color: #9CA3AF;">
+    <p>Ce courrier électronique a valeur de mise en demeure au sens de l'article 1344 du Code civil. Réf. légale : art. L441-10 à L441-12 du Code de commerce.</p>
+  </div>
+</body>
+</html>`
+
+  const text = `MISE EN DEMEURE
+
+Bonjour ${clientName},
+
+Par la présente, nous vous adressons une mise en demeure de régler la créance suivante, demeurée impayée depuis ${daysOverdue} jours malgré nos relances successives.
+
+Facture n° : ${invoiceNumber}
+Montant principal dû : ${formatEuro(amount)}
+Échéance contractuelle : ${formatDate(dueDate)}
+Retard : ${daysOverdue} jours
++ pénalités de retard et indemnité forfaitaire de 40 €
+
+Vous êtes mis en demeure de procéder au règlement intégral de cette somme dans un délai de 8 jours à compter de la réception de cet avis.
+${paymentUrl ? `\nRégler en ligne : ${paymentUrl}\n` : ''}
+À défaut de règlement dans ce délai, nous nous réserverons le droit d'engager toute procédure judiciaire de recouvrement, les frais et dépens étant mis à votre charge.
+
+Si vous estimez cette créance injustifiée, contactez-nous immédiatement à ${creditorEmail}.
+
+Le Service Comptabilité,
+${creditorName}
+
+Ce courrier a valeur de mise en demeure (art. 1344 C.civ.). Réf. : art. L441-10 à L441-12 C.com.`
+
+  return { subject, html, text }
+}
+
 export function getEmailTemplate(
   type: 'email_1' | 'email_2' | 'email_3' | 'formal_notice',
   data: EmailTemplateData
@@ -273,8 +360,9 @@ export function getEmailTemplate(
     case 'email_2':
       return getEmailFerme(data)
     case 'email_3':
-    case 'formal_notice':
       return getEmailPrecontentieux(data)
+    case 'formal_notice':
+      return getEmailFormalNotice(data)
     default:
       return getEmailCordial(data)
   }
