@@ -154,7 +154,7 @@ export async function POST(request: Request) {
     // Update monthly counter
     await supabase
       .from('profiles')
-      .update({ invoice_count_month: currentCount + 1 } as never)
+      .update({ invoice_count_month: (currentCount ?? 0) + 1 } as never)
       .eq('id', user.id)
 
     const row = inserted as unknown as { id: string }
