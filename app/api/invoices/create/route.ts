@@ -63,6 +63,7 @@ export async function POST(request: Request) {
 
     const notes = String(body.notes || '').trim().slice(0, 1000) || null
     const description = String(body.description || '').trim().slice(0, 500) || null
+    if (!description) errors.description = 'Désignation de la prestation requise (mention légale obligatoire)'
     const vatMention = String(body.vat_mention || 'TVA non applicable, art. 293B du CGI').trim().slice(0, 200)
 
     if (Object.keys(errors).length > 0) {
@@ -72,11 +73,11 @@ export async function POST(request: Request) {
     // --- Plan limit check ---
     const { data: profileData } = await supabase
       .from('profiles')
-      .select('plan, trial_ends_at, invoice_count_month')
+      .select('plan, trial_ends_at')
       .eq('id', user.id)
       .single()
 
-    const profile = profileData as Pick<Profile, 'plan' | 'trial_ends_at' | 'invoice_count_month'> | null
+    const profile = profileData as Pick<Profile, 'plan' | 'trial_ends_at'> | null
 
     if (profile?.plan === 'free_trial' && profile?.trial_ends_at) {
       if (new Date(profile.trial_ends_at) < new Date()) {
@@ -87,10 +88,19 @@ export async function POST(request: Request) {
       }
     }
 
-    const limit = PLAN_LIMITS[profile?.plan ?? 'free_trial'] ?? PLAN_LIMITS.free_trial
-    const currentCount = profile?.invoice_count_month ?? 0
+    // Count invoices created this calendar month (exact, never drifts)
+    const monthStart = new Date()
+    monthStart.setUTCDate(1)
+    monthStart.setUTCHours(0, 0, 0, 0)
+    const { count: currentCount } = await supabase
+      .from('invoices')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('created_at', monthStart.toISOString())
 
-    if (currentCount >= limit) {
+    const limit = PLAN_LIMITS[profile?.plan ?? 'free_trial'] ?? PLAN_LIMITS.free_trial
+
+    if ((currentCount ?? 0) >= limit) {
       return NextResponse.json(
         {
           error: `Limite du plan atteinte (${limit} factures/mois). Passez à un plan supérieur.`,

@@ -314,6 +314,15 @@ export default function InvoiceDetailPage() {
             </AlertDescription>
           </Alert>
         )}
+        {invoice.status === 'disputed' && (
+          <Alert className="border-orange-200 bg-orange-50">
+            <AlertTriangle className="h-4 w-4 text-orange-600" />
+            <AlertTitle className="text-orange-800">Facture en litige</AlertTitle>
+            <AlertDescription className="text-orange-700">
+              Cette facture est marquée comme litigieuse — plus aucune relance ne sera envoyée automatiquement.
+            </AlertDescription>
+          </Alert>
+        )}
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Left: invoice + client info */}

@@ -115,7 +115,7 @@ export default function PipelinePage() {
 
     if (!moved || from === target) return
 
-    // Optimistic
+    // Optimistic update
     setByStage(prev => {
       const next = { ...prev }
       next[from!] = next[from!].filter(c => c.id !== draggedId)
@@ -123,11 +123,21 @@ export default function PipelinePage() {
       return next
     })
 
-    await fetch(`/api/contacts/${draggedId}`, {
+    const res = await fetch(`/api/contacts/${draggedId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pipeline_stage: target }),
     })
+
+    if (!res.ok) {
+      // Rollback on failure
+      setByStage(prev => {
+        const next = { ...prev }
+        next[target] = next[target].filter(c => c.id !== draggedId)
+        next[from!] = [{ ...moved!, pipeline_stage: from! }, ...next[from!]]
+        return next
+      })
+    }
   }
 
   const handleAdd = async () => {
