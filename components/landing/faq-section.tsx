@@ -25,9 +25,9 @@ const faqs = [
       'Oui. Conforme à l\'article L441-10 du Code de commerce, avec calcul automatique des pénalités de retard légales (taux BCE +10 points + indemnité forfaitaire de 40 €). Recommandation : envoi en recommandé avec AR pour preuve probante.',
   },
   {
-    question: 'Que se passe-t-il après les 14 jours d\'essai gratuit ?',
+    question: 'Que se passe-t-il après les 30 jours d\'essai gratuit ?',
     answer:
-      'Rien d\'automatique. Vous choisissez de souscrire à une formule (Starter, Pro ou Business) ou vous laissez votre compte expirer. Aucune carte bancaire n\'est demandée à l\'inscription, donc aucun prélèvement surprise.',
+      'Rien d\'automatique. Vous choisissez de souscrire à une formule (Starter à 19 €/mois, Pro à 49 €/mois ou Business à 99 €/mois) ou vous laissez votre compte expirer. Aucune carte bancaire n\'est demandée à l\'inscription, donc aucun prélèvement surprise.',
   },
   {
     question: 'Mes données sont-elles en sécurité ?',

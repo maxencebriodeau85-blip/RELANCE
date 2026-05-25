@@ -6,6 +6,7 @@ import {
   formatEuro,
   formatDate,
   getDaysOverdue,
+  PLAN_LIMITS,
 } from '@/lib/metrics'
 import { StatusBadge } from '@/components/invoices/status-badge'
 import type { Invoice, Profile } from '@/lib/database.types'
@@ -97,6 +98,17 @@ export default async function DashboardPage() {
   // ── metrics ────────────────────────────────────────────────────────────────
   const metrics = calculateDashboardMetrics(invoices)
   const today = new Date()
+
+  // Monthly invoice count for plan limit banner
+  const monthStart = new Date()
+  monthStart.setUTCDate(1)
+  monthStart.setUTCHours(0, 0, 0, 0)
+  const monthlyInvoiceCount = invoices.filter(
+    (inv) => new Date(inv.created_at) >= monthStart
+  ).length
+  const planLimit = PLAN_LIMITS[profile?.plan ?? 'free_trial'] ?? PLAN_LIMITS.free_trial
+  const limitPct = planLimit > 0 ? (monthlyInvoiceCount / planLimit) * 100 : 0
+  const showLimitBanner = limitPct >= 80 && profile?.plan !== 'business'
 
   const urgentInvoices = invoices
     .filter(
@@ -378,6 +390,38 @@ export default async function DashboardPage() {
                 className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 transition-colors"
               >
                 Traiter les urgences
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Plan limit banner */}
+        {showLimitBanner && (
+          <div className={`rounded-xl border px-5 py-4 ${limitPct >= 100 ? 'border-red-200 bg-red-50' : 'border-amber-200 bg-amber-50'}`}>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${limitPct >= 100 ? 'bg-red-100' : 'bg-amber-100'}`}>
+                  <AlertTriangle className={`h-4 w-4 ${limitPct >= 100 ? 'text-red-600' : 'text-amber-600'}`} />
+                </div>
+                <div>
+                  <p className={`text-sm font-semibold ${limitPct >= 100 ? 'text-red-900' : 'text-amber-900'}`}>
+                    {limitPct >= 100
+                      ? `Limite atteinte — ${monthlyInvoiceCount}/${planLimit} factures ce mois`
+                      : `${monthlyInvoiceCount}/${planLimit} factures utilisées ce mois (${Math.round(limitPct)}%)`}
+                  </p>
+                  <p className={`text-xs mt-0.5 ${limitPct >= 100 ? 'text-red-600' : 'text-amber-600'}`}>
+                    {profile?.plan === 'free_trial'
+                      ? 'Passez à Starter (19 €/mois) pour 30 factures/mois.'
+                      : 'Passez à Pro (49 €/mois) pour 200 factures/mois.'}
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/dashboard/settings"
+                className={`flex-shrink-0 inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white transition-colors ${limitPct >= 100 ? 'bg-red-600 hover:bg-red-700' : 'bg-amber-500 hover:bg-amber-600'}`}
+              >
+                Changer de plan
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>

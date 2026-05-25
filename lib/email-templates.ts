@@ -56,14 +56,17 @@ export function getEmailCordial(data: EmailTemplateData): {
   html: string
   text: string
 } {
-  const { creditorName, clientName, invoiceNumber, amount, dueDate, description } = data
+  const { creditorName, clientName, invoiceNumber, amount, dueDate, description, paymentUrl } = data
   const subject = EMAIL_SUBJECTS.email_cordial(invoiceNumber)
 
-  // Escape all user-controlled values
   const eName = escapeHtml(creditorName)
   const eClient = escapeHtml(clientName)
   const eInvoice = escapeHtml(invoiceNumber)
   const eDesc = description ? escapeHtml(description) : null
+
+  const paymentButton = paymentUrl
+    ? `<div style="text-align:center;margin:24px 0;"><a href="${escapeHtml(paymentUrl)}" style="background:#3B82F6;color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:15px;display:inline-block;">Régler la facture en ligne</a></div>`
+    : ''
 
   const html = `<!DOCTYPE html>
 <html lang="fr">
@@ -75,7 +78,7 @@ export function getEmailCordial(data: EmailTemplateData): {
 
   <p>Bonjour ${eClient},</p>
 
-  <p>Nous espérons que vous allez bien. Nous nous permettons de vous contacter concernant la facture référencée ci-dessous, dont l'échéance est passée.</p>
+  <p>Nous nous permettons de vous contacter concernant la facture référencée ci-dessous, dont l'échéance est passée.</p>
 
   <div style="background: #F0F9FF; border-left: 4px solid #3B82F6; padding: 16px; margin: 24px 0; border-radius: 4px;">
     <p style="margin: 4px 0;"><strong>Facture n° :</strong> ${eInvoice}</p>
@@ -84,11 +87,11 @@ export function getEmailCordial(data: EmailTemplateData): {
     <p style="margin: 4px 0;"><strong>Date d'échéance :</strong> ${formatDate(dueDate)}</p>
   </div>
 
+  ${paymentButton}
+
   <p>Il est possible que ce paiement ait été effectué ou soit en cours de traitement, auquel cas nous vous prions de ne pas tenir compte de ce message.</p>
 
-  <p>Dans le cas contraire, nous vous serions reconnaissants de bien vouloir procéder au règlement de cette somme dans les meilleurs délais, ou de nous contacter si vous avez des questions concernant cette facture.</p>
-
-  <p>Nous restons disponibles pour tout renseignement complémentaire.</p>
+  <p>Dans le cas contraire, nous vous serions reconnaissants de bien vouloir procéder au règlement de cette somme dans les meilleurs délais, ou de nous contacter si vous avez des questions.</p>
 
   <p>Cordialement,<br><strong>${eName}</strong></p>
 
@@ -100,17 +103,15 @@ export function getEmailCordial(data: EmailTemplateData): {
 
   const text = `Bonjour ${clientName},
 
-Nous espérons que vous allez bien. Nous nous permettons de vous contacter concernant la facture référencée ci-dessous, dont l'échéance est passée.
+Nous nous permettons de vous contacter concernant la facture référencée ci-dessous, dont l'échéance est passée.
 
 Facture n° : ${invoiceNumber}
 Montant TTC : ${formatEuro(amount)}
 Date d'échéance : ${formatDate(dueDate)}
-
+${paymentUrl ? `\nRégler en ligne : ${paymentUrl}\n` : ''}
 Il est possible que ce paiement ait été effectué ou soit en cours de traitement, auquel cas nous vous prions de ne pas tenir compte de ce message.
 
-Dans le cas contraire, nous vous serions reconnaissants de bien vouloir procéder au règlement de cette somme dans les meilleurs délais, ou de nous contacter si vous avez des questions concernant cette facture.
-
-Nous restons disponibles pour tout renseignement complémentaire.
+Dans le cas contraire, nous vous serions reconnaissants de bien vouloir procéder au règlement de cette somme dans les meilleurs délais.
 
 Cordialement,
 ${creditorName}`
@@ -123,13 +124,17 @@ export function getEmailFerme(data: EmailTemplateData): {
   html: string
   text: string
 } {
-  const { creditorName, clientName, invoiceNumber, amount, dueDate, daysOverdue, description } = data
+  const { creditorName, clientName, invoiceNumber, amount, dueDate, daysOverdue, description, paymentUrl } = data
   const subject = EMAIL_SUBJECTS.email_ferme(invoiceNumber)
 
   const eName = escapeHtml(creditorName)
   const eClient = escapeHtml(clientName)
   const eInvoice = escapeHtml(invoiceNumber)
   const eDesc = description ? escapeHtml(description) : null
+
+  const paymentButton = paymentUrl
+    ? `<div style="text-align:center;margin:24px 0;"><a href="${escapeHtml(paymentUrl)}" style="background:#F59E0B;color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:15px;display:inline-block;">Payer ${formatEuro(amount)} maintenant</a></div>`
+    : ''
 
   const html = `<!DOCTYPE html>
 <html lang="fr">
@@ -152,13 +157,13 @@ export function getEmailFerme(data: EmailTemplateData): {
     <p style="margin: 4px 0;"><strong>Jours de retard :</strong> ${daysOverdue} jour(s)</p>
   </div>
 
-  <p>Nous vous rappelons que conformément aux dispositions légales en vigueur (articles L441-10 et suivants du Code de commerce), des pénalités de retard sont applicables à compter du jour suivant la date d'échéance.</p>
+  ${paymentButton}
 
-  <p><strong>Nous vous demandons de bien vouloir procéder au règlement de cette somme dans un délai de 8 jours.</strong></p>
+  <p>Nous vous rappelons que conformément aux dispositions légales (art. L441-10 C.com.), des <strong>pénalités de retard</strong> sont applicables à compter du jour suivant la date d'échéance.</p>
 
-  <p>Si le paiement a déjà été effectué, veuillez nous en informer afin que nous puissions mettre à jour nos dossiers.</p>
+  <p><strong>Merci de bien vouloir procéder au règlement dans un délai de 8 jours.</strong> Sans réponse de votre part, nous serons contraints d'engager les procédures de recouvrement nécessaires.</p>
 
-  <p>Dans le cas contraire, nous serons dans l'obligation de prendre les mesures nécessaires pour recouvrer cette créance.</p>
+  <p>Si le paiement a déjà été effectué, veuillez nous en informer.</p>
 
   <p>Cordialement,<br><strong>${eName}</strong></p>
 
@@ -176,12 +181,10 @@ Facture n° : ${invoiceNumber}
 Montant TTC : ${formatEuro(amount)}
 Échéance : ${formatDate(dueDate)}
 Jours de retard : ${daysOverdue} jour(s)
+${paymentUrl ? `\nPayer maintenant : ${paymentUrl}\n` : ''}
+Des pénalités de retard (art. L441-10 C.com.) sont applicables.
 
-Nous vous rappelons que conformément aux dispositions légales en vigueur (articles L441-10 et suivants du Code de commerce), des pénalités de retard sont applicables à compter du jour suivant la date d'échéance.
-
-Nous vous demandons de bien vouloir procéder au règlement de cette somme dans un délai de 8 jours.
-
-Si le paiement a déjà été effectué, veuillez nous en informer afin que nous puissions mettre à jour nos dossiers.
+Merci de bien vouloir procéder au règlement dans un délai de 8 jours. Sans réponse de votre part, nous serons contraints d'engager les procédures de recouvrement nécessaires.
 
 Cordialement,
 ${creditorName}`

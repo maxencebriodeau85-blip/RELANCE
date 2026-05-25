@@ -28,7 +28,7 @@ import type { Profile } from '@/lib/database.types'
 
 const PLAN_LABELS: Record<string, string> = {
   free_trial: 'Essai gratuit',
-  starter: 'Solo',
+  starter: 'Starter',
   pro: 'Pro',
   business: 'Business',
 }
@@ -43,10 +43,10 @@ const PLAN_COLORS: Record<string, string> = {
 const PLANS = [
   {
     id: 'starter',
-    name: 'Solo',
-    price: '15',
-    limit: 'Contacts illimités',
-    features: ['Pipeline kanban 5 étapes', 'Séquences relance prospects auto', 'Facturation & relances factures', 'Dashboard commercial'],
+    name: 'Starter',
+    price: '19',
+    limit: "Jusqu'à 30 factures/mois",
+    features: ['Pipeline kanban 5 étapes', 'Relances email automatiques', 'Facturation & paiement Stripe', 'Dashboard commercial'],
     icon: Zap,
     color: 'text-blue-600',
     border: 'border-blue-200 hover:border-blue-400',
@@ -54,9 +54,9 @@ const PLANS = [
   {
     id: 'pro',
     name: 'Pro',
-    price: '29',
-    limit: 'Volume plus important',
-    features: ['Tout Solo +', 'Intégrations comptables', 'Export CSV', 'Scénarios personnalisables', 'Support prioritaire'],
+    price: '49',
+    limit: "Jusqu'à 200 factures/mois",
+    features: ['Tout Starter +', 'Scénarios personnalisables', 'Export CSV & stats avancées', 'Mise en demeure PDF', 'Support prioritaire'],
     icon: Star,
     color: 'text-purple-600',
     border: 'border-purple-200 hover:border-purple-400',
@@ -65,9 +65,9 @@ const PLANS = [
   {
     id: 'business',
     name: 'Business',
-    price: '49',
-    limit: 'Factures illimitées',
-    features: ['Tout Pro +', 'API & webhooks', 'Multi-utilisateurs', 'Account manager', 'SLA 99.9%'],
+    price: '99',
+    limit: "Jusqu'à 1000 factures/mois",
+    features: ['Tout Pro +', 'API & webhooks', 'Multi-utilisateurs', 'Intégration Pennylane', 'Account manager dédié'],
     icon: Rocket,
     color: 'text-amber-600',
     border: 'border-amber-200 hover:border-amber-400',

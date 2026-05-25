@@ -94,7 +94,7 @@ const comparison = [
   { feature: 'Relances factures auto', rf: true, hub: false, pipe: false },
   { feature: 'En français natif', rf: true, hub: false, pipe: false },
   { feature: 'Paiement en ligne intégré', rf: true, hub: false, pipe: false },
-  { feature: 'Prix / mois', rf: '15 €', hub: '41 €', pipe: '20 €' },
+  { feature: 'Prix / mois', rf: 'dès 19 €', hub: '41 €', pipe: '20 €' },
 ]
 
 // ─── page ─────────────────────────────────────────────────────────────────────
@@ -141,7 +141,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-4xl text-center relative">
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 text-sm text-blue-300 mb-8">
             <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
-            Pour consultants &amp; coaches indépendants · Essai gratuit 30 jours (beta)
+            Pour consultants &amp; coaches indépendants · Essai gratuit 30 jours
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight tracking-tight">
@@ -184,7 +184,7 @@ export default function HomePage() {
             {[
               { value: '< 60s', label: 'pour créer un contact' },
               { value: '100%', label: 'en français natif' },
-              { value: '15 €', label: 'par mois, tout inclus' },
+              { value: '19 €', label: 'par mois, plan Starter' },
             ].map((s) => (
               <div key={s.label} className="text-center">
                 <div className="text-3xl font-extrabold text-white">{s.value}</div>
@@ -449,21 +449,21 @@ export default function HomePage() {
         <div className="mx-auto max-w-4xl">
           <div className="text-center mb-10">
             <span className="inline-block rounded-full bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 mb-4 uppercase tracking-wider">
-              Accès beta
+              Accès en avant-première
             </span>
             <h2 className="text-3xl font-bold text-gray-900">
               Rejoins les premiers utilisateurs
             </h2>
             <p className="text-gray-500 mt-3 max-w-md mx-auto">
-              RelanceFlow est en accès beta. On cherche des consultants et coaches qui veulent tester le produit — et façonner la suite.
+              RelanceFlow est en avant-première. On cherche des consultants et coaches qui veulent tester le produit — et façonner la suite.
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
             {[
-              { icon: Clock, title: '30 jours gratuits', sub: 'Accès complet pendant la beta, sans carte.' },
+              { icon: Clock, title: '30 jours gratuits', sub: 'Accès complet immédiat, sans carte bancaire.' },
               { icon: MessageSquare, title: 'Feedback direct', sub: 'Tu parles au créateur. Tes retours façonnent le produit.' },
-              { icon: Euro, title: '15 €/mois bloqué', sub: 'Le prix ne bougera pas pour les premiers utilisateurs.' },
+              { icon: Euro, title: 'Tarif early adopter garanti', sub: 'Vous souscrivez maintenant, votre prix ne bougera jamais.' },
             ].map(({ icon: Icon, title, sub }) => (
               <div key={title} className="rounded-xl bg-white border p-5 flex items-start gap-4">
                 <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-blue-50">
@@ -561,24 +561,24 @@ export default function HomePage() {
       <section id="pricing" className="py-20 px-4 bg-gray-50">
         <div className="mx-auto max-w-lg">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">Un seul plan. Tout inclus.</h2>
+            <h2 className="text-3xl font-bold text-gray-900">Un seul plan pour démarrer.</h2>
             <p className="text-gray-500 mt-3">
-              30 jours d&apos;essai gratuit (beta). Sans carte bancaire. Annulation en 1 clic.
+              30 jours d&apos;essai gratuit. Sans carte bancaire. Annulation à tout moment.
             </p>
           </div>
 
           <div className="rounded-2xl border-2 border-blue-500 bg-white shadow-2xl shadow-blue-100 p-8">
             <div className="text-center mb-8">
               <span className="inline-block rounded-full bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 mb-4 uppercase tracking-wider">
-                Solo — Consultant &amp; Coach
+                Starter — Consultant &amp; Coach
               </span>
               <div className="flex items-end justify-center gap-1">
-                <span className="text-6xl font-extrabold text-gray-900">15</span>
+                <span className="text-6xl font-extrabold text-gray-900">19</span>
                 <span className="text-2xl font-bold text-gray-400 mb-2">€</span>
                 <span className="text-gray-400 mb-2 text-lg">/mois</span>
               </div>
               <p className="text-sm text-gray-500 mt-2">
-                Soit 0,50 €/jour pour ne plus jamais perdre un deal
+                Soit 0,63 €/jour pour ne plus jamais perdre un deal
               </p>
             </div>
 
@@ -647,7 +647,7 @@ export default function HomePage() {
               href="/auth/register"
               className="group flex items-center gap-2 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-bold px-8 py-4 text-base transition-all shadow-lg shadow-blue-500/30"
             >
-              Essai gratuit 30 jours — beta
+              Essai gratuit 30 jours
               <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
             </Link>
             <a
@@ -658,7 +658,7 @@ export default function HomePage() {
             </a>
           </div>
           <p className="mt-4 text-sm text-blue-300/40">
-            Sans carte bancaire · Feedback bienvenu · 15 €/mois ensuite
+            Sans carte bancaire · Feedback bienvenu · 19 €/mois ensuite
           </p>
         </div>
       </section>
