@@ -35,11 +35,13 @@ function kpiCard({
   value,
   sub,
   accent,
+  help,
 }: {
   label: string
   value: string
   sub: string
   accent: 'blue' | 'red' | 'green' | 'gray'
+  help?: string
 }) {
   const accents = {
     blue: { val: 'text-blue-700', bg: 'bg-blue-50 border-blue-100', dot: 'bg-blue-500' },
@@ -49,13 +51,35 @@ function kpiCard({
   }
   const c = accents[accent]
   return (
-    <div className={`rounded-xl border ${c.bg} px-5 py-4`}>
-      <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">{label}</p>
+    <div
+      className={`group/kpi relative rounded-xl border ${c.bg} px-5 py-4`}
+      title={help}
+    >
+      <div className="flex items-start justify-between mb-2">
+        <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">{label}</p>
+        {help && (
+          <span
+            aria-hidden="true"
+            className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-gray-200 text-[9px] font-bold text-gray-400 cursor-help"
+          >
+            i
+          </span>
+        )}
+      </div>
       <p className={`text-2xl font-bold ${c.val} leading-none`}>{value}</p>
       <p className="text-xs text-gray-500 mt-2 flex items-center gap-1.5">
         <span className={`inline-block h-1.5 w-1.5 rounded-full ${c.dot}`} />
         {sub}
       </p>
+
+      {/* Tooltip on hover/focus */}
+      {help && (
+        <div className="pointer-events-none absolute left-0 right-0 -top-2 -translate-y-full z-10 opacity-0 group-hover/kpi:opacity-100 transition-opacity duration-150">
+          <div className="mx-2 rounded-lg bg-gray-900 px-3 py-2 text-xs text-white shadow-lg leading-relaxed">
+            {help}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -434,24 +458,28 @@ export default async function DashboardPage() {
             value: formatEuro(metrics.totalReceivables),
             sub: `${metrics.invoiceCount} facture${metrics.invoiceCount > 1 ? 's' : ''} active${metrics.invoiceCount > 1 ? 's' : ''}`,
             accent: 'blue',
+            help: "Total TTC des factures non payées (pending, reminded, formal_notice). Exclut les factures payées et en litige.",
           })}
           {kpiCard({
             label: 'Montant en retard',
             value: formatEuro(metrics.totalOverdue),
             sub: `${metrics.overdueCount} facture${metrics.overdueCount > 1 ? 's' : ''} en souffrance`,
             accent: metrics.overdueCount > 0 ? 'red' : 'gray',
+            help: "Somme des factures dont la date d'échéance est passée et qui ne sont ni payées ni en litige.",
           })}
           {kpiCard({
             label: 'Récupéré ce mois',
             value: formatEuro(metrics.paidThisMonth),
             sub: `Taux de recouvrement : ${metrics.recoveryRate}%`,
             accent: 'green',
+            help: "Encaissements ce mois civil. Taux = factures payées / total émis sur les 12 derniers mois.",
           })}
           {kpiCard({
             label: 'DSO moyen',
             value: metrics.dso > 0 ? `${metrics.dso}j` : '—',
             sub: 'Délai de paiement moyen',
             accent: 'gray',
+            help: "Days Sales Outstanding : nombre moyen de jours entre l'émission d'une facture et son encaissement. Objectif sain : < 30 j.",
           })}
         </div>
 

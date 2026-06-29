@@ -1,8 +1,9 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Clock, Calendar, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Clock, Calendar, ChevronRight, BookOpen } from 'lucide-react'
 import type { Metadata } from 'next'
 import { GUIDES } from '@/lib/guides-content'
+import { SiteFooter } from '@/components/landing/footer'
 
 export async function generateStaticParams() {
   return GUIDES.map((g) => ({ slug: g.slug }))
@@ -27,6 +28,17 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 export default function GuideArticlePage({ params }: { params: { slug: string } }) {
   const guide = GUIDES.find((g) => g.slug === params.slug)
   if (!guide) notFound()
+
+  // Related guides — other entries in the same category (or any other guide
+  // if the category has no siblings). Limit to 2.
+  const related = GUIDES
+    .filter((g) => g.slug !== guide.slug)
+    .sort((a, b) => {
+      const aMatch = a.category === guide.category ? 0 : 1
+      const bMatch = b.category === guide.category ? 0 : 1
+      return aMatch - bMatch
+    })
+    .slice(0, 2)
 
   const articleSchema = {
     '@context': 'https://schema.org',
@@ -117,21 +129,60 @@ export default function GuideArticlePage({ params }: { params: { slug: string } 
           </div>
         </div>
 
+        {/* Related guides */}
+        {related.length > 0 && (
+          <section className="mt-12 pt-10 border-t border-gray-100">
+            <div className="flex items-center gap-2 mb-5">
+              <BookOpen className="h-4 w-4 text-brand-600" />
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                À lire aussi
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {related.map((r) => (
+                <Link
+                  key={r.slug}
+                  href={`/guides/${r.slug}`}
+                  className="group rounded-xl border border-gray-200 bg-white hover:border-brand-300 hover:shadow-md transition-all p-5"
+                >
+                  <div className="flex items-center gap-2 mb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                    <span>{r.category}</span>
+                    <span>·</span>
+                    <span>{r.readTime}</span>
+                  </div>
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2 leading-snug group-hover:text-brand-700 transition-colors">
+                    {r.title}
+                  </h4>
+                  <span className="text-xs font-semibold text-brand-600 inline-flex items-center gap-1 group-hover:gap-1.5 transition-all">
+                    Lire le guide
+                    <ChevronRight className="h-3 w-3" />
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* CTA */}
-        <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 text-white p-8 mt-12 text-center">
-          <h3 className="text-xl font-bold mb-2">Automatisez tout ce que vous venez de lire</h3>
-          <p className="text-blue-100 text-sm mb-5">
-            RelanceFlow gère relances, mise en demeure et paiement en ligne — sans intervention manuelle.
-          </p>
-          <Link
-            href="/auth/register"
-            className="inline-flex items-center gap-2 rounded-xl bg-white text-blue-700 font-bold px-6 py-3 hover:bg-blue-50 transition-colors"
-          >
-            Démarrer 30 jours gratuits
-            <ChevronRight className="h-4 w-4" />
-          </Link>
+        <div className="rounded-2xl bg-brand-gradient text-white p-8 mt-12 text-center shadow-xl shadow-brand-500/30 relative overflow-hidden">
+          <div className="brand-orb bg-fuchsia-400/30 h-[200px] w-[200px] -bottom-10 -right-10" />
+          <div className="relative">
+            <h3 className="text-xl font-bold mb-2">Automatisez tout ce que vous venez de lire</h3>
+            <p className="text-white/80 text-sm mb-5">
+              RelanceFlow gère relances, mise en demeure et paiement en ligne — sans intervention manuelle.
+            </p>
+            <Link
+              href="/auth/register"
+              className="inline-flex items-center gap-2 rounded-xl bg-white text-brand-700 font-bold px-6 py-3 hover:bg-brand-50 transition-colors"
+            >
+              Démarrer 30 jours gratuits
+              <ChevronRight className="h-4 w-4" />
+            </Link>
+          </div>
         </div>
       </article>
+
+      <SiteFooter />
     </div>
   )
 }

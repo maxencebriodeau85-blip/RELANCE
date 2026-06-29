@@ -7,6 +7,7 @@ import { ComparisonSection } from '@/components/landing/comparison-section'
 import { ProductTourSection } from '@/components/landing/product-tour'
 import { SiteFooter } from '@/components/landing/footer'
 import { SiteNav } from '@/components/landing/site-nav'
+import { TrustStrip } from '@/components/landing/trust-strip'
 import {
   ArrowRight,
   CheckCircle,
@@ -175,6 +176,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* TRUST STRIP */}
+      <TrustStrip />
 
       {/* PAIN POINTS */}
       <section className="py-20 px-4 bg-gray-50">

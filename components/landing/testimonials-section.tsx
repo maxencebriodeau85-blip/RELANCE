@@ -1,4 +1,5 @@
 import { Quote, Star } from 'lucide-react'
+import { AnimatedStat } from './animated-stat'
 
 const TESTIMONIALS = [
   {
@@ -45,15 +46,20 @@ export function TestimonialsSection() {
           </p>
         </div>
 
-        {/* Impact stats */}
+        {/* Impact stats (animated count-up on scroll) */}
         <div className="grid grid-cols-3 gap-4 max-w-3xl mx-auto mb-12">
           {[
-            { value: '−42 %', label: 'DSO moyen' },
-            { value: '+38 %', label: 'Factures payées à l\'heure' },
-            { value: '4 h', label: 'Économisées / semaine' },
+            { value: 42, prefix: '−', suffix: ' %', label: 'DSO moyen' },
+            { value: 38, prefix: '+', suffix: ' %', label: "Factures payées à l'heure" },
+            { value: 4, suffix: ' h', label: 'Économisées / semaine' },
           ].map((s) => (
-            <div key={s.label} className="text-center p-5 rounded-2xl bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-100">
-              <p className="text-3xl md:text-4xl font-extrabold text-blue-700">{s.value}</p>
+            <div key={s.label} className="text-center p-5 rounded-2xl bg-gradient-to-br from-brand-50 to-purple-50 border border-brand-100">
+              <AnimatedStat
+                value={s.value}
+                prefix={s.prefix}
+                suffix={s.suffix}
+                className="font-display text-3xl md:text-4xl font-extrabold text-brand-700"
+              />
               <p className="text-xs text-gray-600 mt-1 font-medium">{s.label}</p>
             </div>
           ))}

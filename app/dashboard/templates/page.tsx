@@ -232,6 +232,21 @@ export default function TemplatesPage() {
       />
 
       <div className="p-6 space-y-6 max-w-4xl">
+        {/* Concept primer */}
+        <div className="rounded-2xl bg-gradient-to-br from-brand-50 via-white to-purple-50 border border-brand-100 p-5">
+          <h2 className="text-sm font-bold text-gray-900 mb-1">Comment ça fonctionne</h2>
+          <p className="text-sm text-gray-600 leading-relaxed">
+            Chaque relance utilise un template par défaut conçu par notre équipe.
+            Vous pouvez le remplacer ici par votre propre version : objet, corps,
+            ton. Les variables comme <code className="text-xs bg-white px-1 py-0.5 rounded border border-gray-200">{'{{client_name}}'}</code> sont
+            interpolées au moment de l&apos;envoi.
+          </p>
+          <p className="text-xs text-gray-500 mt-3">
+            Un template par défaut est actif tant que vous n&apos;avez pas enregistré le vôtre.
+            Cliquez sur « Réinitialiser » pour revenir au défaut à tout moment.
+          </p>
+        </div>
+
         <Alert>
           <Info className="h-4 w-4" />
           <AlertTitle>Variables disponibles</AlertTitle>
