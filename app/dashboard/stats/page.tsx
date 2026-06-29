@@ -31,27 +31,6 @@ function inMonth(dateStr: string, m: { year: number; month: number }) {
   return d.getFullYear() === m.year && d.getMonth() === m.month
 }
 
-interface BarProps { label: string; value: number; max: number; color: string; sub?: string }
-
-function Bar({ label, value, max, color, sub }: BarProps) {
-  const pct = max > 0 ? Math.max((value / max) * 100, value > 0 ? 4 : 0) : 0
-  return (
-    <div className="flex flex-col items-center gap-1 flex-1 min-w-0">
-      <span className="text-xs font-semibold text-gray-700 tabular-nums">
-        {value > 0 ? formatEuro(value) : ''}
-      </span>
-      <div className="w-full flex items-end" style={{ height: 100 }}>
-        <div
-          className={`w-full rounded-t-lg ${color} transition-all`}
-          style={{ height: `${pct}%` }}
-        />
-      </div>
-      <span className="text-xs text-gray-400 text-center leading-tight">{label}</span>
-      {sub && <span className="text-xs text-gray-300">{sub}</span>}
-    </div>
-  )
-}
-
 // ── page ──────────────────────────────────────────────────────────────────────
 
 export default async function StatsPage() {
@@ -149,8 +128,9 @@ export default async function StatsPage() {
   const recoveryRate = totalInvoiced > 0 ? Math.round((totalCollected / totalInvoiced) * 100) : 0
   const activeDeals = contacts.filter(c => !['lost', 'signed'].includes(c.pipeline_stage)).length
   const pipelineValue = contacts.filter(c => c.pipeline_stage !== 'lost').reduce((s, c) => s + (c.deal_amount || 0), 0)
-  const winRate = contacts.length > 0
-    ? Math.round((contacts.filter(c => c.pipeline_stage === 'signed').length / contacts.filter(c => ['signed', 'lost'].includes(c.pipeline_stage)).length || 0) * 100)
+  const closedCount = contacts.filter(c => ['signed', 'lost'].includes(c.pipeline_stage)).length
+  const winRate = closedCount > 0
+    ? Math.round((contacts.filter(c => c.pipeline_stage === 'signed').length / closedCount) * 100)
     : 0
   const avgDealSize = contacts.filter(c => c.deal_amount).length > 0
     ? Math.round(contacts.filter(c => c.deal_amount).reduce((s, c) => s + (c.deal_amount || 0), 0) / contacts.filter(c => c.deal_amount).length)
@@ -215,7 +195,7 @@ export default async function StatsPage() {
               <div className="lg:col-span-3 rounded-xl border bg-white p-5">
                 <div className="flex items-center justify-between mb-5">
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-900">Facturation & encaissements</h3>
+                    <h3 className="text-sm font-semibold text-gray-900">Facturation &amp; encaissements</h3>
                     <p className="text-xs text-gray-400 mt-0.5">6 derniers mois</p>
                   </div>
                   <div className="flex items-center gap-4 text-xs">
@@ -361,6 +341,7 @@ export default async function StatsPage() {
                       const collRate = data.invoiced > 0 ? Math.round((data.paid / data.invoiced) * 100) : 0
                       const maxAmount = topClients[0][1].invoiced
                       const barPct = maxAmount > 0 ? (data.invoiced / maxAmount) * 100 : 0
+                      void barPct
                       return (
                         <div key={name} className="px-5 py-3">
                           <div className="flex items-center justify-between mb-1.5">

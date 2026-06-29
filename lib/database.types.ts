@@ -21,6 +21,7 @@ export type Database = {
           invoice_count_month: number
           trial_ends_at: string | null
           auto_reminders: boolean
+          active_scenario: 'standard' | 'soft' | 'firm'
           address: string | null
           postal_code: string | null
           city: string | null
@@ -41,6 +42,7 @@ export type Database = {
           invoice_count_month?: number
           trial_ends_at?: string | null
           auto_reminders?: boolean
+          active_scenario?: 'standard' | 'soft' | 'firm'
           address?: string | null
           postal_code?: string | null
           city?: string | null
@@ -61,6 +63,7 @@ export type Database = {
           invoice_count_month?: number
           trial_ends_at?: string | null
           auto_reminders?: boolean
+          active_scenario?: 'standard' | 'soft' | 'firm'
           address?: string | null
           postal_code?: string | null
           city?: string | null

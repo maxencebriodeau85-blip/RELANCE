@@ -16,10 +16,10 @@ export default function CGUPage() {
 
       <h2>1. Objet</h2>
       <p>
-        RelanceFlow est une plateforme SaaS de recouvrement amiable destinée aux TPE/PME françaises.
-        Elle permet d&apos;automatiser l&apos;envoi de relances de factures impayées, de générer des
-        mises en demeure conformes au droit français, et de piloter le recouvrement via un tableau
-        de bord.
+        RelanceFlow est une plateforme SaaS de gestion commerciale et de facturation destinée aux
+        consultants, coaches et prestataires de services indépendants. Elle permet de piloter un
+        pipeline de prospects, d&apos;automatiser les relances commerciales et les relances de
+        factures impayées, et de gérer la facturation depuis un tableau de bord centralisé.
       </p>
 
       <h2>2. Acceptation des CGU</h2>
@@ -54,9 +54,9 @@ export default function CGUPage() {
         formules sont proposées :
       </p>
       <ul>
-        <li><strong>Starter</strong> : 19 € HT/mois</li>
-        <li><strong>Pro</strong> : 49 € HT/mois</li>
-        <li><strong>Business</strong> : 99 € HT/mois</li>
+        <li><strong>Solo</strong> : 15 € HT/mois</li>
+        <li><strong>Pro</strong> : 29 € HT/mois</li>
+        <li><strong>Business</strong> : 49 € HT/mois</li>
       </ul>
       <p>
         Le paiement s&apos;effectue mensuellement par carte bancaire via notre prestataire Stripe.

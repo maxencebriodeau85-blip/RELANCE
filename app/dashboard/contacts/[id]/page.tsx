@@ -113,6 +113,7 @@ export default function ContactDetailPage() {
   useEffect(() => { load() }, [load])
 
   const saveField = async (field: string, value: unknown) => {
+    if (field === 'name' && (!value || !(value as string).trim())) return
     setSavingField(true)
     const res = await fetch(`/api/contacts/${id}`, {
       method: 'PATCH',

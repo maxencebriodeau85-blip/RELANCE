@@ -45,10 +45,26 @@ export default function SupportPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [formState, setFormState] = useState({ name: '', email: '', subject: '', message: '' })
   const [submitted, setSubmitted] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [sendError, setSendError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setSubmitted(true)
+    setSending(true)
+    setSendError(null)
+    try {
+      const res = await fetch('/api/contact-form', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formState),
+      })
+      if (!res.ok) throw new Error('Erreur serveur')
+      setSubmitted(true)
+    } catch {
+      setSendError('Une erreur est survenue. Écrivez-nous directement à hello@relanceflow.fr')
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -106,8 +122,8 @@ export default function SupportPage() {
                   <MessageCircle className="h-6 w-6 text-green-600" />
                 </div>
                 <h3 className="font-semibold text-gray-900">Chat en direct</h3>
-                <p className="text-sm text-gray-500">Disponible 9h–18h (lun–ven)</p>
-                <span className="text-sm text-gray-400">Depuis votre dashboard</span>
+                <p className="text-sm text-gray-500">Bientôt disponible</p>
+                <span className="text-sm text-gray-400">Prochainement depuis le dashboard</span>
               </CardContent>
             </Card>
 
@@ -116,9 +132,9 @@ export default function SupportPage() {
                 <div className="mx-auto w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
                   <FileText className="h-6 w-6 text-purple-600" />
                 </div>
-                <h3 className="font-semibold text-gray-900">Documentation</h3>
-                <p className="text-sm text-gray-500">Guides et tutoriels</p>
-                <span className="text-sm text-gray-400">Bientôt disponible</span>
+                <h3 className="font-semibold text-gray-900">Guides pratiques</h3>
+                <p className="text-sm text-gray-500">Tutoriels et bonnes pratiques</p>
+                <a href="/guides" className="text-sm text-blue-600 font-medium hover:underline">Consulter les guides</a>
               </CardContent>
             </Card>
           </div>
@@ -221,8 +237,11 @@ export default function SupportPage() {
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full">
-                  Envoyer le message
+                {sendError && (
+                  <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{sendError}</p>
+                )}
+                <Button type="submit" className="w-full" disabled={sending}>
+                  {sending ? 'Envoi…' : 'Envoyer le message'}
                 </Button>
               </form>
             )}
@@ -232,7 +251,7 @@ export default function SupportPage() {
 
       <footer className="border-t bg-gray-50 py-8 mt-8">
         <div className="container mx-auto px-4 text-center text-sm text-gray-500">
-          <p>© 2024 RelanceFlow. Tous droits réservés.</p>
+          <p>© {new Date().getFullYear()} RelanceFlow. Tous droits réservés.</p>
           <div className="mt-2 flex justify-center gap-4">
             <Link href="/cgu" className="hover:text-gray-900">CGU</Link>
             <Link href="/privacy" className="hover:text-gray-900">Confidentialité</Link>
