@@ -91,21 +91,30 @@ export async function POST() {
     } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
 
-    const { data: profile } = await supabase
+    // Atomic claim — UPDATE … WHERE welcome_email_sent_at IS NULL returns the
+    // updated row only to the first concurrent caller. Subsequent callers get
+    // no row back and short-circuit. Prevents duplicate emails when /auth/confirm
+    // and OnboardingWizard mount both fire-and-forget POST to this route.
+    const nowIso = new Date().toISOString()
+    const { data: claimed, error: claimErr } = await supabase
       .from('profiles')
-      .select('welcome_email_sent_at, company_name, email')
+      .update({ welcome_email_sent_at: nowIso } as never)
       .eq('id', user.id)
-      .single()
+      .is('welcome_email_sent_at', null)
+      .select('company_name, email')
+      .maybeSingle()
 
-    if (!profile) return NextResponse.json({ error: 'Profil introuvable' }, { status: 404 })
+    if (claimErr) {
+      console.error('welcome claim error:', claimErr)
+      return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+    }
 
-    const p = profile as { welcome_email_sent_at: string | null; company_name: string | null; email: string }
-
-    // Idempotent — already sent
-    if (p.welcome_email_sent_at) {
+    // No row returned → another concurrent request already claimed the send.
+    if (!claimed) {
       return NextResponse.json({ ok: true, already_sent: true })
     }
 
+    const p = claimed as { company_name: string | null; email: string | null }
     const targetEmail = p.email || user.email
     if (!targetEmail) {
       return NextResponse.json({ error: 'Pas d\'email cible' }, { status: 400 })
@@ -114,7 +123,8 @@ export async function POST() {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://relanceflow.fr'
     const name = p.company_name || targetEmail.split('@')[0]
 
-    // Send via Resend if API key configured.
+    // Send via Resend if API key configured. If send fails, roll back the
+    // sent-at flag so the next attempt can retry.
     if (process.env.RESEND_API_KEY && !process.env.RESEND_API_KEY.includes('placeholder')) {
       try {
         const { Resend } = await import('resend')
@@ -129,18 +139,17 @@ export async function POST() {
           tags: [{ name: 'type', value: 'welcome' }],
         })
       } catch (emailErr) {
-        // Don't block — mark sent only if email succeeded
         console.error('Welcome email send error:', emailErr)
+        // Roll back the claim so the next attempt can retry.
+        await supabase
+          .from('profiles')
+          .update({ welcome_email_sent_at: null } as never)
+          .eq('id', user.id)
         return NextResponse.json({ ok: false, sent: false }, { status: 200 })
       }
     }
 
-    // Mark as sent (even if Resend not configured, to prevent spamming the route)
-    await supabase
-      .from('profiles')
-      .update({ welcome_email_sent_at: new Date().toISOString() } as never)
-      .eq('id', user.id)
-
+    // welcome_email_sent_at is already set by the atomic claim above.
     return NextResponse.json({ ok: true, sent: true })
   } catch (err) {
     console.error('welcome route error:', err)

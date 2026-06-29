@@ -1,15 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { PLAN_LIMITS } from '@/lib/metrics'
+import { isValidEmail, isValidDate } from '@/lib/validation'
 import type { Profile } from '@/lib/database.types'
-
-function isValidDate(s: string): boolean {
-  return /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(Date.parse(s))
-}
-
-function isValidEmail(s: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
-}
 
 export async function POST(request: Request) {
   try {

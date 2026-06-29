@@ -100,13 +100,8 @@ export default async function DashboardPage() {
   const metrics = calculateDashboardMetrics(invoices)
   const today = new Date()
 
-  // Monthly invoice count for plan limit banner
-  const monthStart = new Date()
-  monthStart.setUTCDate(1)
-  monthStart.setUTCHours(0, 0, 0, 0)
-  const monthlyInvoiceCount = invoices.filter(
-    (inv) => new Date(inv.created_at) >= monthStart
-  ).length
+  // Plan limit banner — uses the createdThisMonth count already computed in metrics.
+  const monthlyInvoiceCount = metrics.createdThisMonth
   const planLimit = PLAN_LIMITS[profile?.plan ?? 'free_trial'] ?? PLAN_LIMITS.free_trial
   const limitPct = planLimit > 0 ? (monthlyInvoiceCount / planLimit) * 100 : 0
   const showLimitBanner = limitPct >= 80 && profile?.plan !== 'business'

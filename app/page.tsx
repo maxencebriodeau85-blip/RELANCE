@@ -6,9 +6,8 @@ import { ResultsSection } from '@/components/landing/results-section'
 import { ComparisonSection } from '@/components/landing/comparison-section'
 import { ProductTourSection } from '@/components/landing/product-tour'
 import { SiteFooter } from '@/components/landing/footer'
-import { Logo, LogoMark } from '@/components/brand/logo'
+import { Logo } from '@/components/brand/logo'
 import {
-  Zap,
   ArrowRight,
   CheckCircle,
   ChevronRight,

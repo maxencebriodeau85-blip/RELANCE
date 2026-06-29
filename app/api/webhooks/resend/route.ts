@@ -22,23 +22,56 @@ type ResendEvent = {
   }
 }
 
-function verifySignature(rawBody: string, signature: string | null, secret: string): boolean {
-  if (!signature) return false
-  // Resend uses Svix-style signatures: "v1,<base64>"
-  // Format: "<timestamp>.<payload>" signed with HMAC-SHA256
-  const parts = signature.split(',')
-  const sigPart = parts.find((p) => p.startsWith('v1,'))?.slice(3) || parts[parts.length - 1]
-  if (!sigPart) return false
+// Svix webhook verification — Resend uses the Svix protocol.
+// See https://docs.svix.com/receiving/verifying-payloads/how-manual
+// Header format: `svix-signature: v1,<base64> v1,<base64> v2,<base64>` (space-separated)
+// Signed payload: `${svix_id}.${svix_timestamp}.${rawBody}` — HMAC-SHA256, base64.
+// Secret format: `whsec_<base64key>` — must decode the base64 portion.
+function verifySvixSignature(
+  rawBody: string,
+  svixId: string | null,
+  svixTimestamp: string | null,
+  svixSignature: string | null,
+  secret: string
+): boolean {
+  if (!svixId || !svixTimestamp || !svixSignature) return false
 
+  // Replay protection: reject timestamps older than 5 min
+  const tsMs = Number(svixTimestamp) * 1000
+  if (!Number.isFinite(tsMs)) return false
+  const now = Date.now()
+  if (Math.abs(now - tsMs) > 5 * 60 * 1000) return false
+
+  // Decode the secret (drop optional whsec_ prefix, then base64-decode the key bytes)
+  const secretKey = secret.startsWith('whsec_') ? secret.slice('whsec_'.length) : secret
+  let keyBuf: Buffer
   try {
-    const expected = createHmac('sha256', secret).update(rawBody).digest('base64')
-    const a = Buffer.from(expected)
-    const b = Buffer.from(sigPart)
-    if (a.length !== b.length) return false
-    return timingSafeEqual(a, b)
+    keyBuf = Buffer.from(secretKey, 'base64')
   } catch {
     return false
   }
+
+  const toSign = `${svixId}.${svixTimestamp}.${rawBody}`
+  const expected = createHmac('sha256', keyBuf).update(toSign).digest('base64')
+
+  // svix-signature can carry multiple sigs, space-separated, each "v<n>,<base64>".
+  // We accept any v1 signature that matches expected.
+  const candidates = svixSignature.split(' ')
+  for (const cand of candidates) {
+    const sep = cand.indexOf(',')
+    if (sep < 0) continue
+    const version = cand.slice(0, sep)
+    const sig = cand.slice(sep + 1)
+    if (version !== 'v1') continue
+    try {
+      const a = Buffer.from(expected)
+      const b = Buffer.from(sig)
+      if (a.length === b.length && timingSafeEqual(a, b)) return true
+    } catch {
+      // continue
+    }
+  }
+  return false
 }
 
 export async function POST(request: Request) {
@@ -46,12 +79,22 @@ export async function POST(request: Request) {
     const rawBody = await request.text()
     const secret = process.env.RESEND_WEBHOOK_SECRET
 
-    // Verify signature when secret is configured. In dev without a secret, accept.
-    if (secret) {
-      const signature = request.headers.get('svix-signature') || request.headers.get('resend-signature')
-      if (!verifySignature(rawBody, signature, secret)) {
-        return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
-      }
+    // Production hardening: never accept an unsigned webhook.
+    // The previous "no secret → accept" fallback was an open-relay vulnerability
+    // if the env var was forgotten.
+    if (!secret) {
+      console.error('RESEND_WEBHOOK_SECRET missing — refusing webhook')
+      return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 500 })
+    }
+
+    const svixId = request.headers.get('svix-id') || request.headers.get('webhook-id')
+    const svixTimestamp =
+      request.headers.get('svix-timestamp') || request.headers.get('webhook-timestamp')
+    const svixSignature =
+      request.headers.get('svix-signature') || request.headers.get('webhook-signature')
+
+    if (!verifySvixSignature(rawBody, svixId, svixTimestamp, svixSignature, secret)) {
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
     }
 
     const event = JSON.parse(rawBody) as ResendEvent

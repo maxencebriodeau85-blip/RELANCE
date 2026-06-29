@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { InvoicePDF } from '@/lib/invoice-pdf'
+import { sanitizeHeaderValue } from '@/lib/validation'
 import type { Invoice, Profile } from '@/lib/database.types'
 
 // Force Node.js runtime — @react-pdf/renderer is not edge-compatible.
@@ -73,7 +74,7 @@ export async function GET(
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="facture-${invoice.invoice_number}.pdf"`,
+        'Content-Disposition': `attachment; filename="facture-${sanitizeHeaderValue(invoice.invoice_number)}.pdf"`,
         'Cache-Control': 'no-store',
       },
     })

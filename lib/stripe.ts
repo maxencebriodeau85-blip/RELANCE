@@ -5,49 +5,58 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   typescript: true,
 })
 
+// Source of truth for plans — must stay in sync with:
+//   - components/landing/pricing-section.tsx (landing display)
+//   - app/dashboard/settings/page.tsx (in-app upgrade UI)
+//   - app/layout.tsx JSON-LD offers
+//   - lib/metrics.ts PLAN_LIMITS
 export const STRIPE_PLANS = {
   starter: {
     priceId: process.env.STRIPE_STARTER_PRICE_ID!,
-    name: 'Solo',
-    price: 15,
-    invoiceLimit: 500,
+    name: 'Starter',
+    price: 19,
+    invoiceLimit: 30,
     features: [
+      "Jusqu'à 30 factures/mois",
       'Pipeline kanban (contacts illimités)',
-      'Journal d\'activité',
-      'Séquences relance prospects auto',
-      'Création de factures',
-      'Relances factures auto',
-      'Dashboard commercial',
-      'Support email',
+      "Journal d'activité (appels, emails, notes)",
+      'Relances factures automatiques (J+7/15/30)',
+      'Paiement en ligne Stripe intégré',
+      'Dashboard commercial & encaissements',
+      'Support par email',
     ],
   },
   pro: {
     priceId: process.env.STRIPE_PRO_PRICE_ID!,
     name: 'Pro',
-    price: 29,
-    invoiceLimit: 500,
+    price: 49,
+    invoiceLimit: 200,
     features: [
-      'Tout Solo, plus :',
-      'Intégrations comptables',
-      'Export comptable CSV',
-      'Scénarios personnalisables',
+      "Jusqu'à 200 factures/mois",
+      'Tout Starter +',
+      'Scénarios de relance personnalisables',
+      'Mise en demeure PDF (art. 1344 C.civ.)',
+      'Export CSV & statistiques avancées',
+      'Import CSV en masse',
       'Support prioritaire',
     ],
   },
   business: {
     priceId: process.env.STRIPE_BUSINESS_PRICE_ID!,
     name: 'Business',
-    price: 49,
-    invoiceLimit: -1,
+    price: 99,
+    invoiceLimit: 1000,
     features: [
-      'Tout Pro, plus :',
+      "Jusqu'à 1000 factures/mois",
+      'Tout Pro +',
       'API & webhooks',
       'Multi-utilisateurs',
+      'Intégration Pennylane',
       'Account manager dédié',
-      'SLA 99.9%',
+      'SLA 99,9 %',
     ],
   },
-}
+} as const
 
 export type PlanKey = keyof typeof STRIPE_PLANS
 

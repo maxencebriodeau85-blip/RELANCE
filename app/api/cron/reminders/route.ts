@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
-import { getEmailTemplate, type EmailTemplateData } from '@/lib/email-templates'
+import { resolveEmailTemplate, type EmailTemplateData } from '@/lib/email-templates'
 import { getDaysOverdue } from '@/lib/metrics'
 import type { Invoice, Profile, ReminderType } from '@/lib/database.types'
 
@@ -92,9 +92,23 @@ export async function GET(request: Request) {
       daysOverdue,
       invoiceId: inv.id,
       paymentUrl,
+      description: (inv as { description?: string | null }).description,
+      vat_mention: (inv as { vat_mention?: string | null }).vat_mention,
     }
 
-    const emailContent = getEmailTemplate(step.type, templateData)
+    // Honor user-customized template if present (set via /dashboard/templates)
+    const { data: overrideData } = await supabase
+      .from('email_template_overrides')
+      .select('subject, body, enabled')
+      .eq('user_id', profile.id)
+      .eq('template_type', step.type)
+      .maybeSingle()
+
+    const emailContent = resolveEmailTemplate(
+      step.type,
+      templateData,
+      overrideData as { subject: string; body: string; enabled: boolean } | null
+    )
     const isDryRun = !process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.includes('placeholder')
 
     if (isDryRun) {

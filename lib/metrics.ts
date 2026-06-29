@@ -15,6 +15,7 @@ export interface DashboardMetrics {
   invoiceCount: number
   overdueCount: number
   paidThisMonth: number
+  createdThisMonth: number
   agingBuckets: AgingBucket[]
   statusBreakdown: {
     pending: number
@@ -134,6 +135,10 @@ export function calculateDashboardMetrics(invoices: Invoice[]): DashboardMetrics
     .filter((inv) => inv.status === 'paid' && new Date(inv.updated_at) >= startOfMonth)
     .reduce((sum, inv) => sum + inv.amount, 0)
 
+  const createdThisMonth = invoices.filter(
+    (inv) => new Date(inv.created_at) >= startOfMonth
+  ).length
+
   const statusBreakdown = {
     pending: invoices.filter((inv) => inv.status === 'pending').length,
     reminded: invoices.filter((inv) => inv.status === 'reminded').length,
@@ -150,6 +155,7 @@ export function calculateDashboardMetrics(invoices: Invoice[]): DashboardMetrics
     invoiceCount: invoices.length,
     overdueCount: overdueInvoices.length,
     paidThisMonth: Math.round(paidThisMonth * 100) / 100,
+    createdThisMonth,
     agingBuckets: calculateAgingBuckets(invoices),
     statusBreakdown,
   }

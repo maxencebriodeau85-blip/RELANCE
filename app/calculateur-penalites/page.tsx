@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Calculator, ChevronRight, Info, Zap } from 'lucide-react'
 import { SiteFooter } from '@/components/landing/footer'
 import { Logo } from '@/components/brand/logo'
+import { formatEuro } from '@/lib/metrics'
 
 // Reference rates for late-payment interest under French commercial law.
 // Source: Banque de France — see https://www.banque-france.fr
@@ -14,10 +15,6 @@ import { Logo } from '@/components/brand/logo'
 const ECB_RATE = 4.5 // ECB main refinancing rate (%) — sample, update via env if needed
 const PENALTY_RATE_DEFAULT = ECB_RATE + 10
 const FLAT_FEE = 40
-
-function formatEuro(n: number) {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n)
-}
 
 export default function CalculateurPenalitesPage() {
   const [amount, setAmount] = useState('1000')
@@ -31,11 +28,14 @@ export default function CalculateurPenalitesPage() {
   const result = useMemo(() => {
     const principal = parseFloat(amount.replace(',', '.')) || 0
     const annualRate = (parseFloat(rate.replace(',', '.')) || 0) / 100
-    const due = new Date(dueDate)
-    const today = new Date()
+    // Compare YYYY-MM-DD in UTC consistently to avoid off-by-one across DST/timezones.
+    // dueDate is "YYYY-MM-DD" (parsed as UTC midnight by Date constructor).
+    const due = new Date(`${dueDate}T00:00:00Z`)
+    const now = new Date()
+    const todayUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
     const daysOverdue = Math.max(
       0,
-      Math.floor((today.getTime() - due.getTime()) / (1000 * 60 * 60 * 24))
+      Math.floor((todayUtc - due.getTime()) / (1000 * 60 * 60 * 24))
     )
 
     const dailyInterest = (principal * annualRate) / 365

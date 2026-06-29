@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server'
+import { isValidEmail } from '@/lib/validation'
 
 const MAX_LENGTH = 5000
-
-function isValidEmail(s: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
-}
 
 export async function POST(request: Request) {
   try {
