@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { getEmailTemplate, type EmailTemplateData } from '@/lib/email-templates'
+import { resolveEmailTemplate, type EmailTemplateData } from '@/lib/email-templates'
 import { getDaysOverdue } from '@/lib/metrics'
 import type { ReminderType, Invoice, Profile } from '@/lib/database.types'
 
@@ -103,7 +103,19 @@ export async function POST(
       vat_mention: (inv as any).vat_mention,
     }
 
-    const emailContent = getEmailTemplate(reminderType, templateData)
+    // Look up user's custom template override (if any)
+    const { data: overrideData } = await supabase
+      .from('email_template_overrides')
+      .select('subject, body, enabled')
+      .eq('user_id', user.id)
+      .eq('template_type', reminderType)
+      .maybeSingle()
+
+    const emailContent = resolveEmailTemplate(
+      reminderType,
+      templateData,
+      overrideData as { subject: string; body: string; enabled: boolean } | null
+    )
 
     let resendId: string | null = null
     let sendStatus: 'sent' | 'failed' = 'sent'

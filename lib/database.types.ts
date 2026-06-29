@@ -230,6 +230,39 @@ export type Database = {
         }
         Relationships: []
       }
+      email_template_overrides: {
+        Row: {
+          id: string
+          user_id: string
+          template_type: 'email_1' | 'email_2' | 'email_3' | 'formal_notice'
+          subject: string
+          body: string
+          enabled: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          template_type: 'email_1' | 'email_2' | 'email_3' | 'formal_notice'
+          subject: string
+          body: string
+          enabled?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          template_type?: 'email_1' | 'email_2' | 'email_3' | 'formal_notice'
+          subject?: string
+          body?: string
+          enabled?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: { [_ in never]: never }
     Functions: { [_ in never]: never }
@@ -247,6 +280,7 @@ export interface ScenarioStep {
 }
 
 export type Profile = Database['public']['Tables']['profiles']['Row']
+export type EmailTemplateOverride = Database['public']['Tables']['email_template_overrides']['Row']
 export type Invoice = Database['public']['Tables']['invoices']['Row']
 export type Reminder = Database['public']['Tables']['reminders']['Row']
 export type ReminderScenario = Database['public']['Tables']['reminder_scenarios']['Row']

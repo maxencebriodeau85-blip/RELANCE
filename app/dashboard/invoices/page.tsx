@@ -79,6 +79,8 @@ export default function InvoicesPage() {
 
   useEffect(() => { loadInvoices() }, [loadInvoices])
 
+  const [quickFilter, setQuickFilter] = useState<'all' | 'overdue' | 'overdue30' | 'unpaid' | 'sent_today'>('all')
+
   const filtered = invoices.filter((inv) => {
     const q = search.toLowerCase()
     const matchSearch = !search ||
@@ -88,7 +90,12 @@ export default function InvoicesPage() {
     const matchStatus = statusFilter === 'all' || inv.status === statusFilter
     const matchFrom = !dateFrom || inv.due_date >= dateFrom
     const matchTo = !dateTo || inv.due_date <= dateTo
-    return matchSearch && matchStatus && matchFrom && matchTo
+    const od = getDaysOverdue(inv)
+    let matchQuick = true
+    if (quickFilter === 'overdue') matchQuick = od > 0 && inv.status !== 'paid' && inv.status !== 'disputed'
+    else if (quickFilter === 'overdue30') matchQuick = od > 30 && inv.status !== 'paid' && inv.status !== 'disputed'
+    else if (quickFilter === 'unpaid') matchQuick = inv.status !== 'paid'
+    return matchSearch && matchStatus && matchFrom && matchTo && matchQuick
   })
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
@@ -223,6 +230,35 @@ export default function InvoicesPage() {
                 <span className="opacity-70 font-normal">{chip.label}</span>
                 <span>{chip.value}</span>
               </div>
+            ))}
+          </div>
+        )}
+
+        {/* Quick filter chips */}
+        {!loading && invoices.length > 0 && (
+          <div className="flex gap-1.5 flex-wrap">
+            {[
+              { id: 'all', label: 'Toutes', count: invoices.length },
+              { id: 'unpaid', label: 'Non payées', count: invoices.filter(i => i.status !== 'paid').length },
+              { id: 'overdue', label: 'En retard', count: invoices.filter(i => getDaysOverdue(i) > 0 && i.status !== 'paid' && i.status !== 'disputed').length },
+              { id: 'overdue30', label: '> 30 jours', count: invoices.filter(i => getDaysOverdue(i) > 30 && i.status !== 'paid' && i.status !== 'disputed').length },
+            ].map((f) => (
+              <button
+                key={f.id}
+                onClick={() => { setQuickFilter(f.id as typeof quickFilter); setPage(1) }}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all border ${
+                  quickFilter === f.id
+                    ? 'bg-blue-600 border-blue-600 text-white'
+                    : 'bg-white border-gray-200 text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {f.label}
+                <span className={`text-[10px] rounded-full px-1.5 py-0.5 font-bold ${
+                  quickFilter === f.id ? 'bg-white/20' : 'bg-gray-100'
+                }`}>
+                  {f.count}
+                </span>
+              </button>
             ))}
           </div>
         )}
