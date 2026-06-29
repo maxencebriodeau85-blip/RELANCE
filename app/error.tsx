@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect } from 'react'
-import { Zap, AlertTriangle, RefreshCw } from 'lucide-react'
+import { AlertTriangle, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
+import { Logo } from '@/components/brand/logo'
 
 export default function GlobalError({
   error,
@@ -16,13 +17,11 @@ export default function GlobalError({
   }, [error])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex flex-col items-center justify-center p-6 text-center">
-      <Link href="/" className="flex items-center gap-2.5 mb-10">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500">
-          <Zap className="h-5 w-5 text-white" />
-        </div>
-        <span className="text-xl font-bold text-white tracking-tight">RelanceFlow</span>
-      </Link>
+    <div className="min-h-screen bg-gradient-to-br from-brand-950 via-[#1a1656] to-brand-900 flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+      <div className="brand-orb bg-rose-500/20 h-[300px] w-[300px] -top-20 -right-20" />
+      <div className="mb-10 relative">
+        <Logo variant="mono-white" size="md" />
+      </div>
 
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/20 mb-5">
         <AlertTriangle className="h-8 w-8 text-red-400" />
@@ -39,7 +38,7 @@ export default function GlobalError({
       <div className="flex gap-3 mt-4">
         <button
           onClick={reset}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 text-sm transition-colors"
+          className="flex items-center gap-2 rounded-lg bg-brand-gradient text-white font-semibold px-5 py-2.5 text-sm transition-all hover:shadow-lg hover:shadow-brand-500/30"
         >
           <RefreshCw className="h-4 w-4" />
           Réessayer

@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Zap, Mail, MessageCircle, FileText, ChevronDown, ChevronUp, CheckCircle } from 'lucide-react'
+import { Mail, MessageCircle, FileText, ChevronDown, ChevronUp, CheckCircle } from 'lucide-react'
+import { Logo } from '@/components/brand/logo'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -71,12 +72,7 @@ export default function SupportPage() {
     <div className="min-h-screen bg-white">
       <header className="sticky top-0 z-50 border-b bg-white/95 backdrop-blur-sm">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
-              <Zap className="h-5 w-5 text-white" />
-            </div>
-            <span className="text-lg font-bold text-gray-900">RelanceFlow</span>
-          </Link>
+          <Logo size="sm" />
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" asChild>
               <Link href="/auth/login">Se connecter</Link>

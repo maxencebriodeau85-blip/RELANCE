@@ -19,9 +19,6 @@ import {
   MessageSquare,
   TrendingUp,
   Euro,
-  Clock,
-  Users,
-  Shield,
   X,
 } from 'lucide-react'
 
@@ -434,62 +431,6 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* EARLY ADOPTERS — honnête, pas de faux témoignages */}
-      <section className="py-20 px-4 bg-gray-50">
-        <div className="mx-auto max-w-4xl">
-          <div className="text-center mb-10">
-            <span className="inline-block rounded-full bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 mb-4 uppercase tracking-wider">
-              Accès en avant-première
-            </span>
-            <h2 className="text-3xl font-bold text-gray-900">
-              Tu es parmi les premiers
-            </h2>
-            <p className="text-gray-500 mt-3 max-w-md mx-auto">
-              RelanceFlow est jeune. On cherche les indépendants français qui veulent un outil
-              qui marche — et qui acceptent qu&apos;il évolue avec leurs retours.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
-            {[
-              { icon: Clock, title: '30 jours gratuits', sub: 'Accès complet immédiat, sans carte bancaire.' },
-              { icon: MessageSquare, title: 'Feedback direct au fondateur', sub: 'Tu écris, tu as une réponse. Pas de chatbot, pas de niveau 1.' },
-              { icon: Euro, title: 'Tarif fondateur garanti à vie', sub: 'Si tu souscris maintenant, ton prix ne bougera jamais.' },
-            ].map(({ icon: Icon, title, sub }) => (
-              <div key={title} className="rounded-xl bg-white border p-5 flex items-start gap-4">
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-blue-50">
-                  <Icon className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900 text-sm">{title}</p>
-                  <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{sub}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Trust badges */}
-          <div className="flex flex-wrap justify-center gap-3">
-            {[
-              { icon: Shield, label: 'Conforme RGPD', sub: 'Données hébergées en Europe' },
-              { icon: CheckCircle, label: 'SSL / TLS chiffré', sub: 'Connexion sécurisée 256-bit' },
-              { icon: Users, label: 'Pour indépendants', sub: 'Consultants, coaches, freelances' },
-            ].map((badge) => {
-              const Icon = badge.icon
-              return (
-                <div key={badge.label} className="flex items-center gap-2.5 rounded-xl border bg-white px-4 py-3">
-                  <Icon className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-semibold text-gray-800">{badge.label}</p>
-                    <p className="text-xs text-gray-400">{badge.sub}</p>
-                  </div>
-                </div>
-              )
-            })}
           </div>
         </div>
       </section>

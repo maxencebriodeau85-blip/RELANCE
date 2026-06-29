@@ -2,7 +2,8 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
-import { Zap, CheckCircle, AlertCircle, Loader2, CreditCard, Shield, Lock, PartyPopper } from 'lucide-react'
+import { CheckCircle, AlertCircle, Loader2, CreditCard, Shield, Lock, PartyPopper } from 'lucide-react'
+import { Logo } from '@/components/brand/logo'
 import Link from 'next/link'
 
 interface InvoicePublic {
@@ -79,13 +80,12 @@ function PaymentPageInner() {
   const isPaid = justPaid || invoice?.status === 'paid'
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex flex-col items-center justify-center p-4">
-      <Link href="/" className="flex items-center gap-2.5 mb-8">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500">
-          <Zap className="h-5 w-5 text-white" />
-        </div>
-        <span className="text-xl font-bold text-white tracking-tight">RelanceFlow</span>
-      </Link>
+    <div className="min-h-screen bg-gradient-to-br from-brand-950 via-[#1a1656] to-brand-900 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      <div className="brand-orb bg-brand-500/30 h-[300px] w-[300px] -top-20 -left-20" />
+      <div className="brand-orb bg-fuchsia-500/20 h-[400px] w-[400px] bottom-0 -right-40" />
+      <div className="mb-8 relative">
+        <Logo variant="mono-white" size="md" />
+      </div>
 
       <div className="w-full max-w-md">
         {/* Loading state */}
@@ -187,7 +187,7 @@ function PaymentPageInner() {
               <button
                 onClick={handlePay}
                 disabled={paying}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-white font-semibold text-base hover:bg-blue-700 disabled:opacity-60 transition-colors shadow-lg shadow-blue-600/20"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-brand-gradient py-3.5 text-white font-semibold text-base disabled:opacity-60 transition-all hover:shadow-xl hover:shadow-brand-500/30"
               >
                 {paying ? (
                   <>

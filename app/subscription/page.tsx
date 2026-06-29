@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Zap, Check, AlertCircle, Clock } from 'lucide-react'
+import { Check, AlertCircle, Clock } from 'lucide-react'
+import { Logo } from '@/components/brand/logo'
 import { SignOutButton } from '@/components/auth/sign-out-button'
 import { STRIPE_PLANS } from '@/lib/stripe'
 
@@ -37,14 +38,13 @@ export default async function SubscriptionPage() {
     : null
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-brand-950 via-[#1a1656] to-brand-900 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      <div className="brand-orb bg-brand-500/40 h-[300px] w-[300px] -top-20 -left-20" />
+      <div className="brand-orb bg-fuchsia-500/30 h-[400px] w-[400px] bottom-0 -right-40" />
       {/* Logo */}
-      <Link href="/" className="flex items-center gap-2.5 mb-10">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500 shadow-lg shadow-blue-500/30">
-          <Zap className="h-5 w-5 text-white" />
-        </div>
-        <span className="text-2xl font-bold text-white tracking-tight">RelanceFlow</span>
-      </Link>
+      <div className="mb-10 relative">
+        <Logo variant="mono-white" size="md" />
+      </div>
 
       {/* Status badge */}
       {isExpired ? (

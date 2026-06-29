@@ -1,18 +1,14 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Zap, Home, ArrowLeft, Search } from 'lucide-react'
+import { Home, ArrowLeft, Search } from 'lucide-react'
+import { Logo } from '@/components/brand/logo'
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-purple-50 flex flex-col">
       <header className="border-b bg-white/80 backdrop-blur-sm">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
-              <Zap className="h-5 w-5 text-white" />
-            </div>
-            <span className="text-lg font-bold text-gray-900">RelanceFlow</span>
-          </Link>
+          <Logo size="sm" />
           <Button variant="ghost" size="sm" asChild>
             <Link href="/auth/login">Se connecter</Link>
           </Button>
@@ -22,7 +18,7 @@ export default function NotFound() {
       <main className="flex-1 flex items-center justify-center px-4 py-16">
         <div className="text-center max-w-lg">
           <div className="relative mb-8">
-            <div className="text-[180px] md:text-[220px] font-bold leading-none bg-gradient-to-br from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            <div className="font-display text-[180px] md:text-[220px] font-bold leading-none bg-brand-gradient bg-clip-text text-transparent">
               404
             </div>
             <div className="absolute inset-0 flex items-center justify-center">

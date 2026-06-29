@@ -76,12 +76,12 @@ function LeftPanel() {
 
       <div className="space-y-8">
         <div>
-          <h2 className="text-3xl font-extrabold text-white leading-tight">
-            Ne laisse plus aucun deal mourir en silence.
+          <h2 className="font-display text-3xl font-extrabold text-white leading-tight tracking-tight">
+            Arrête de courir après ton argent.
           </h2>
-          <p className="text-blue-300/70 mt-3 text-sm leading-relaxed">
-            Pipeline, relances automatiques et facturation intégrée —
-            pour consultants et coaches indépendants.
+          <p className="text-white/70 mt-3 text-sm leading-relaxed">
+            Relances automatiques, mise en demeure légale, paiement Stripe intégré —
+            le logiciel français pour indépendants qui bossent seuls.
           </p>
         </div>
 

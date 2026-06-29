@@ -1,5 +1,7 @@
 import Link from 'next/link'
-import { ArrowLeft, Download, Mail, AlertTriangle, CheckCircle, Copy, ChevronRight } from 'lucide-react'
+import { Download, Mail, AlertTriangle, CheckCircle, Copy, ChevronRight } from 'lucide-react'
+import { Logo } from '@/components/brand/logo'
+import { SiteFooter } from '@/components/landing/footer'
 
 const templates = [
   {
@@ -147,13 +149,10 @@ export default function ModelesPage() {
       {/* Header */}
       <div className="bg-white border-b">
         <div className="mx-auto max-w-5xl px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors">
-            <ArrowLeft className="h-4 w-4" />
-            RelanceFlow
-          </Link>
+          <Logo size="sm" />
           <Link
             href="/auth/register"
-            className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 transition-colors"
+            className="rounded-lg bg-brand-gradient text-white text-sm font-semibold px-4 py-2 transition-all hover:shadow-md hover:scale-[1.02]"
           >
             Essai gratuit 30j
           </Link>
@@ -251,7 +250,7 @@ export default function ModelesPage() {
           </p>
           <Link
             href="/auth/register"
-            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 transition-colors"
+            className="inline-flex items-center gap-2 rounded-xl bg-brand-gradient text-white font-bold px-6 py-3 transition-all hover:shadow-lg hover:shadow-brand-500/30"
           >
             Automatiser mes relances — Gratuit 30j
             <ChevronRight className="h-4 w-4" />
@@ -259,6 +258,8 @@ export default function ModelesPage() {
           <p className="text-xs text-gray-400 mt-3">Sans carte bancaire · Sans engagement</p>
         </div>
       </div>
+
+      <SiteFooter />
     </div>
   )
 }
