@@ -18,6 +18,7 @@ import {
   Plug,
   Kanban,
   X,
+  Search,
 } from 'lucide-react'
 import { Logo } from '@/components/brand/logo'
 import { cn } from '@/lib/utils'
@@ -91,6 +92,24 @@ function SidebarContent({
           </button>
         )}
       </div>
+
+      {/* ⌘K hint — opens the command palette */}
+      <button
+        onClick={() => {
+          window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true }))
+          onClose?.()
+        }}
+        className="mx-3 my-3 flex items-center justify-between px-3 py-1.5 text-xs text-gray-500 bg-gray-50 hover:bg-gray-100 border border-gray-100 rounded-lg transition-colors group"
+      >
+        <span className="flex items-center gap-2">
+          <Search className="h-3.5 w-3.5" />
+          Rechercher…
+        </span>
+        <kbd className="flex items-center gap-0.5 font-mono text-[10px] text-gray-400 group-hover:text-gray-600 transition-colors">
+          <span className="bg-white border border-gray-200 rounded px-1 py-0.5">⌘</span>
+          <span className="bg-white border border-gray-200 rounded px-1 py-0.5">K</span>
+        </kbd>
+      </button>
 
       {/* Navigation */}
       <nav className="flex-1 px-2 py-3 overflow-y-auto space-y-0.5">

@@ -136,6 +136,9 @@ export async function POST() {
           subject: 'Bienvenue sur RelanceFlow — 30 jours pour automatiser vos relances',
           html: welcomeEmailHtml(name, appUrl),
           text: welcomeEmailText(name, appUrl),
+          // Second safety net on top of the atomic DB claim above —
+          // Resend dedupes identical-key requests for 24h.
+          headers: { 'Idempotency-Key': `welcome-${user.id}` },
           tags: [{ name: 'type', value: 'welcome' }],
         })
       } catch (emailErr) {

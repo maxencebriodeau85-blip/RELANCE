@@ -30,6 +30,14 @@ function formatEuro(amount: number): string {
   }).format(amount)
 }
 
+// Invisible preheader text shown by inbox clients as the email preview line
+// (Gmail, Apple Mail, Outlook). Padded with zero-width chars to push the
+// rest of the body out of the preview window.
+function preheader(text: string): string {
+  const padding = '&#847; &#8204;'.repeat(60)
+  return `<div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;mso-hide:all;">${escapeHtml(text)}${padding}</div>`
+}
+
 function formatDate(dateString: string): string {
   const date = new Date(dateString)
   return new Intl.DateTimeFormat('fr-FR', {
@@ -76,6 +84,7 @@ export function getEmailCordial(data: EmailTemplateData): {
 <html lang="fr">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  ${preheader(`Facture ${invoiceNumber} de ${formatEuro(amount)} en attente — règlement en 1 clic.`)}
   <div style="border-bottom: 2px solid #3B82F6; padding-bottom: 16px; margin-bottom: 24px;">
     <h2 style="color: #1E40AF; margin: 0;">${eName}</h2>
   </div>
@@ -144,6 +153,7 @@ export function getEmailFerme(data: EmailTemplateData): {
 <html lang="fr">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  ${preheader(`Facture ${invoiceNumber} en retard de ${daysOverdue} j — pénalités applicables.`)}
   <div style="border-bottom: 2px solid #F59E0B; padding-bottom: 16px; margin-bottom: 24px;">
     <h2 style="color: #92400E; margin: 0;">${eName}</h2>
     <p style="color: #D97706; margin: 4px 0; font-size: 14px;">RELANCE – Facture impayée</p>
@@ -213,6 +223,7 @@ export function getEmailPrecontentieux(data: EmailTemplateData): {
 <html lang="fr">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  ${preheader(`DERNIER DÉLAI — règlement sous 8 jours sinon mise en demeure (${formatEuro(amount)}).`)}
   <div style="background: #FEF2F2; border: 2px solid #DC2626; padding: 16px; margin-bottom: 24px; border-radius: 8px;">
     <h2 style="color: #991B1B; margin: 0;">&#9888;&#65039; DERNIER AVERTISSEMENT AVANT MISE EN DEMEURE</h2>
     <p style="color: #DC2626; margin: 4px 0; font-weight: bold;">${eName}</p>
@@ -293,6 +304,7 @@ export function getEmailFormalNotice(data: EmailTemplateData): {
 <html lang="fr">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  ${preheader(`Mise en demeure — facture ${invoiceNumber} (${formatEuro(amount)}) à régler sous 8 jours.`)}
   <div style="background: #991B1B; padding: 16px; margin-bottom: 24px; border-radius: 8px; text-align:center;">
     <h2 style="color: #FFF; margin: 0; font-size:18px; letter-spacing:1px;">MISE EN DEMEURE</h2>
     <p style="color: #FCA5A5; margin: 4px 0; font-size:13px;">${eName}</p>

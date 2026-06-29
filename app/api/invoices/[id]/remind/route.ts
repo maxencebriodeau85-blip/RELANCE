@@ -129,6 +129,11 @@ export async function POST(
         const fromName = sanitizeFromName(profile?.company_name || 'RelanceFlow')
         const fromEmail = process.env.RESEND_FROM_EMAIL || 'relances@relanceflow.fr'
 
+        // Idempotency key collapses retries of the same reminder type for the
+        // same invoice on the same day into a single email at Resend's level.
+        const dayKey = new Date().toISOString().slice(0, 10)
+        const idempotencyKey = `remind-${inv.id}-${reminderType}-${dayKey}`
+
         const { data: emailData, error: emailError } = await resend.emails.send({
           from: `${fromName} <${fromEmail}>`,
           to: [inv.client_email],
@@ -136,6 +141,7 @@ export async function POST(
           html: emailContent.html,
           text: emailContent.text,
           reply_to: profile?.email || user.email,
+          headers: { 'Idempotency-Key': idempotencyKey },
           tags: [
             { name: 'type', value: reminderType },
             { name: 'invoice_id', value: inv.id },

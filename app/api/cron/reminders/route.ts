@@ -126,6 +126,11 @@ export async function GET(request: Request) {
       const fromName = sanitizeFromName(profile.company_name || 'RelanceFlow')
       const fromEmail = process.env.RESEND_FROM_EMAIL || 'relances@relanceflow.fr'
 
+      // Idempotency key — if the cron runs twice in the same day for the
+      // same invoice + reminder type, Resend collapses the requests.
+      const dayKey = today.toISOString().slice(0, 10)
+      const idempotencyKey = `cron-${inv.id}-${step.type}-${dayKey}`
+
       const { data: emailData, error: emailError } = await resend.emails.send({
         from: `${fromName} <${fromEmail}>`,
         to: [inv.client_email],
@@ -133,6 +138,7 @@ export async function GET(request: Request) {
         html: emailContent.html,
         text: emailContent.text,
         reply_to: profile.email,
+        headers: { 'Idempotency-Key': idempotencyKey },
         tags: [
           { name: 'type', value: step.type },
           { name: 'invoice_id', value: inv.id },

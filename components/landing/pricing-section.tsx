@@ -127,6 +127,7 @@ export function PricingSection() {
             const Icon = p.icon
             const price = annual ? Math.round(p.annual / 12) : p.monthly
             const fullPrice = annual ? p.annual : p.monthly * 12
+            const savingsPerYear = annual ? p.monthly * 12 - p.annual : 0
             return (
               <div
                 key={p.id}
@@ -161,6 +162,11 @@ export function PricingSection() {
                       ? `${fullPrice} € facturés à l'année`
                       : `${fullPrice} € sur 12 mois`}
                   </p>
+                  {annual && savingsPerYear > 0 && (
+                    <p className="text-xs font-semibold text-emerald-600 mt-1">
+                      Économie : {savingsPerYear} € /an
+                    </p>
+                  )}
                 </div>
 
                 <Link
