@@ -1,5 +1,8 @@
 import Link from 'next/link'
 import { ArrowLeft, FileText, Clock, ChevronRight, Scale, Euro, AlertTriangle, Download } from 'lucide-react'
+import { GUIDES } from '@/lib/guides-content'
+
+const AVAILABLE_SLUGS = new Set(GUIDES.map((g) => g.slug))
 
 const guides = [
   {
@@ -150,11 +153,12 @@ export default function GuidesPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {guides.map((guide, i) => {
             const Icon = guide.icon
-            return (
-              <div
-                key={guide.slug}
-                className="rounded-xl border bg-white p-5 flex flex-col gap-3 hover:border-blue-200 hover:shadow-sm transition-all group cursor-default"
-              >
+            const available = AVAILABLE_SLUGS.has(guide.slug)
+            const cardClass = `rounded-xl border bg-white p-5 flex flex-col gap-3 transition-all group ${
+              available ? 'hover:border-blue-300 hover:shadow-md cursor-pointer' : 'cursor-default opacity-75'
+            }`
+            const content = (
+              <>
                 <div className="flex items-start justify-between gap-3">
                   <div className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${categoryColors[guide.category]?.replace('text-', 'text-').split(' ')[0] || 'bg-gray-100'}`}>
                     <Icon className={`h-4.5 w-4.5 ${categoryColors[guide.category]?.split(' ')[1] || 'text-gray-600'}`} />
@@ -177,11 +181,24 @@ export default function GuidesPage() {
                 </div>
                 <div className="flex items-center justify-between pt-1 border-t border-gray-50">
                   <span className="text-xs text-gray-400">Guide #{i + 1}</span>
-                  <span className="flex items-center gap-1 text-xs font-semibold text-blue-600 group-hover:gap-1.5 transition-all">
-                    Lire le guide
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  </span>
+                  {available ? (
+                    <span className="flex items-center gap-1 text-xs font-semibold text-blue-600 group-hover:gap-1.5 transition-all">
+                      Lire le guide
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </span>
+                  ) : (
+                    <span className="text-xs text-gray-300 italic">Bientôt disponible</span>
+                  )}
                 </div>
+              </>
+            )
+            return available ? (
+              <Link key={guide.slug} href={`/guides/${guide.slug}`} className={cardClass}>
+                {content}
+              </Link>
+            ) : (
+              <div key={guide.slug} className={cardClass}>
+                {content}
               </div>
             )
           })}

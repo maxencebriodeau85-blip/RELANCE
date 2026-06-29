@@ -44,8 +44,18 @@ const reminderTypeTone: Record<string, string> = {
 const reminderStatusConfig: Record<string, { label: string; color: string; dot: string }> = {
   sent: { label: 'Envoyé', color: 'text-blue-600', dot: 'bg-blue-500' },
   delivered: { label: 'Délivré', color: 'text-green-600', dot: 'bg-green-500' },
+  opened: { label: 'Ouvert', color: 'text-emerald-600', dot: 'bg-emerald-500' },
+  clicked: { label: 'Cliqué', color: 'text-purple-600', dot: 'bg-purple-500' },
   failed: { label: 'Échec', color: 'text-red-600', dot: 'bg-red-500' },
   bounced: { label: 'Rebondi', color: 'text-orange-600', dot: 'bg-orange-500' },
+  complained: { label: 'Spam signalé', color: 'text-red-700', dot: 'bg-red-600' },
+}
+
+function formatTime(s: string): string {
+  return new Date(s).toLocaleString('fr-FR', {
+    day: '2-digit', month: 'short',
+    hour: '2-digit', minute: '2-digit',
+  })
 }
 
 function getNextReminderType(reminders: Reminder[]): 'email_1' | 'email_2' | 'email_3' | 'formal_notice' {
@@ -527,27 +537,47 @@ export default function InvoiceDetailPage() {
                     <div className="space-y-5">
                       {reminders.map((reminder) => {
                         const sc = reminderStatusConfig[reminder.status] || { label: reminder.status, color: 'text-gray-500', dot: 'bg-gray-400' }
+                        const r = reminder as typeof reminder & {
+                          delivered_at?: string | null
+                          opened_at?: string | null
+                          clicked_at?: string | null
+                          bounced_at?: string | null
+                          complained_at?: string | null
+                        }
+                        const events = [
+                          { label: 'Envoyé', at: reminder.sent_at, dot: 'bg-blue-500' },
+                          r.delivered_at && { label: 'Délivré', at: r.delivered_at, dot: 'bg-green-500' },
+                          r.opened_at && { label: 'Ouvert', at: r.opened_at, dot: 'bg-emerald-500' },
+                          r.clicked_at && { label: 'Cliqué', at: r.clicked_at, dot: 'bg-purple-500' },
+                          r.bounced_at && { label: 'Rebondi', at: r.bounced_at, dot: 'bg-orange-500' },
+                          r.complained_at && { label: 'Spam signalé', at: r.complained_at, dot: 'bg-red-600' },
+                        ].filter(Boolean) as { label: string; at: string; dot: string }[]
+
                         return (
                           <div key={reminder.id} className="relative pl-9">
                             <div className={`absolute left-2 top-1.5 h-3 w-3 rounded-full border-2 border-white ${sc.dot}`} />
                             <div className="text-xs font-semibold text-gray-900">
                               {reminderTypeLabel[reminder.type] || reminder.type}
                             </div>
-                            <div className="text-xs text-gray-400 mt-0.5">
-                              {new Date(reminder.sent_at).toLocaleDateString('fr-FR', {
-                                day: '2-digit', month: 'short', year: 'numeric',
-                                hour: '2-digit', minute: '2-digit',
-                              })}
-                            </div>
-                            <div className={`text-xs mt-0.5 font-medium ${sc.color}`}>
-                              {sc.label}
-                              <span className="text-gray-400 font-normal"> · {reminder.channel}</span>
-                            </div>
                             {reminder.subject && (
-                              <div className="text-xs text-gray-400 mt-1 truncate" title={reminder.subject}>
+                              <div className="text-xs text-gray-500 mt-0.5 truncate" title={reminder.subject}>
                                 {reminder.subject}
                               </div>
                             )}
+                            {/* Compact event chip row */}
+                            <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                              {events.map((e, idx) => (
+                                <span
+                                  key={idx}
+                                  className="inline-flex items-center gap-1 rounded-full bg-gray-50 border border-gray-100 px-2 py-0.5 text-[10px]"
+                                  title={formatTime(e.at)}
+                                >
+                                  <span className={`h-1.5 w-1.5 rounded-full ${e.dot}`} />
+                                  <span className="font-medium text-gray-700">{e.label}</span>
+                                  <span className="text-gray-400">{formatTime(e.at)}</span>
+                                </span>
+                              ))}
+                            </div>
                           </div>
                         )
                       })}

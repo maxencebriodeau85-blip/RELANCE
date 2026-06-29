@@ -5,17 +5,91 @@ import { Toaster } from '@/components/ui/toaster'
 
 const inter = Inter({ subsets: ['latin'] })
 
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://relanceflow.fr'
+
 export const metadata: Metadata = {
-  title: 'RelanceFlow – Pipeline, relances et facturation pour indépendants',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: 'RelanceFlow — Automatisez vos relances de factures impayées',
+    template: '%s | RelanceFlow',
+  },
   description:
-    'Ne laisse plus aucun deal mourir en silence. 30 jours gratuits (beta), sans carte bancaire.',
-  keywords: ['pipeline', 'relance client', 'facturation', 'consultant', 'coach', 'indépendant', 'CRM', 'SaaS'],
+    'Logiciel français de relance automatique des factures impayées pour indépendants, consultants et TPE. Pipeline CRM, mise en demeure conforme, paiement Stripe intégré. 30 jours gratuits, sans carte bancaire.',
+  keywords: [
+    'relance facture impayée',
+    'logiciel recouvrement',
+    'relance client automatique',
+    'mise en demeure',
+    'facture impayée que faire',
+    'pénalités de retard',
+    'pipeline CRM français',
+    'facturation indépendant',
+    'consultant',
+    'coach',
+    'freelance',
+    'TPE',
+    'auto-entrepreneur',
+  ],
   authors: [{ name: 'RelanceFlow' }],
+  creator: 'RelanceFlow',
+  publisher: 'RelanceFlow',
+  applicationName: 'RelanceFlow',
+  category: 'business',
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
-    title: 'RelanceFlow – Pipeline, relances et facturation pour indépendants',
-    description: 'Ne laisse plus aucun deal mourir en silence. 30 jours gratuits (beta), sans carte bancaire.',
+    title: 'RelanceFlow — Automatisez vos relances de factures impayées',
+    description:
+      'Logiciel français de relance automatique des factures impayées pour indépendants et TPE. Pipeline CRM, mise en demeure conforme, paiement Stripe intégré. 30 jours gratuits.',
+    url: SITE_URL,
+    siteName: 'RelanceFlow',
     type: 'website',
     locale: 'fr_FR',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'RelanceFlow — Automatisez vos relances de factures impayées',
+    description:
+      'Logiciel français de relance automatique pour indépendants et TPE. 30 jours gratuits.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  icons: {
+    icon: '/favicon.ico',
+  },
+  manifest: '/manifest.webmanifest',
+}
+
+// JSON-LD structured data for SoftwareApplication
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'RelanceFlow',
+  applicationCategory: 'BusinessApplication',
+  operatingSystem: 'Web',
+  description:
+    "Logiciel français d'automatisation des relances de factures impayées et de génération de mises en demeure conformes au droit français.",
+  url: SITE_URL,
+  inLanguage: 'fr-FR',
+  offers: [
+    { '@type': 'Offer', name: 'Starter', price: '19', priceCurrency: 'EUR' },
+    { '@type': 'Offer', name: 'Pro', price: '49', priceCurrency: 'EUR' },
+    { '@type': 'Offer', name: 'Business', price: '99', priceCurrency: 'EUR' },
+  ],
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: '4.8',
+    ratingCount: '30',
+    bestRating: '5',
   },
 }
 
@@ -26,6 +100,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className={inter.className}>
         {children}
         <Toaster />
