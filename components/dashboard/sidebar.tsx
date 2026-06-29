@@ -10,7 +10,6 @@ import {
   AlertTriangle,
   Settings,
   LogOut,
-  Zap,
   Clock,
   HelpCircle,
   Mail,
@@ -20,6 +19,7 @@ import {
   Kanban,
   X,
 } from 'lucide-react'
+import { Logo } from '@/components/brand/logo'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import type { Profile } from '@/lib/database.types'
@@ -84,16 +84,7 @@ function SidebarContent({
     <div className="flex h-full flex-col bg-white">
       {/* Logo */}
       <div className="flex h-14 items-center justify-between border-b px-5 flex-shrink-0">
-        <Link
-          href="/dashboard"
-          onClick={onClose}
-          className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
-        >
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 flex-shrink-0">
-            <Zap className="h-4 w-4 text-white" />
-          </div>
-          <span className="text-base font-bold text-gray-900 tracking-tight">RelanceFlow</span>
-        </Link>
+        <Logo href="/dashboard" size="sm" className="hover:opacity-80 transition-opacity" />
         {onClose && (
           <button onClick={onClose} className="p-1 rounded-md hover:bg-gray-100 text-gray-500">
             <X className="h-5 w-5" />

@@ -1,5 +1,7 @@
 import Link from 'next/link'
-import { Zap, Target, Shield, Heart, ArrowRight } from 'lucide-react'
+import { Target, Shield, Heart, ArrowRight, Zap } from 'lucide-react'
+import { SiteFooter } from '@/components/landing/footer'
+import { Logo } from '@/components/brand/logo'
 
 export const metadata = {
   title: 'À propos | RelanceFlow',
@@ -12,12 +14,7 @@ export default function AboutPage() {
       {/* Nav */}
       <nav className="border-b border-gray-100">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
-              <Zap className="h-4 w-4 text-white" />
-            </div>
-            <span className="font-bold text-gray-900">RelanceFlow</span>
-          </Link>
+          <Logo size="sm" />
           <Link
             href="/auth/login"
             className="text-sm font-medium text-blue-600 hover:text-blue-700"
@@ -114,14 +111,9 @@ export default function AboutPage() {
           </Link>
         </div>
 
-        {/* Footer links */}
-        <div className="flex items-center justify-center gap-6 mt-12 text-sm text-gray-400">
-          <Link href="/" className="hover:text-gray-600">Accueil</Link>
-          <Link href="/cgu" className="hover:text-gray-600">CGU</Link>
-          <Link href="/mentions-legales" className="hover:text-gray-600">Mentions légales</Link>
-          <Link href="/contact" className="hover:text-gray-600">Contact</Link>
-        </div>
       </div>
+
+      <SiteFooter />
     </div>
   )
 }

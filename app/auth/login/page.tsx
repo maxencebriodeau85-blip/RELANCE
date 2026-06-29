@@ -6,7 +6,8 @@ import Link from 'next/link'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Zap, Eye, EyeOff, AlertCircle, Loader2, CheckCircle, Kanban, FileText, Bell } from 'lucide-react'
+import { Eye, EyeOff, AlertCircle, Loader2, CheckCircle, Kanban, FileText, Bell } from 'lucide-react'
+import { Logo } from '@/components/brand/logo'
 import { createClient } from '@/lib/supabase/client'
 import { supabaseAuthError } from '@/lib/auth-errors'
 
@@ -55,13 +56,12 @@ function LoginForm() {
   return (
     <div className="min-h-screen flex">
       {/* Left — branding */}
-      <div className="hidden lg:flex lg:w-5/12 flex-col justify-between bg-gradient-to-b from-slate-950 via-blue-950 to-slate-900 p-10">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500">
-            <Zap className="h-5 w-5 text-white" />
-          </div>
-          <span className="text-xl font-bold text-white">RelanceFlow</span>
-        </Link>
+      <div className="hidden lg:flex lg:w-5/12 flex-col justify-between bg-gradient-to-br from-brand-950 via-[#1a1656] to-brand-900 p-10 relative overflow-hidden">
+        <div className="brand-orb bg-brand-500/40 h-[300px] w-[300px] -top-20 -left-20" />
+        <div className="brand-orb bg-fuchsia-500/30 h-[400px] w-[400px] bottom-0 -right-40" />
+        <div className="relative">
+          <Logo variant="mono-white" size="md" />
+        </div>
 
         <div className="space-y-8">
           <div>
@@ -115,12 +115,9 @@ function LoginForm() {
       <div className="flex-1 flex items-center justify-center p-6 bg-white">
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
-          <Link href="/" className="flex items-center gap-2 mb-8 lg:hidden">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
-              <Zap className="h-4 w-4 text-white" />
-            </div>
-            <span className="text-lg font-bold text-gray-900">RelanceFlow</span>
-          </Link>
+          <div className="mb-8 lg:hidden">
+            <Logo size="sm" />
+          </div>
 
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-gray-900">Bon retour 👋</h1>
@@ -187,7 +184,7 @@ function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-11 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold text-sm transition-colors flex items-center justify-center gap-2"
+              className="w-full h-11 rounded-lg bg-brand-gradient disabled:opacity-60 text-white font-semibold text-sm transition-all hover:shadow-lg hover:shadow-brand-500/30 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>

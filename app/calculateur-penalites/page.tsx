@@ -2,7 +2,9 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Calculator, ArrowLeft, ChevronRight, Info, Zap } from 'lucide-react'
+import { Calculator, ChevronRight, Info, Zap } from 'lucide-react'
+import { SiteFooter } from '@/components/landing/footer'
+import { Logo } from '@/components/brand/logo'
 
 // Reference rates for late-payment interest under French commercial law.
 // Source: Banque de France — see https://www.banque-france.fr
@@ -53,16 +55,10 @@ export default function CalculateurPenalitesPage() {
       {/* Header */}
       <div className="border-b border-gray-100 bg-white">
         <div className="mx-auto max-w-3xl px-4 py-4 flex items-center justify-between">
-          <Link
-            href="/"
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            RelanceFlow
-          </Link>
+          <Logo size="sm" />
           <Link
             href="/auth/register"
-            className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 transition-colors"
+            className="rounded-lg bg-brand-gradient text-white text-sm font-semibold px-4 py-2 transition-all hover:shadow-md hover:scale-[1.02]"
           >
             Essai gratuit 30 j
           </Link>
@@ -71,7 +67,7 @@ export default function CalculateurPenalitesPage() {
 
       <div className="mx-auto max-w-3xl px-4 py-12">
         <div className="text-center mb-10">
-          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 text-white mb-4 shadow-lg shadow-blue-200">
+          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-gradient text-white mb-4 shadow-lg shadow-brand-500/30">
             <Calculator className="h-7 w-7" />
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3">
@@ -133,7 +129,8 @@ export default function CalculateurPenalitesPage() {
           </div>
 
           {/* Result */}
-          <div className="md:col-span-2 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 text-white p-6 shadow-lg shadow-blue-200">
+          <div className="md:col-span-2 rounded-2xl bg-brand-gradient text-white p-6 shadow-xl shadow-brand-500/30 relative overflow-hidden">
+            <div className="brand-orb bg-fuchsia-400/30 h-[200px] w-[200px] -bottom-10 -right-10" />
             <p className="text-xs uppercase tracking-wider text-blue-200 font-bold mb-4">
               Total dû par le débiteur
             </p>
@@ -189,13 +186,15 @@ export default function CalculateurPenalitesPage() {
           </p>
           <Link
             href="/auth/register"
-            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 transition-colors"
+            className="inline-flex items-center gap-2 rounded-xl bg-brand-gradient text-white font-bold px-6 py-3 transition-all hover:shadow-lg hover:shadow-brand-500/30"
           >
             Démarrer 30 jours gratuits
             <ChevronRight className="h-4 w-4" />
           </Link>
         </div>
       </div>
+
+      <SiteFooter />
     </div>
   )
 }

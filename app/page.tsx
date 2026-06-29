@@ -4,6 +4,9 @@ import { PricingSection } from '@/components/landing/pricing-section'
 import { TestimonialsSection } from '@/components/landing/testimonials-section'
 import { ResultsSection } from '@/components/landing/results-section'
 import { ComparisonSection } from '@/components/landing/comparison-section'
+import { ProductTourSection } from '@/components/landing/product-tour'
+import { SiteFooter } from '@/components/landing/footer'
+import { Logo, LogoMark } from '@/components/brand/logo'
 import {
   Zap,
   ArrowRight,
@@ -109,12 +112,7 @@ export default function HomePage() {
       {/* NAV */}
       <nav className="sticky top-0 z-50 border-b bg-white/95 backdrop-blur-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
-              <Zap className="h-4 w-4 text-white" />
-            </div>
-            <span className="text-lg font-bold text-gray-900">RelanceFlow</span>
-          </Link>
+          <Logo size="sm" />
           <div className="hidden md:flex items-center gap-6 text-sm text-gray-600">
             <a href="#comment-ca-marche" className="hover:text-gray-900 transition-colors">Comment ça marche</a>
             <a href="#fonctionnalites" className="hover:text-gray-900 transition-colors">Fonctionnalités</a>
@@ -131,7 +129,7 @@ export default function HomePage() {
             </Link>
             <Link
               href="/auth/register"
-              className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 transition-colors"
+              className="rounded-lg bg-brand-gradient text-white text-sm font-semibold px-4 py-2 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all"
             >
               Essai gratuit 30j
             </Link>
@@ -140,59 +138,64 @@ export default function HomePage() {
       </nav>
 
       {/* HERO */}
-      <section className="relative bg-gradient-to-b from-slate-950 via-blue-950 to-slate-900 pt-20 pb-28 px-4 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-700/20 via-transparent to-transparent pointer-events-none" />
+      <section className="relative bg-gradient-to-b from-brand-950 via-[#1a1656] to-brand-900 pt-20 pb-28 px-4 overflow-hidden">
+        {/* Brand orbs */}
+        <div className="brand-orb bg-brand-500/40 h-[340px] w-[340px] -top-20 -left-32" />
+        <div className="brand-orb bg-fuchsia-500/30 h-[420px] w-[420px] top-10 -right-40" />
+        <div className="brand-orb bg-amber-400/20 h-[260px] w-[260px] bottom-0 left-1/3" />
+
+        {/* Subtle grid */}
+        <div className="absolute inset-0 bg-grid opacity-30" />
+
         <div className="mx-auto max-w-4xl text-center relative">
-          <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 text-sm text-blue-300 mb-8">
-            <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
-            Pour consultants &amp; coaches indépendants · Essai gratuit 30 jours
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 backdrop-blur px-4 py-1.5 text-sm text-white/80 mb-8">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            Pour indépendants français · Essai gratuit 30 jours · Sans CB
           </div>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight tracking-tight">
-            Ne laisse plus aucun{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
-              deal mourir
-            </span>{' '}
-            en silence.
+          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-[1.05] tracking-tight text-balance">
+            Vos factures impayées,{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-fuchsia-300 to-brand-300">
+              relancées toutes seules.
+            </span>
           </h1>
 
-          <p className="mt-6 text-lg sm:text-xl text-blue-200/80 max-w-2xl mx-auto leading-relaxed">
-            Tu envoies des propositions. La moitié ne répond jamais.{' '}
-            <strong className="text-blue-300">RelanceFlow relance à ta place</strong>{' '}
-            — du premier contact à l&apos;encaissement, en automatique.
+          <p className="mt-6 text-lg sm:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed text-pretty">
+            Pipeline CRM, relances automatiques, mise en demeure conforme et paiement Stripe intégré.
+            <strong className="text-white"> Le logiciel français de recouvrement amiable</strong> pensé pour les indépendants.
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               href="/auth/register"
-              className="group flex items-center gap-2 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-bold px-7 py-3.5 text-base transition-all shadow-lg shadow-blue-500/30"
+              className="group flex items-center gap-2 rounded-xl bg-brand-gradient text-white font-bold px-7 py-3.5 text-base transition-all shadow-xl shadow-brand-500/40 hover:shadow-2xl hover:scale-[1.02]"
             >
               Démarrer gratuitement — 30 jours
               <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
             </Link>
             <a
-              href="#comment-ca-marche"
-              className="flex items-center gap-2 rounded-xl border border-white/20 text-white/80 hover:text-white hover:border-white/40 font-medium px-6 py-3.5 text-base transition-all"
+              href="#produit"
+              className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 backdrop-blur text-white/80 hover:text-white hover:border-white/40 font-medium px-6 py-3.5 text-base transition-all"
             >
-              Voir comment ça marche
+              Voir le produit en 30 s
               <ChevronRight className="h-5 w-5" />
             </a>
           </div>
 
-          <p className="mt-5 text-sm text-blue-300/50">
+          <p className="mt-5 text-sm text-white/40">
             Sans carte bancaire · Données hébergées en Europe · Annulation en 1 clic
           </p>
 
-          {/* Mini stats — only what's defensible */}
+          {/* Mini stats — defendable */}
           <div className="mt-16 grid grid-cols-3 gap-6 border-t border-white/10 pt-12 max-w-lg mx-auto">
             {[
-              { value: '< 60s', label: 'pour créer un contact' },
-              { value: '100%', label: 'en français natif' },
-              { value: '19 €', label: 'par mois, plan Starter' },
+              { value: '−42 %', label: 'DSO moyen observé' },
+              { value: '< 60 s', label: 'pour une facture' },
+              { value: '19 €', label: '/mois plan Starter' },
             ].map((s) => (
               <div key={s.label} className="text-center">
-                <div className="text-3xl font-extrabold text-white">{s.value}</div>
-                <div className="text-sm text-blue-300/70 mt-1">{s.label}</div>
+                <div className="font-display text-3xl font-extrabold text-white">{s.value}</div>
+                <div className="text-xs text-white/50 mt-1">{s.label}</div>
               </div>
             ))}
           </div>
@@ -231,6 +234,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* PRODUCT TOUR — Le produit en 3 écrans */}
+      <ProductTourSection />
 
       {/* RESULTS — Avant/Après chiffrés */}
       <ResultsSection />
@@ -557,55 +563,7 @@ export default function HomePage() {
       </section>
 
       {/* FOOTER */}
-      <footer className="border-t bg-white py-12 px-4">
-        <div className="mx-auto max-w-6xl grid grid-cols-2 sm:grid-cols-4 gap-8">
-          <div className="col-span-2 sm:col-span-1">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600">
-                <Zap className="h-4 w-4 text-white" />
-              </div>
-              <span className="font-bold text-gray-900">RelanceFlow</span>
-            </div>
-            <p className="text-xs text-gray-400 leading-relaxed">
-              Pipeline · Relances auto · Facturation intégrée.
-              Pour consultants et coaches indépendants. En français.
-            </p>
-            <p className="text-xs text-gray-300 mt-3">
-              Créé par Maxence —{' '}
-              <Link href="/about" className="hover:text-blue-600 underline underline-offset-2">
-                l&apos;histoire du projet →
-              </Link>
-            </p>
-          </div>
-          <div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">Produit</h4>
-            <ul className="space-y-2 text-sm text-gray-500">
-              <li><a href="#fonctionnalites" className="hover:text-gray-900">Fonctionnalités</a></li>
-              <li><a href="#pricing" className="hover:text-gray-900">Tarifs</a></li>
-              <li><a href="#comment-ca-marche" className="hover:text-gray-900">Comment ça marche</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">Ressources</h4>
-            <ul className="space-y-2 text-sm text-gray-500">
-              <li><Link href="/about" className="hover:text-gray-900">À propos</Link></li>
-              <li><Link href="/support" className="hover:text-gray-900">Support</Link></li>
-              <li><a href="mailto:hello@relanceflow.fr" className="hover:text-gray-900">Contact</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">Légal</h4>
-            <ul className="space-y-2 text-sm text-gray-500">
-              <li><Link href="/cgu" className="hover:text-gray-900">CGU</Link></li>
-              <li><Link href="/privacy" className="hover:text-gray-900">Confidentialité</Link></li>
-              <li><Link href="/mentions-legales" className="hover:text-gray-900">Mentions légales</Link></li>
-            </ul>
-          </div>
-        </div>
-        <div className="mx-auto max-w-6xl mt-8 pt-6 border-t text-center text-xs text-gray-400">
-          © 2026 RelanceFlow · CRM pipeline et recouvrement pour consultants et coaches indépendants
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   )
 }

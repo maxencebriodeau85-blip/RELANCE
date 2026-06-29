@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Mail, MessageCircle, Send, CheckCircle, AlertCircle } from 'lucide-react'
+import { SiteFooter } from '@/components/landing/footer'
+import { Logo } from '@/components/brand/logo'
 
 export default function ContactPage() {
   const [form, setForm] = useState({
@@ -64,7 +66,7 @@ export default function ContactPage() {
             </p>
             <Link
               href="/"
-              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 text-sm transition-colors"
+              className="inline-flex items-center gap-2 rounded-xl bg-brand-gradient text-white font-semibold px-5 py-2.5 text-sm transition-all hover:shadow-lg hover:shadow-brand-500/30"
             >
               <ArrowLeft className="h-4 w-4" />
               Retour à l&apos;accueil
@@ -79,16 +81,10 @@ export default function ContactPage() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       <div className="border-b border-gray-100 bg-white">
         <div className="mx-auto max-w-3xl px-4 py-4 flex items-center justify-between">
-          <Link
-            href="/"
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            RelanceFlow
-          </Link>
+          <Logo size="sm" />
           <Link
             href="/auth/register"
-            className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 transition-colors"
+            className="rounded-lg bg-brand-gradient text-white text-sm font-semibold px-4 py-2 transition-all hover:shadow-md hover:scale-[1.02]"
           >
             Essai gratuit
           </Link>
@@ -97,7 +93,7 @@ export default function ContactPage() {
 
       <div className="mx-auto max-w-3xl px-4 py-12">
         <div className="text-center mb-10">
-          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 text-white mb-4 shadow-lg shadow-blue-200">
+          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-gradient text-white mb-4 shadow-lg shadow-brand-500/30">
             <MessageCircle className="h-7 w-7" />
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3">
@@ -198,7 +194,7 @@ export default function ContactPage() {
             <button
               type="submit"
               disabled={sending}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold px-6 py-3 text-sm transition-colors"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-brand-gradient disabled:opacity-60 text-white font-semibold px-6 py-3 text-sm transition-all hover:shadow-lg hover:shadow-brand-500/30"
             >
               {sending ? (
                 'Envoi en cours…'
@@ -242,6 +238,8 @@ export default function ContactPage() {
           </div>
         </div>
       </div>
+
+      <SiteFooter />
     </div>
   )
 }
