@@ -120,7 +120,7 @@ export default function ResetPasswordPage() {
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold">Nouveau mot de passe</CardTitle>
             <CardDescription>
-              Choisissez un nouveau mot de passe pour votre compte
+              Choisis un nouveau mot de passe pour ton compte
             </CardDescription>
           </CardHeader>
           <CardContent>

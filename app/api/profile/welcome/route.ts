@@ -19,15 +19,15 @@ function welcomeEmailHtml(name: string, appUrl: string): string {
   <div style="background:#fff;border-radius:12px;padding:32px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
     <div style="text-align:center;margin-bottom:24px;">
       <div style="display:inline-flex;align-items:center;gap:8px;">
-        <div style="height:32px;width:32px;background:#2563EB;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:16px;">⚡</div>
+        <div style="height:32px;width:32px;background:linear-gradient(135deg,#4F46E5 0%,#A855F7 100%);border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:16px;">⚡</div>
         <span style="font-size:18px;font-weight:bold;color:#111827;">RelanceFlow</span>
       </div>
     </div>
 
     <h1 style="font-size:22px;color:#111827;margin:0 0 12px 0;">Bienvenue, ${eName} !</h1>
     <p style="font-size:15px;color:#374151;margin:0 0 16px 0;">
-      Vous venez de débloquer <strong>30 jours d&rsquo;essai gratuit</strong> pour automatiser
-      vos relances et reprendre le contrôle de votre trésorerie. Pas de carte bancaire requise.
+      Tu viens de débloquer <strong>30 jours d&rsquo;essai gratuit</strong> pour automatiser
+      tes relances et reprendre le contrôle de ta trésorerie. Pas de carte bancaire requise.
     </p>
 
     <p style="font-size:15px;color:#374151;margin:0 0 16px 0;">
@@ -35,13 +35,13 @@ function welcomeEmailHtml(name: string, appUrl: string): string {
     </p>
 
     <ol style="font-size:14px;color:#374151;padding-left:20px;line-height:1.8;">
-      <li><strong>Configurez votre entreprise</strong> (1 min) — nom, SIREN, adresse pour générer des factures conformes.</li>
-      <li><strong>Créez votre première facture</strong> ou importez votre fichier CSV existant (Sage, Pennylane, QuickBooks…).</li>
-      <li><strong>Activez les relances auto</strong> — les emails partent à J+7, J+15, J+30 sans aucune action de votre part.</li>
+      <li><strong>Configure ton entreprise</strong> (1 min) — nom, SIREN, adresse pour générer des factures conformes.</li>
+      <li><strong>Crée ta première facture</strong> ou importe ton fichier CSV existant (Sage, Pennylane, QuickBooks…).</li>
+      <li><strong>Active les relances auto</strong> — les emails partent à J+7, J+15, J+30 sans aucune action de ta part.</li>
     </ol>
 
     <div style="text-align:center;margin:32px 0;">
-      <a href="${escapeHtml(appUrl)}/dashboard" style="background:#2563EB;color:#fff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:15px;display:inline-block;">
+      <a href="${escapeHtml(appUrl)}/dashboard" style="background:linear-gradient(135deg,#4F46E5 0%,#A855F7 100%);color:#fff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:15px;display:inline-block;">
         Démarrer maintenant →
       </a>
     </div>
@@ -49,7 +49,7 @@ function welcomeEmailHtml(name: string, appUrl: string): string {
     <div style="border-top:1px solid #E5E7EB;padding-top:20px;margin-top:24px;">
       <p style="font-size:13px;color:#6B7280;margin:0 0 8px 0;"><strong>Une question ?</strong></p>
       <p style="font-size:13px;color:#6B7280;margin:0;">
-        Répondez directement à cet email — vous parlez au fondateur, pas à un bot.
+        Réponds directement à cet email — tu parles au fondateur, pas à un bot.
       </p>
     </div>
 
@@ -67,16 +67,16 @@ function welcomeEmailHtml(name: string, appUrl: string): string {
 function welcomeEmailText(name: string, appUrl: string): string {
   return `Bienvenue ${name} !
 
-Vous venez de débloquer 30 jours d'essai gratuit sur RelanceFlow.
+Tu viens de débloquer 30 jours d'essai gratuit sur RelanceFlow.
 
 Pour démarrer en 5 minutes :
-1. Configurez votre entreprise (1 min)
-2. Créez ou importez vos factures
-3. Activez les relances auto (J+7, J+15, J+30)
+1. Configure ton entreprise (1 min)
+2. Crée ou importe tes factures
+3. Active les relances auto (J+7, J+15, J+30)
 
 Démarrer maintenant : ${appUrl}/dashboard
 
-Une question ? Répondez à cet email — vous parlez au fondateur.
+Une question ? Réponds à cet email — tu parles au fondateur.
 
 —
 RelanceFlow
