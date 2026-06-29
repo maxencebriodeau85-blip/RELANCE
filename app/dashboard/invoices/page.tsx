@@ -354,9 +354,11 @@ export default function InvoicesPage() {
           </div>
         )}
 
-        {/* Table */}
+        {/* Table — horizontal scroll on mobile, sticky-first-col so the
+            client name stays visible while scrolling right. */}
         <div className="rounded-lg border bg-white overflow-hidden">
-          <Table>
+          <div className="overflow-x-auto">
+          <Table className="min-w-[720px]">
             <TableHeader>
               <TableRow className="bg-gray-50">
                 <TableHead className="w-10 pl-4">
@@ -462,6 +464,7 @@ export default function InvoicesPage() {
               )}
             </TableBody>
           </Table>
+          </div>
         </div>
 
         {/* Pagination */}

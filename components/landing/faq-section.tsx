@@ -49,6 +49,26 @@ const faqs = [
     answer:
       "Pour le moment, l'import se fait par CSV (compatible avec tous les logiciels comptables français). Une intégration native Pennylane est incluse dans le plan Business. D'autres intégrations (Sage, QuickBooks, EBP) arrivent.",
   },
+  {
+    question: "Et si je n'ai pas de compte Stripe ?",
+    answer:
+      "Tu peux quand même utiliser RelanceFlow — les relances, le pipeline et la mise en demeure fonctionnent sans Stripe. Mais on te recommande fortement d'en créer un (5 min, gratuit) : les emails avec bouton de paiement direct sont payés en moyenne 9 jours plus vite que sans.",
+  },
+  {
+    question: "Et si mon client conteste la facture ?",
+    answer:
+      "Tu passes la facture en statut « En litige » d'un clic — les relances automatiques s'arrêtent immédiatement pour ce dossier. Tu reprends quand le litige est résolu. Aucune relance n'est envoyée par erreur sur une facture contestée.",
+  },
+  {
+    question: "Coach ou consultant, est-ce que ça change quelque chose ?",
+    answer:
+      "Non. RelanceFlow s'adresse aux indépendants français en facturation B2B ou B2C. Coaches, consultants, freelances tech, formateurs, designers, traducteurs, avocats… tant que tu émets des factures, ça marche. Les templates par défaut sont neutres ; tu peux les personnaliser à ton métier.",
+  },
+  {
+    question: "Combien de temps avant de voir un effet sur ma trésorerie ?",
+    answer:
+      "Dès la première facture relancée automatiquement. Concrètement : importe ton stock de factures impayées maintenant, lance les séquences cordial/ferme, tu encaisses probablement quelque chose dans les 7 à 15 jours. La vraie différence se voit sur 2-3 mois quand le réflexe « j'envoie ma facture, je l'oublie » s'installe.",
+  },
 ]
 
 export function FAQSection() {

@@ -85,7 +85,10 @@ export const metadata: Metadata = {
   manifest: '/manifest.webmanifest',
 }
 
-// JSON-LD structured data for SoftwareApplication
+// JSON-LD SoftwareApplication.
+// NOTE: aggregateRating intentionally absent — we don't have a real measured
+// rating yet. Putting "4.8 / 30 reviews" would be invented data; Google's
+// structured-data guidelines forbid that and it sabotages credibility.
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
@@ -101,12 +104,6 @@ const jsonLd = {
     { '@type': 'Offer', name: 'Pro', price: '49', priceCurrency: 'EUR' },
     { '@type': 'Offer', name: 'Business', price: '99', priceCurrency: 'EUR' },
   ],
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    ratingValue: '4.8',
-    ratingCount: '30',
-    bestRating: '5',
-  },
 }
 
 export default function RootLayout({
@@ -117,12 +114,25 @@ export default function RootLayout({
   return (
     <html lang="fr" className={`${inter.variable} ${jakarta.variable}`} suppressHydrationWarning>
       <head>
+        {/* DNS prefetch + TCP preconnect to third parties used on first paint —
+            shaves ~100-200ms off LCP on a fresh visit. */}
+        <link rel="dns-prefetch" href="https://js.stripe.com" />
+        <link rel="preconnect" href="https://js.stripe.com" crossOrigin="" />
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
       <body className="font-sans">
+        {/* Skip-to-main link — visible on keyboard focus only.
+            Lets keyboard / screen-reader users bypass the nav. */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:rounded-lg focus:bg-brand-600 focus:text-white focus:font-semibold focus:text-sm focus:px-4 focus:py-2 focus:shadow-lg"
+        >
+          Aller au contenu principal
+        </a>
         {children}
         <Toaster />
         <CookieBanner />

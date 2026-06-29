@@ -113,7 +113,7 @@ export default function HomePage() {
       <SiteNav />
 
       {/* HERO */}
-      <section className="relative bg-gradient-to-b from-brand-950 via-[#1a1656] to-brand-900 pt-20 pb-28 px-4 overflow-hidden">
+      <section id="main-content" className="relative bg-gradient-to-b from-brand-950 via-[#1a1656] to-brand-900 pt-20 pb-28 px-4 overflow-hidden">
         {/* Brand orbs */}
         <div className="brand-orb bg-brand-500/40 h-[340px] w-[340px] -top-20 -left-32" />
         <div className="brand-orb bg-fuchsia-500/30 h-[420px] w-[420px] top-10 -right-40" />
@@ -526,9 +526,9 @@ export default function HomePage() {
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               href="/auth/register"
-              className="group flex items-center gap-2 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-bold px-8 py-4 text-base transition-all shadow-lg shadow-blue-500/30"
+              className="group flex items-center gap-2 rounded-xl bg-brand-gradient text-white font-bold px-8 py-4 text-base transition-all shadow-xl shadow-brand-500/40 hover:scale-[1.02]"
             >
-              Essai gratuit 30 jours
+              Bloquer mon tarif fondateur
               <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
             </Link>
             <a
