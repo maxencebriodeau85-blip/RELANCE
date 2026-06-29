@@ -129,15 +129,16 @@ export default function HomePage() {
           </div>
 
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-[1.05] tracking-tight text-balance">
-            Vos factures impayées,{' '}
+            Arrête de courir{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-fuchsia-300 to-brand-300">
-              relancées toutes seules.
+              après ton argent.
             </span>
           </h1>
 
           <p className="mt-6 text-lg sm:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed text-pretty">
-            Pipeline CRM, relances automatiques, mise en demeure conforme et paiement Stripe intégré.
-            <strong className="text-white"> Le logiciel français de recouvrement amiable</strong> pensé pour les indépendants.
+            RelanceFlow relance tes factures impayées tout seul — séquences automatiques,
+            lien de paiement Stripe, mise en demeure légale prête à envoyer.{' '}
+            <strong className="text-white">Pensé pour les indépendants qui bossent seuls.</strong>
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -161,12 +162,14 @@ export default function HomePage() {
             Sans carte bancaire · Données hébergées en Europe · Annulation en 1 clic
           </p>
 
-          {/* Mini stats — defendable */}
+          {/* Mini stats — only what is verifiable about the product itself.
+              No fabricated "X% DSO observed on Y users" — those return when
+              measured on real, nameable customers. */}
           <div className="mt-16 grid grid-cols-3 gap-6 border-t border-white/10 pt-12 max-w-lg mx-auto">
             {[
-              { value: '−42 %', label: 'DSO moyen observé' },
-              { value: '< 60 s', label: 'pour une facture' },
-              { value: '19 €', label: '/mois plan Starter' },
+              { value: '< 60 s', label: 'pour créer une facture' },
+              { value: '100 %', label: 'français · RGPD · Europe' },
+              { value: 'dès 19 €', label: '/mois après 30 j gratuits' },
             ].map((s) => (
               <div key={s.label} className="text-center">
                 <div className="font-display text-3xl font-extrabold text-white">{s.value}</div>
@@ -443,18 +446,19 @@ export default function HomePage() {
               Accès en avant-première
             </span>
             <h2 className="text-3xl font-bold text-gray-900">
-              Rejoins les premiers utilisateurs
+              Tu es parmi les premiers
             </h2>
             <p className="text-gray-500 mt-3 max-w-md mx-auto">
-              RelanceFlow est en avant-première. On cherche des consultants et coaches qui veulent tester le produit — et façonner la suite.
+              RelanceFlow est jeune. On cherche les indépendants français qui veulent un outil
+              qui marche — et qui acceptent qu&apos;il évolue avec leurs retours.
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
             {[
               { icon: Clock, title: '30 jours gratuits', sub: 'Accès complet immédiat, sans carte bancaire.' },
-              { icon: MessageSquare, title: 'Feedback direct', sub: 'Tu parles au créateur. Tes retours façonnent le produit.' },
-              { icon: Euro, title: 'Tarif early adopter garanti', sub: 'Vous souscrivez maintenant, votre prix ne bougera jamais.' },
+              { icon: MessageSquare, title: 'Feedback direct au fondateur', sub: 'Tu écris, tu as une réponse. Pas de chatbot, pas de niveau 1.' },
+              { icon: Euro, title: 'Tarif fondateur garanti à vie', sub: 'Si tu souscris maintenant, ton prix ne bougera jamais.' },
             ].map(({ icon: Icon, title, sub }) => (
               <div key={title} className="rounded-xl bg-white border p-5 flex items-start gap-4">
                 <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-blue-50">
@@ -535,7 +539,7 @@ export default function HomePage() {
             </a>
           </div>
           <p className="mt-4 text-sm text-blue-300/40">
-            Sans carte bancaire · Feedback bienvenu · 19 €/mois ensuite
+            Sans carte bancaire · Feedback bienvenu · à partir de 19 €/mois
           </p>
         </div>
       </section>

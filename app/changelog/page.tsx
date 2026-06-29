@@ -81,7 +81,7 @@ const ENTRIES: Entry[] = [
       "Onboarding wizard 4 étapes au premier login",
       "Téléchargement PDF des factures conforme aux mentions légales françaises",
       "Pricing 3 plans avec toggle mensuel/annuel (-2 mois)",
-      "Section témoignages avec preuves chiffrées (DSO −42 %, +112 % paiements à l'heure)",
+      "Section témoignages remplacée par un récit early access honnête (audit interne — on ne montre pas de chiffres tant qu'ils ne sont pas mesurés sur de vrais clients nommables)",
     ],
   },
   {

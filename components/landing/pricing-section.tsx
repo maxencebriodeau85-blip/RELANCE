@@ -132,12 +132,12 @@ export function PricingSection() {
               <div
                 key={p.id}
                 className={`relative rounded-2xl border-2 bg-white p-7 transition-all ${p.color} shadow-xl ${
-                  p.recommended ? 'md:scale-105 md:-translate-y-2' : ''
+                  p.recommended ? 'md:scale-110 md:-translate-y-3 md:shadow-2xl md:z-10' : 'md:opacity-90'
                 }`}
               >
                 {p.recommended && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full">
-                    Le plus choisi
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-brand-gradient text-white text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full shadow-lg shadow-brand-500/30 whitespace-nowrap">
+                    ⭐ Le plus choisi
                   </div>
                 )}
 
@@ -175,6 +175,13 @@ export function PricingSection() {
                 >
                   Démarrer 30 j gratuits
                 </Link>
+
+                {/* Reassurance immediately under the CTA — kills the
+                    "what if I commit and regret" objection at the moment
+                    it surfaces, not 3 screens away. */}
+                <p className="text-[11px] text-center text-gray-500 mt-2.5 leading-relaxed">
+                  Sans carte bancaire · Annulation en 1 clic
+                </p>
 
                 <ul className="space-y-2.5 mt-6">
                   {p.features.map((f) => (

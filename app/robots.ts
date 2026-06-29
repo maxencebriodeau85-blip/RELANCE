@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://relanceflow.fr'
+// Hardcoded production domain — see sitemap.ts for rationale.
+const BASE_URL = 'https://relanceflow.fr'
 
 export default function robots(): MetadataRoute.Robots {
   return {

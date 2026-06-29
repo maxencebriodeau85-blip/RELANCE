@@ -16,7 +16,12 @@ const jakarta = Plus_Jakarta_Sans({
   weight: ['500', '600', '700', '800'],
 })
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://relanceflow.fr'
+// Canonical & metadata URL — always points to the production domain so that
+// Open Graph cards, JSON-LD, canonical and sitemap never leak a Vercel preview
+// hostname. If you change the production domain, edit this constant
+// (NOT the NEXT_PUBLIC_APP_URL env var, which controls runtime links inside
+// emails — that one should also be set to https://relanceflow.fr in prod).
+const SITE_URL = 'https://relanceflow.fr'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

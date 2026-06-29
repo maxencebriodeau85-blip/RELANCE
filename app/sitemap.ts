@@ -1,6 +1,8 @@
 import type { MetadataRoute } from 'next'
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://relanceflow.fr'
+// Hardcoded production domain — sitemap must NEVER advertise a Vercel
+// preview hostname even if NEXT_PUBLIC_APP_URL is misconfigured.
+const BASE_URL = 'https://relanceflow.fr'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date()

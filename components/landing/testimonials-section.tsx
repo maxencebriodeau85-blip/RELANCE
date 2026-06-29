@@ -1,99 +1,72 @@
-import { Quote, Star } from 'lucide-react'
-import { AnimatedStat } from './animated-stat'
+import { Sparkles, MessageSquare, Clock, ArrowRight } from 'lucide-react'
+import Link from 'next/link'
 
-const TESTIMONIALS = [
+// Early-access mode: no fabricated metrics, no nominative quotes with euro
+// amounts (audit June 2026 — these contradict the "avant-première" positioning
+// and signal manufactured proof). When we have 3 real customers willing to be
+// quoted with their full name + company, this section gets replaced.
+
+const EARLY_PROMISES = [
   {
-    quote:
-      "J'ai récupéré 8 400 € en deux semaines sur des factures que j'avais oublié de relancer. Le temps que ça m'aurait pris à le faire à la main, je préfère ne pas y penser.",
-    author: 'Lucie M.',
-    role: 'Coach RH indépendante',
-    city: 'Lyon',
-    impact: '+8 400 € recouverts',
+    icon: Clock,
+    title: 'Beta access dès aujourd\'hui',
+    body: "30 jours gratuits, sans carte bancaire. Tu testes en condition réelle sur tes propres factures.",
   },
   {
-    quote:
-      "Avant, je passais 2-3 heures le vendredi soir à envoyer des relances. Maintenant je ne le fais plus du tout. Les emails partent tout seuls et mes clients règlent plus vite parce qu'il y a un bouton de paiement direct.",
-    author: 'Thomas R.',
-    role: 'Consultant data',
-    city: 'Paris',
-    impact: '−85 % de temps administratif',
+    icon: MessageSquare,
+    title: 'Le fondateur te répond',
+    body: "Une question, un bug, une feature qui te manque ? Tu écris à hello@relanceflow.fr et tu as une vraie réponse, pas un bot.",
   },
   {
-    quote:
-      "Le pipeline kanban + la facturation intégrée, c'est exactement ce qu'il me manquait. J'ai arrêté Pipedrive et Hubspot, je gère tout depuis RelanceFlow. Le prix français est imbattable.",
-    author: 'Sarah K.',
-    role: 'Fondatrice studio design',
-    city: 'Nantes',
-    impact: '2 outils remplacés',
+    icon: Sparkles,
+    title: 'Tarif fondateur garanti',
+    body: "Le prix que tu vois aujourd'hui restera le tien tant que tu seras abonné, même si on augmente nos tarifs ensuite.",
   },
 ]
 
 export function TestimonialsSection() {
   return (
     <section className="py-20 px-4 bg-white">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-5xl">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-1 mb-3">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} className="h-5 w-5 text-amber-400 fill-amber-400" />
-            ))}
-          </div>
+          <span className="inline-block text-xs font-bold uppercase tracking-wider text-brand-700 bg-brand-100 rounded-full px-3 py-1 mb-3">
+            Early access
+          </span>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-            Ils sont passés à l&apos;automatique
+            On préfère être honnête.
           </h2>
-          <p className="text-gray-500 mt-3 text-lg max-w-2xl mx-auto">
-            Des indépendants français qui ont arrêté de courir après leur argent.
+          <p className="text-gray-500 mt-3 text-lg max-w-2xl mx-auto text-pretty">
+            RelanceFlow est jeune. On construit l&apos;outil avec nos premiers utilisateurs
+            indépendants français. Si tu cherches un produit ultra-poli avec 10 000 logos clients
+            en bas de page, ce n&apos;est pas encore nous. Si tu cherches un outil qui marche, conçu
+            par quelqu&apos;un qui te répond — bienvenue.
           </p>
         </div>
 
-        {/* Impact stats (animated count-up on scroll) */}
-        <div className="grid grid-cols-3 gap-4 max-w-3xl mx-auto mb-12">
-          {[
-            { value: 42, prefix: '−', suffix: ' %', label: 'DSO moyen' },
-            { value: 38, prefix: '+', suffix: ' %', label: "Factures payées à l'heure" },
-            { value: 4, suffix: ' h', label: 'Économisées / semaine' },
-          ].map((s) => (
-            <div key={s.label} className="text-center p-5 rounded-2xl bg-gradient-to-br from-brand-50 to-purple-50 border border-brand-100">
-              <AnimatedStat
-                value={s.value}
-                prefix={s.prefix}
-                suffix={s.suffix}
-                className="font-display text-3xl md:text-4xl font-extrabold text-brand-700"
-              />
-              <p className="text-xs text-gray-600 mt-1 font-medium">{s.label}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {TESTIMONIALS.map((t) => (
-            <figure
-              key={t.author}
-              className="relative rounded-2xl bg-white border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <Quote className="absolute top-4 right-4 h-8 w-8 text-blue-100" />
-              <blockquote className="text-gray-700 text-sm leading-relaxed mb-5 italic">
-                &laquo; {t.quote} &raquo;
-              </blockquote>
-              <figcaption className="flex items-center gap-3 pt-4 border-t border-gray-100">
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-purple-100 text-blue-700 font-bold text-sm">
-                  {t.author.split(' ').map((n) => n[0]).join('')}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          {EARLY_PROMISES.map((p) => {
+            const Icon = p.icon
+            return (
+              <div key={p.title} className="rounded-2xl border border-gray-200 bg-white p-6 hover:border-brand-200 hover:shadow-sm transition-all">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600 mb-4">
+                  <Icon className="h-5 w-5" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-gray-900">{t.author}</p>
-                  <p className="text-xs text-gray-500">{t.role} · {t.city}</p>
-                </div>
-              </figcaption>
-              <div className="mt-3 inline-flex items-center text-xs font-semibold text-green-700 bg-green-50 px-2.5 py-1 rounded-full">
-                {t.impact}
+                <h3 className="text-sm font-bold text-gray-900 mb-2">{p.title}</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">{p.body}</p>
               </div>
-            </figure>
-          ))}
+            )
+          })}
         </div>
 
-        <p className="text-center text-xs text-gray-400 mt-10">
-          Témoignages d&apos;utilisateurs en avant-première. Données réelles, prénoms modifiés à leur demande.
-        </p>
+        <div className="text-center">
+          <Link
+            href="/auth/register"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-brand-700 hover:gap-2.5 transition-all"
+          >
+            Bloquer ton tarif fondateur
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
       </div>
     </section>
   )
