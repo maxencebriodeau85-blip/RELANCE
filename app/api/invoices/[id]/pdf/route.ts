@@ -1,4 +1,4 @@
-import { createElement } from 'react'
+import { createElement, type FunctionComponent } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { renderToBuffer } from '@react-pdf/renderer'
@@ -57,10 +57,17 @@ export async function GET(
     const paymentToken = (invoice as { payment_token?: string | null }).payment_token
     const paymentUrl = paymentToken ? `${appUrl}/pay/${paymentToken}` : undefined
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const element = createElement(InvoicePDF as any, { invoice, profile, paymentUrl })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const buffer = await renderToBuffer(element as any)
+    // @react-pdf and React have incompatible Style typings — cast through unknown.
+    type InvoicePDFProps = {
+      invoice: Invoice
+      profile: Pick<Profile, 'company_name' | 'address' | 'postal_code' | 'city' | 'siren' | 'email' | 'phone'>
+      paymentUrl?: string
+    }
+    const element = createElement(
+      InvoicePDF as unknown as FunctionComponent<InvoicePDFProps>,
+      { invoice, profile, paymentUrl }
+    )
+    const buffer = await renderToBuffer(element as unknown as Parameters<typeof renderToBuffer>[0])
 
     return new NextResponse(buffer as unknown as BodyInit, {
       status: 200,
