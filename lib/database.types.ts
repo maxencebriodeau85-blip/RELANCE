@@ -25,6 +25,7 @@ export type Database = {
           postal_code: string | null
           city: string | null
           phone: string | null
+          onboarding_completed_at: string | null
           created_at: string
           updated_at: string
         }
@@ -43,6 +44,7 @@ export type Database = {
           postal_code?: string | null
           city?: string | null
           phone?: string | null
+          onboarding_completed_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -61,6 +63,7 @@ export type Database = {
           postal_code?: string | null
           city?: string | null
           phone?: string | null
+          onboarding_completed_at?: string | null
           created_at?: string
           updated_at?: string
         }

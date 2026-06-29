@@ -9,6 +9,7 @@ import {
   PLAN_LIMITS,
 } from '@/lib/metrics'
 import { StatusBadge } from '@/components/invoices/status-badge'
+import { OnboardingWizard } from '@/components/dashboard/onboarding-wizard'
 import type { Invoice, Profile } from '@/lib/database.types'
 import {
   TrendingUp,
@@ -127,6 +128,7 @@ export default async function DashboardPage() {
   const companyName = profile?.company_name ?? null
   const profileComplete = !!(profile?.company_name && profile?.siren)
   const onboardingDone = [true, profileComplete].filter(Boolean).length // step 1 always actionable
+  const showOnboarding = !!profile && !profile.onboarding_completed_at
 
   const todayLabel = today.toLocaleDateString('fr-FR', {
     weekday: 'long',
@@ -139,6 +141,7 @@ export default async function DashboardPage() {
   if (!hasInvoices) {
     return (
       <div className="min-h-full bg-gray-50">
+        {showOnboarding && <OnboardingWizard />}
         {/* Page header */}
         <div className="bg-white border-b px-6 py-4 flex items-start justify-between">
           <div>
@@ -343,6 +346,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-full bg-gray-50">
+      {showOnboarding && <OnboardingWizard />}
       {/* Page header */}
       <div className="bg-white border-b px-6 py-4 flex items-start justify-between">
         <div>
