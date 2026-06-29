@@ -1,5 +1,8 @@
 import Link from 'next/link'
 import { FAQSection } from '@/components/landing/faq-section'
+import { PricingSection } from '@/components/landing/pricing-section'
+import { TestimonialsSection } from '@/components/landing/testimonials-section'
+import { ResultsSection } from '@/components/landing/results-section'
 import {
   Zap,
   ArrowRight,
@@ -227,6 +230,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* RESULTS — Avant/Après chiffrés */}
+      <ResultsSection />
 
       {/* HOW IT WORKS — La boucle complète */}
       <section id="comment-ca-marche" className="py-20 px-4 bg-white">
@@ -557,70 +563,11 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* TESTIMONIALS */}
+      <TestimonialsSection />
+
       {/* PRICING */}
-      <section id="pricing" className="py-20 px-4 bg-gray-50">
-        <div className="mx-auto max-w-lg">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">Un seul plan pour démarrer.</h2>
-            <p className="text-gray-500 mt-3">
-              30 jours d&apos;essai gratuit. Sans carte bancaire. Annulation à tout moment.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border-2 border-blue-500 bg-white shadow-2xl shadow-blue-100 p-8">
-            <div className="text-center mb-8">
-              <span className="inline-block rounded-full bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 mb-4 uppercase tracking-wider">
-                Starter — Consultant &amp; Coach
-              </span>
-              <div className="flex items-end justify-center gap-1">
-                <span className="text-6xl font-extrabold text-gray-900">19</span>
-                <span className="text-2xl font-bold text-gray-400 mb-2">€</span>
-                <span className="text-gray-400 mb-2 text-lg">/mois</span>
-              </div>
-              <p className="text-sm text-gray-500 mt-2">
-                Soit 0,63 €/jour pour ne plus jamais perdre un deal
-              </p>
-            </div>
-
-            <ul className="space-y-3 mb-8">
-              {[
-                'Pipeline kanban 5 étapes (contacts illimités)',
-                'Journal d\'activité (appels, emails, notes)',
-                'Séquences de relance prospects automatiques',
-                'Création de factures depuis un deal signé',
-                'Relances factures automatiques (J+7 / J+15 / J+30)',
-                'Paiement en ligne Stripe intégré',
-                'Notifications intelligentes in-app',
-                'Dashboard commercial & encaissements',
-                'Support email réactif',
-              ].map((f) => (
-                <li key={f} className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-sm text-gray-700">{f}</span>
-                </li>
-              ))}
-            </ul>
-
-            <Link
-              href="/auth/register"
-              className="block text-center rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 text-base transition-colors shadow-lg shadow-blue-200"
-            >
-              Démarrer mon essai gratuit — 30 jours
-            </Link>
-
-            <p className="text-center text-xs text-gray-400 mt-4">
-              Pas de carte bancaire requise · Annulation en 1 clic
-            </p>
-          </div>
-
-          <p className="text-center text-sm text-gray-400 mt-8">
-            Tu as un volume plus important ou des besoins spécifiques ?{' '}
-            <a href="mailto:hello@relanceflow.fr" className="text-blue-600 hover:underline font-medium">
-              Contacte-nous →
-            </a>
-          </p>
-        </div>
-      </section>
+      <PricingSection />
 
       {/* FAQ */}
       <section id="faq" className="py-20 px-4 bg-white">

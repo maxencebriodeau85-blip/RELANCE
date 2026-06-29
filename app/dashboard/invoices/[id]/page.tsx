@@ -22,6 +22,7 @@ import {
   ExternalLink,
   RefreshCw,
   ChevronDown,
+  FileDown,
 } from 'lucide-react'
 import Link from 'next/link'
 import type { Invoice, Reminder } from '@/lib/database.types'
@@ -254,6 +255,12 @@ export default function InvoiceDetailPage() {
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Retour
               </Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <a href={`/api/invoices/${invoice.id}/pdf`} target="_blank" rel="noopener noreferrer">
+                <FileDown className="mr-2 h-4 w-4" />
+                Télécharger PDF
+              </a>
             </Button>
             {paymentLink && (
               <Button
