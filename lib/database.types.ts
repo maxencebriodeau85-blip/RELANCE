@@ -26,6 +26,7 @@ export type Database = {
           city: string | null
           phone: string | null
           onboarding_completed_at: string | null
+          welcome_email_sent_at: string | null
           created_at: string
           updated_at: string
         }
@@ -45,6 +46,7 @@ export type Database = {
           city?: string | null
           phone?: string | null
           onboarding_completed_at?: string | null
+          welcome_email_sent_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -64,6 +66,7 @@ export type Database = {
           city?: string | null
           phone?: string | null
           onboarding_completed_at?: string | null
+          welcome_email_sent_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -147,8 +150,13 @@ export type Database = {
           channel: 'email' | 'sms' | 'courrier'
           content: string | null
           subject: string | null
-          status: 'sent' | 'delivered' | 'failed' | 'bounced'
+          status: 'sent' | 'delivered' | 'opened' | 'clicked' | 'failed' | 'bounced' | 'complained'
           resend_id: string | null
+          delivered_at: string | null
+          opened_at: string | null
+          clicked_at: string | null
+          bounced_at: string | null
+          complained_at: string | null
           created_at: string
         }
         Insert: {
@@ -160,8 +168,13 @@ export type Database = {
           channel?: 'email' | 'sms' | 'courrier'
           content?: string | null
           subject?: string | null
-          status?: 'sent' | 'delivered' | 'failed' | 'bounced'
+          status?: 'sent' | 'delivered' | 'opened' | 'clicked' | 'failed' | 'bounced' | 'complained'
           resend_id?: string | null
+          delivered_at?: string | null
+          opened_at?: string | null
+          clicked_at?: string | null
+          bounced_at?: string | null
+          complained_at?: string | null
           created_at?: string
         }
         Update: {
@@ -173,8 +186,13 @@ export type Database = {
           channel?: 'email' | 'sms' | 'courrier'
           content?: string | null
           subject?: string | null
-          status?: 'sent' | 'delivered' | 'failed' | 'bounced'
+          status?: 'sent' | 'delivered' | 'opened' | 'clicked' | 'failed' | 'bounced' | 'complained'
           resend_id?: string | null
+          delivered_at?: string | null
+          opened_at?: string | null
+          clicked_at?: string | null
+          bounced_at?: string | null
+          complained_at?: string | null
           created_at?: string
         }
         Relationships: [

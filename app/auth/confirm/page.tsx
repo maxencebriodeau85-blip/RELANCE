@@ -39,6 +39,8 @@ function ConfirmContent() {
         const { error } = await supabase.auth.exchangeCodeForSession(code)
         if (!error) {
           setStatus('success')
+          // Fire-and-forget — never block redirect on welcome email
+          fetch('/api/profile/welcome', { method: 'POST' }).catch(() => null)
           window.location.href = next
           return
         }
@@ -52,6 +54,8 @@ function ConfirmContent() {
         const { error } = await supabase.auth.verifyOtp({ token_hash, type })
         if (!error) {
           setStatus('success')
+          // Fire-and-forget — never block redirect on welcome email
+          fetch('/api/profile/welcome', { method: 'POST' }).catch(() => null)
           window.location.href = next
           return
         }

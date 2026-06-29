@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle, ArrowRight, X, Building2, FileText, Zap, Sparkles } from 'lucide-react'
@@ -44,6 +44,12 @@ export function OnboardingWizard({ initialStep = 1 }: { initialStep?: number }) 
   const router = useRouter()
   const [step, setStep] = useState(initialStep)
   const [closing, setClosing] = useState(false)
+
+  // Idempotent welcome-email trigger — fires once on first wizard mount.
+  // No-op if already sent (route is idempotent).
+  useEffect(() => {
+    fetch('/api/profile/welcome', { method: 'POST' }).catch(() => null)
+  }, [])
 
   const current = STEPS.find((s) => s.id === step)!
   const Icon = current.icon
