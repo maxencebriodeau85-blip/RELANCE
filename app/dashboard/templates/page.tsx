@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Header } from '@/components/dashboard/header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -110,6 +110,32 @@ interface TemplateOverride {
   enabled: boolean
 }
 
+// Sample data used to render a live preview of the template as the user types.
+const PREVIEW_VARS: Record<string, string> = {
+  client_name: 'Acme Corp',
+  invoice_number: 'F-2026-042',
+  amount: '2 400,00 €',
+  due_date: '15 mars 2026',
+  days_overdue: '12',
+  creditor_name: 'Mon Entreprise',
+  creditor_email: 'contact@mon-entreprise.fr',
+  payment_url: 'https://relanceflow.fr/pay/sample-token',
+  description: 'Mission de conseil — janvier 2026',
+}
+
+function previewInterpolate(s: string): string {
+  return s.replace(/\{\{(\w+)\}\}/g, (_, k) => PREVIEW_VARS[k] ?? `{{${k}}}`)
+}
+
+function previewEscape(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/\n/g, '<br>')
+}
+
 export default function TemplatesPage() {
   const { toast } = useToast()
   const [overrides, setOverrides] = useState<Record<string, TemplateOverride>>({})
@@ -129,19 +155,28 @@ export default function TemplatesPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  const handleEdit = (type: TemplateType, field: 'subject' | 'body', value: string) => {
-    const tpl = TEMPLATES.find((t) => t.type === type)!
-    setOverrides((prev) => ({
-      ...prev,
-      [type]: {
-        template_type: type,
-        subject: prev[type]?.subject ?? tpl.defaultSubject,
-        body: prev[type]?.body ?? tpl.defaultBody,
-        enabled: prev[type]?.enabled ?? true,
-        [field]: value,
-      },
-    }))
-  }
+  // O(1) template lookup instead of TEMPLATES.find() on every keystroke
+  const templateByType = useMemo(
+    () => Object.fromEntries(TEMPLATES.map((t) => [t.type, t])) as Record<TemplateType, Template>,
+    []
+  )
+
+  const handleEdit = useCallback(
+    (type: TemplateType, field: 'subject' | 'body', value: string) => {
+      const tpl = templateByType[type]
+      setOverrides((prev) => ({
+        ...prev,
+        [type]: {
+          template_type: type,
+          subject: prev[type]?.subject ?? tpl.defaultSubject,
+          body: prev[type]?.body ?? tpl.defaultBody,
+          enabled: prev[type]?.enabled ?? true,
+          [field]: value,
+        },
+      }))
+    },
+    [templateByType]
+  )
 
   const handleSave = async (type: TemplateType) => {
     const tpl = TEMPLATES.find((t) => t.type === type)!
@@ -216,7 +251,15 @@ export default function TemplatesPage() {
         </Alert>
 
         {loading ? (
-          <p className="text-sm text-gray-500">Chargement…</p>
+          <div className="space-y-4">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="rounded-lg border bg-white p-5 space-y-3">
+                <div className="h-4 w-1/3 rounded bg-gray-200 animate-pulse" />
+                <div className="h-9 w-full rounded bg-gray-100 animate-pulse" />
+                <div className="h-40 w-full rounded bg-gray-100 animate-pulse" />
+              </div>
+            ))}
+          </div>
         ) : (
           TEMPLATES.map((tpl) => {
             const override = overrides[tpl.type]
@@ -264,6 +307,27 @@ export default function TemplatesPage() {
                       {body.length} / 5000 caractères. Utilisez les variables ci-dessus.
                     </p>
                   </div>
+
+                  {/* Live preview */}
+                  <div className="rounded-lg border border-gray-200 bg-gray-50 overflow-hidden">
+                    <div className="px-3 py-2 bg-white border-b border-gray-100 text-[11px] uppercase font-bold tracking-wider text-gray-400">
+                      Aperçu (avec données d&apos;exemple)
+                    </div>
+                    <div className="p-4">
+                      <div className="text-xs font-semibold text-gray-500 mb-1">Objet</div>
+                      <div className="text-sm font-medium text-gray-900 mb-3">
+                        {previewInterpolate(subject)}
+                      </div>
+                      <div className="text-xs font-semibold text-gray-500 mb-1">Corps</div>
+                      <div
+                        className="text-sm text-gray-800 bg-white rounded border border-gray-100 p-3 leading-relaxed"
+                        dangerouslySetInnerHTML={{
+                          __html: previewEscape(previewInterpolate(body)),
+                        }}
+                      />
+                    </div>
+                  </div>
+
                   <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                     {isCustomized ? (
                       <Button

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter, Plus_Jakarta_Sans } from 'next/font/google'
 import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
+import { CookieBanner } from '@/components/cookie-banner'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -119,6 +120,7 @@ export default function RootLayout({
       <body className="font-sans">
         {children}
         <Toaster />
+        <CookieBanner />
       </body>
     </html>
   )

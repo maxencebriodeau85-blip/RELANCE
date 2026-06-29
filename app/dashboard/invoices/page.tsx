@@ -147,23 +147,36 @@ export default function InvoicesPage() {
 
   const bulkSendReminder = async () => {
     setBulkLoading(true)
+    // Parallelize sends — bounded concurrency to avoid hammering the Resend API.
+    const ids = Array.from(selected).filter((id) => {
+      const inv = invoices.find((i) => i.id === id)
+      return inv && inv.status !== 'paid' && inv.status !== 'disputed'
+    })
+
+    const CONCURRENCY = 5
     let sent = 0
     let failed = 0
-    for (const id of Array.from(selected)) {
-      const inv = invoices.find((i) => i.id === id)
-      if (!inv || inv.status === 'paid' || inv.status === 'disputed') continue
-      try {
-        const res = await fetch(`/api/invoices/${id}/remind`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: 'email_1' }),
-        })
-        if (res.ok) sent++
-        else failed++
-      } catch {
-        failed++
+
+    const queue = [...ids]
+    const worker = async () => {
+      while (queue.length) {
+        const id = queue.shift()
+        if (!id) break
+        try {
+          const res = await fetch(`/api/invoices/${id}/remind`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'email_1' }),
+          })
+          if (res.ok) sent++
+          else failed++
+        } catch {
+          failed++
+        }
       }
     }
+    await Promise.all(Array.from({ length: Math.min(CONCURRENCY, ids.length) }, worker))
+
     await loadInvoices()
     clearSelection()
     setBulkLoading(false)

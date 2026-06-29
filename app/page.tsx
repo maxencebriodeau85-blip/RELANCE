@@ -6,7 +6,7 @@ import { ResultsSection } from '@/components/landing/results-section'
 import { ComparisonSection } from '@/components/landing/comparison-section'
 import { ProductTourSection } from '@/components/landing/product-tour'
 import { SiteFooter } from '@/components/landing/footer'
-import { Logo } from '@/components/brand/logo'
+import { SiteNav } from '@/components/landing/site-nav'
 import {
   ArrowRight,
   CheckCircle,
@@ -109,32 +109,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
       {/* NAV */}
-      <nav className="sticky top-0 z-50 border-b bg-white/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-          <Logo size="sm" />
-          <div className="hidden md:flex items-center gap-6 text-sm text-gray-600">
-            <a href="#comment-ca-marche" className="hover:text-gray-900 transition-colors">Comment ça marche</a>
-            <a href="#fonctionnalites" className="hover:text-gray-900 transition-colors">Fonctionnalités</a>
-            <a href="#pricing" className="hover:text-gray-900 transition-colors">Tarifs</a>
-            <a href="#faq" className="hover:text-gray-900 transition-colors">FAQ</a>
-            <Link href="/about" className="hover:text-gray-900 transition-colors">À propos</Link>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link
-              href="/auth/login"
-              className="hidden sm:block text-sm font-medium text-gray-600 hover:text-gray-900 px-3 py-1.5 transition-colors"
-            >
-              Se connecter
-            </Link>
-            <Link
-              href="/auth/register"
-              className="rounded-lg bg-brand-gradient text-white text-sm font-semibold px-4 py-2 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all"
-            >
-              Essai gratuit 30j
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <SiteNav />
 
       {/* HERO */}
       <section className="relative bg-gradient-to-b from-brand-950 via-[#1a1656] to-brand-900 pt-20 pb-28 px-4 overflow-hidden">
