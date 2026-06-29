@@ -7,6 +7,7 @@ import {
   Mail, MessageSquare, Calendar, ChevronRight,
   Award, Target,
 } from 'lucide-react'
+import { LineChart } from '@/components/dashboard/line-chart'
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -81,6 +82,20 @@ export default async function StatsPage() {
     collected: invoices.filter(inv => inv.status === 'paid' && inMonth(inv.updated_at, m)).reduce((s, i) => s + i.amount, 0),
   }))
   const maxRev = Math.max(...revenueData.map(d => Math.max(d.issued, d.collected)), 1)
+
+  // ── DSO per month (Days Sales Outstanding for invoices paid that month)
+  const dsoData = months.map(m => {
+    const paidThisMonth = invoices.filter(inv => inv.status === 'paid' && inMonth(inv.updated_at, m))
+    if (paidThisMonth.length === 0) return { label: m.label, value: 0 }
+    const totalDays = paidThisMonth.reduce((sum, inv) => {
+      const issued = new Date(inv.issued_date)
+      const paid = new Date(inv.updated_at)
+      const days = Math.max(0, Math.floor((paid.getTime() - issued.getTime()) / (1000 * 60 * 60 * 24)))
+      return sum + days
+    }, 0)
+    return { label: m.label, value: Math.round(totalDays / paidThisMonth.length) }
+  })
+  const hasDsoData = dsoData.some(d => d.value > 0)
 
   // ── Pipeline funnel
   const funnelStages = ['prospect', 'qualified', 'proposal', 'signed'] as const
@@ -284,6 +299,43 @@ export default async function StatsPage() {
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* DSO evolution chart */}
+            <div className="rounded-xl border bg-white p-5">
+              <div className="flex items-start justify-between mb-1">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900">Évolution du DSO</h3>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Délai moyen de paiement sur les 6 derniers mois (en jours)
+                  </p>
+                </div>
+                {hasDsoData && (
+                  <div className="text-right">
+                    <p className="text-xs text-gray-500">Dernier mois</p>
+                    <p className="text-2xl font-bold text-blue-700">
+                      {dsoData[dsoData.length - 1].value}
+                      <span className="text-sm font-normal text-gray-400 ml-1">j</span>
+                    </p>
+                  </div>
+                )}
+              </div>
+              {hasDsoData ? (
+                <div className="mt-4">
+                  <LineChart data={dsoData} unit="j" color="#2563EB" fillColor="#DBEAFE" />
+                  <p className="text-xs text-gray-400 mt-3 text-center">
+                    Plus le DSO baisse, plus vos clients vous payent vite.
+                    Objectif sain pour un indépendant : &lt; 30 jours.
+                  </p>
+                </div>
+              ) : (
+                <div className="py-12 text-center">
+                  <p className="text-sm text-gray-400">Aucune facture payée sur la période.</p>
+                  <p className="text-xs text-gray-300 mt-1">
+                    Le graphique apparaîtra après vos premiers encaissements.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Top clients + Activity */}

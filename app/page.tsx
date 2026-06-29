@@ -3,6 +3,7 @@ import { FAQSection } from '@/components/landing/faq-section'
 import { PricingSection } from '@/components/landing/pricing-section'
 import { TestimonialsSection } from '@/components/landing/testimonials-section'
 import { ResultsSection } from '@/components/landing/results-section'
+import { ComparisonSection } from '@/components/landing/comparison-section'
 import {
   Zap,
   ArrowRight,
@@ -506,62 +507,7 @@ export default function HomePage() {
       </section>
 
       {/* COMPARISON */}
-      <section className="py-20 px-4 bg-white">
-        <div className="mx-auto max-w-3xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">
-              Simple. Complet. En français.
-            </h2>
-            <p className="text-gray-500 mt-3">
-              Pipedrive ne facture pas. HubSpot coûte cher et en anglais. Nous, on ferme la boucle.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border overflow-hidden shadow-sm">
-            {/* Header */}
-            <div className="grid grid-cols-4 bg-gray-50 border-b">
-              <div className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Fonctionnalité</div>
-              <div className="px-4 py-3 text-center">
-                <div className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 text-white text-xs font-bold px-2.5 py-1">
-                  <Zap className="h-3 w-3" />RelanceFlow
-                </div>
-              </div>
-              <div className="px-4 py-3 text-center text-xs font-semibold text-gray-400">HubSpot</div>
-              <div className="px-4 py-3 text-center text-xs font-semibold text-gray-400">Pipedrive</div>
-            </div>
-            {comparison.map((row, i) => (
-              <div key={row.feature} className={`grid grid-cols-4 border-b last:border-0 ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
-                <div className="px-4 py-3 text-sm text-gray-700">{row.feature}</div>
-                <div className="px-4 py-3 text-center">
-                  {row.rf === true ? (
-                    <CheckCircle className="h-5 w-5 text-green-500 mx-auto" />
-                  ) : (
-                    <span className="text-sm font-bold text-blue-600">{row.rf}</span>
-                  )}
-                </div>
-                <div className="px-4 py-3 text-center">
-                  {row.hub === true ? (
-                    <CheckCircle className="h-5 w-5 text-gray-300 mx-auto" />
-                  ) : row.hub === false ? (
-                    <X className="h-4 w-4 text-red-300 mx-auto" />
-                  ) : (
-                    <span className="text-xs text-amber-600 font-medium">{row.hub}</span>
-                  )}
-                </div>
-                <div className="px-4 py-3 text-center">
-                  {row.pipe === true ? (
-                    <CheckCircle className="h-5 w-5 text-gray-300 mx-auto" />
-                  ) : row.pipe === false ? (
-                    <X className="h-4 w-4 text-red-300 mx-auto" />
-                  ) : (
-                    <span className="text-xs text-gray-500 font-medium">{row.pipe}</span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <ComparisonSection />
 
       {/* TESTIMONIALS */}
       <TestimonialsSection />
