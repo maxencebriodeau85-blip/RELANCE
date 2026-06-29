@@ -37,6 +37,7 @@ export function SiteFooter() {
             <li><Link href="/guides" className="hover:text-gray-900">Guides recouvrement</Link></li>
             <li><Link href="/modeles" className="hover:text-gray-900">Modèles de relance</Link></li>
             <li><Link href="/calculateur-penalites" className="hover:text-gray-900">Calculateur pénalités</Link></li>
+            <li><Link href="/changelog" className="hover:text-gray-900">Changelog</Link></li>
             <li><Link href="/#faq" className="hover:text-gray-900">FAQ</Link></li>
           </ul>
         </div>

@@ -40,15 +40,19 @@ function formatDate(dateString: string): string {
   }).format(date)
 }
 
+// Subjects optimized for open-rate.
+// Pattern: short, personal, action-oriented, mentions the invoice number
+// (which the recipient recognizes), avoids "amiable" / "rappel" alone
+// (low open-rate triggers, sound like spam).
 export const EMAIL_SUBJECTS = {
   email_cordial: (invoiceNumber: string) =>
-    `Rappel amiable – Facture n°${invoiceNumber}`,
+    `Petit rappel : facture ${invoiceNumber}`,
   email_ferme: (invoiceNumber: string) =>
-    `Relance – Facture n°${invoiceNumber} en attente de règlement`,
+    `Action requise — facture ${invoiceNumber} en retard`,
   email_precontentieux: (invoiceNumber: string) =>
-    `URGENT – Dernière relance avant mise en demeure – Facture n°${invoiceNumber}`,
+    `⚠ Dernier délai avant mise en demeure — ${invoiceNumber}`,
   formal_notice: (invoiceNumber: string) =>
-    `MISE EN DEMEURE – Facture n°${invoiceNumber}`,
+    `MISE EN DEMEURE — Facture ${invoiceNumber}`,
 }
 
 export function getEmailCordial(data: EmailTemplateData): {
