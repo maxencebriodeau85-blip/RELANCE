@@ -51,6 +51,7 @@ export default function SupportPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (sending) return
     setSending(true)
     setSendError(null)
     try {

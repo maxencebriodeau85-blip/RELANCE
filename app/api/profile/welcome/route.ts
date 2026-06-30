@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { getAppUrl } from '@/lib/app-url'
 
 function escapeHtml(s: string): string {
   return String(s)
@@ -120,7 +121,7 @@ export async function POST() {
       return NextResponse.json({ error: 'Pas d\'email cible' }, { status: 400 })
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://relanceflow.fr'
+    const appUrl = getAppUrl()
     const name = p.company_name || targetEmail.split('@')[0]
 
     // Send via Resend if API key configured. If send fails, roll back the

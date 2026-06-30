@@ -128,3 +128,12 @@
   .text-balance { text-wrap: balance; }
   .text-pretty { text-wrap: pretty; }
 }
+
+/* Anchor scroll offset — the landing has a sticky nav (~64px height) and
+   clicking on /#produit, /#pricing, /#faq, etc. otherwise scrolls the
+   section title BEHIND the nav. scroll-margin-top pushes the target
+   below the nav. Applied to every section[id] on the public pages so it
+   works automatically for new sections too. */
+section[id] {
+  scroll-margin-top: 4.5rem;
+}

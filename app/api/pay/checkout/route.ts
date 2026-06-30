@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { stripe } from '@/lib/stripe'
+import { getAppUrl } from '@/lib/app-url'
 import type { Invoice } from '@/lib/database.types'
 
 export async function POST(request: Request) {
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Cette facture est déjà réglée' }, { status: 400 })
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://relanceflow.fr'
+  const appUrl = getAppUrl()
   const amountCents = Math.round(inv.amount * 100)
 
   const session = await stripe.checkout.sessions.create({

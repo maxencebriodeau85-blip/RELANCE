@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { resolveEmailTemplate, type EmailTemplateData } from '@/lib/email-templates'
 import { getDaysOverdue } from '@/lib/metrics'
+import { getAppUrl } from '@/lib/app-url'
 import type { Invoice, Profile, ReminderType } from '@/lib/database.types'
 
 // Reminder schedule: days overdue → reminder type
@@ -79,7 +80,7 @@ export async function GET(request: Request) {
     if (existing) { skipped++; continue }
 
     // Build email
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://relanceflow.fr'
+    const appUrl = getAppUrl()
     const paymentUrl = `${appUrl}/pay/${(inv as any).payment_token}`
 
     const templateData: EmailTemplateData = {

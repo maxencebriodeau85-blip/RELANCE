@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { resolveEmailTemplate, type EmailTemplateData } from '@/lib/email-templates'
 import { getDaysOverdue } from '@/lib/metrics'
+import { getAppUrl } from '@/lib/app-url'
 import type { ReminderType, Invoice, Profile } from '@/lib/database.types'
 
 // Strip characters that could abuse the email From: header (header injection).
@@ -85,7 +86,7 @@ export async function POST(
 
     const daysOverdue = getDaysOverdue(inv)
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://relanceflow.fr'
+    const appUrl = getAppUrl()
     const paymentToken = (inv as any).payment_token as string | null
     const paymentUrl = paymentToken ? `${appUrl}/pay/${paymentToken}` : undefined
 

@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { InvoicePDF } from '@/lib/invoice-pdf'
 import { sanitizeHeaderValue } from '@/lib/validation'
+import { getAppUrl } from '@/lib/app-url'
 import type { Invoice, Profile } from '@/lib/database.types'
 
 // Force Node.js runtime — @react-pdf/renderer is not edge-compatible.
@@ -54,7 +55,7 @@ export async function GET(
       phone: null,
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://relanceflow.fr'
+    const appUrl = getAppUrl()
     const paymentToken = (invoice as { payment_token?: string | null }).payment_token
     const paymentUrl = paymentToken ? `${appUrl}/pay/${paymentToken}` : undefined
 

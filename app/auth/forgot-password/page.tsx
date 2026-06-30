@@ -53,6 +53,7 @@ export default function ForgotPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (loading) return
 
     if (lastSentAt.current && Date.now() - lastSentAt.current < RATE_LIMIT_SECONDS * 1000) {
       const remaining = Math.ceil((RATE_LIMIT_SECONDS * 1000 - (Date.now() - lastSentAt.current)) / 1000)
@@ -66,7 +67,10 @@ export default function ForgotPasswordPage() {
 
     try {
       const supabase = createClient()
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
+      // Prefer the actual origin the user is browsing so reset links work on
+      // preview deployments and any custom domain — not whatever was baked
+      // into NEXT_PUBLIC_APP_URL at build time.
+      const appUrl = window.location.origin
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${appUrl}/auth/reset-password`,
       })

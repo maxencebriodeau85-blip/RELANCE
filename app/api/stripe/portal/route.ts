@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { createBillingPortalSession } from '@/lib/stripe'
+import { getAppUrl } from '@/lib/app-url'
 import type { Profile } from '@/lib/database.types'
 
 export async function POST(request: Request) {
@@ -27,10 +28,11 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json().catch(() => ({}))
+    const appUrl = getAppUrl()
     const returnUrl =
       typeof body.returnUrl === 'string' && body.returnUrl.startsWith('/')
-        ? `${process.env.NEXT_PUBLIC_APP_URL || ''}${body.returnUrl}`
-        : `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings`
+        ? `${appUrl}${body.returnUrl}`
+        : `${appUrl}/dashboard/settings`
 
     const session = await createBillingPortalSession({ customerId, returnUrl })
 

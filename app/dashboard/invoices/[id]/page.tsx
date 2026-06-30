@@ -206,8 +206,10 @@ export default function InvoiceDetailPage() {
       toast({ title: 'Lien indisponible', description: 'Cette facture ne dispose pas encore de lien de paiement.', variant: 'destructive' })
       return
     }
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-    const url = `${appUrl}/pay/${token}`
+    // Use the current origin so the payment link points to the same host
+    // the user is browsing — works on preview deployments AND production
+    // without depending on a build-time env var that might be stale.
+    const url = `${window.location.origin}/pay/${token}`
     try {
       await navigator.clipboard.writeText(url)
       setCopySuccess(true)

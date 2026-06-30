@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import { exchangeCode } from '@/lib/integrations/pennylane'
 import { encrypt } from '@/lib/crypto'
 import { cookies } from 'next/headers'
+import { getAppUrl } from '@/lib/app-url'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -11,7 +12,7 @@ export async function GET(request: Request) {
   const state = searchParams.get('state')
   const error = searchParams.get('error')
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const appUrl = getAppUrl()
 
   if (error) {
     return NextResponse.redirect(`${appUrl}/dashboard/integrations?error=pennylane_denied`)

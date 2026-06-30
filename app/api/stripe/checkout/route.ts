@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { createCheckoutSession, STRIPE_PLANS, type PlanKey } from '@/lib/stripe'
+import { getAppUrl } from '@/lib/app-url'
 import type { Profile } from '@/lib/database.types'
 
 export async function POST(request: Request) {
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
       .single()
 
     const profile = profileData as unknown as Profile | null
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const appUrl = getAppUrl()
 
     const session = await createCheckoutSession({
       customerId: profile?.stripe_customer_id || undefined,
@@ -72,7 +73,7 @@ export async function GET(request: Request) {
       .single()
 
     const profile = profileData as unknown as Profile | null
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const appUrl = getAppUrl()
 
     const session = await createCheckoutSession({
       customerId: profile?.stripe_customer_id || undefined,

@@ -120,9 +120,12 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-grid opacity-30" />
 
         <div className="mx-auto max-w-4xl text-center relative">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 backdrop-blur px-4 py-1.5 text-sm text-white/80 mb-8">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Pour indépendants français · Essai gratuit 30 jours · Sans CB
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 backdrop-blur px-3 sm:px-4 py-1.5 text-xs sm:text-sm text-white/80 mb-8 max-w-[90vw]">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
+            <span className="truncate sm:whitespace-normal">
+              <span className="sm:hidden">Essai 30 j gratuits · Sans CB</span>
+              <span className="hidden sm:inline">Pour indépendants français · Essai gratuit 30 jours · Sans CB</span>
+            </span>
           </div>
 
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-[1.05] tracking-tight text-balance">
