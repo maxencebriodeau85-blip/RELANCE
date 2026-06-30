@@ -92,4 +92,4 @@ Propriétaire — tous droits réservés. Voir [mentions légales](https://relan
 
 ---
 
-Made in Paris.
+Made in France.

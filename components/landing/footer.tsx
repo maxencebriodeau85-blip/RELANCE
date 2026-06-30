@@ -14,7 +14,7 @@ export function SiteFooter() {
             Logiciel français pour indépendants, consultants et TPE.
           </p>
           <p className="text-xs text-gray-400 mt-3">
-            Créé à Paris —{' '}
+            Made in France —{' '}
             <Link href="/about" className="hover:text-blue-600 underline underline-offset-2">
               l&apos;histoire du projet →
             </Link>

@@ -12,7 +12,7 @@ export function ProductTourSection() {
             De la facture à l&apos;encaissement, sans intervention
           </h2>
           <p className="text-gray-500 mt-3 text-lg max-w-2xl mx-auto">
-            Un aperçu réaliste de ce qui se passe quand vous créez une facture sur RelanceFlow.
+            Exemple concret de ce qui se passe quand tu crées une facture sur RelanceFlow.
           </p>
         </div>
 
@@ -20,7 +20,7 @@ export function ProductTourSection() {
           {/* Step 1 — Invoice creation */}
           <div className="relative">
             <div className="absolute -top-3 left-6 z-10 bg-white px-3 py-1 rounded-full border border-blue-200 text-xs font-bold text-blue-700">
-              1. Vous créez la facture
+              1. Tu crées la facture
             </div>
             <div className="rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden">
               {/* fake browser chrome */}
@@ -92,14 +92,14 @@ export function ProductTourSection() {
               </div>
             </div>
             <p className="text-xs text-gray-500 mt-4 px-2">
-              Email automatique avec bouton de paiement Stripe. Vous savez quand le client l&apos;ouvre.
+              Email automatique avec bouton de paiement Stripe. Tu sais quand le client l&apos;ouvre.
             </p>
           </div>
 
           {/* Step 3 — Payment received */}
           <div className="relative lg:mt-16">
             <div className="absolute -top-3 left-6 z-10 bg-white px-3 py-1 rounded-full border border-green-200 text-xs font-bold text-green-700">
-              3. Vous êtes payé
+              3. Tu es payé
             </div>
             <div className="rounded-2xl border border-green-200 bg-white shadow-xl overflow-hidden">
               <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-4 py-3 text-white">
@@ -130,7 +130,7 @@ export function ProductTourSection() {
               </div>
             </div>
             <p className="text-xs text-gray-500 mt-4 px-2">
-              Stripe Webhook synchronise tout. Vous n&apos;avez rien à faire — pas même cocher.
+              Stripe Webhook synchronise tout. Tu n&apos;as rien à faire — pas même cocher.
             </p>
           </div>
         </div>

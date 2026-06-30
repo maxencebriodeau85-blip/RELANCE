@@ -230,8 +230,8 @@ export default function HomePage() {
               Du premier contact à l&apos;encaissement — sans intervention manuelle
             </h2>
             <p className="text-gray-500 mt-3 max-w-xl mx-auto">
-              RelanceFlow est le seul outil qui connecte ton pipeline commercial,
-              ta facturation et tes relances impayées dans une seule interface.
+              RelanceFlow connecte ton pipeline commercial, ta facturation et
+              tes relances impayées dans une seule interface — pensée pour les indépendants français.
             </p>
           </div>
 
