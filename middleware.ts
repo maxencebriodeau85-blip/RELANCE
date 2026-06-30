@@ -26,11 +26,17 @@ export function middleware(request: NextRequest) {
   const { pathname, hostname, protocol, search } = request.nextUrl
 
   // ── Canonical host enforcement ────────────────────────────────────────────
-  // The site has one production domain. Any other hostname (legacy Vercel
-  // aliases like `relance-teal.vercel.app`, preview deployments, future
+  // When the production domain is live, every non-canonical hostname (legacy
+  // Vercel aliases like `relance-teal.vercel.app`, preview deployments,
   // typo subdomains) is 301-redirected to the canonical domain.
   //
-  // Two safety nets:
+  // GATING: enable only when ENFORCE_CANONICAL_HOST=true. Without this flag,
+  // the Vercel preview / production URL is reachable directly — which is
+  // essential while the .fr domain has not been purchased / DNS-pointed yet.
+  // Once the domain is live in Vercel, set ENFORCE_CANONICAL_HOST=true in
+  // the production env to enable the redirect.
+  //
+  // Safety nets:
   //   - never redirect from localhost or *.local (dev)
   //   - never redirect webhook routes (Stripe/Resend hit specific URLs)
   //   - never redirect /api/health (uptime monitors hit any host)
@@ -43,7 +49,8 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/api/webhooks/') ||
     pathname.startsWith('/api/health')
 
-  if (!isLocalHost && !isWebhook && hostname !== CANONICAL_HOST) {
+  const enforceCanonical = process.env.ENFORCE_CANONICAL_HOST === 'true'
+  if (enforceCanonical && !isLocalHost && !isWebhook && hostname !== CANONICAL_HOST) {
     const canonical = new URL(`https://${CANONICAL_HOST}${pathname}${search}`)
     return NextResponse.redirect(canonical, 301)
   }
