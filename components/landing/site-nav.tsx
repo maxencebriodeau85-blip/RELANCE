@@ -36,7 +36,7 @@ export function SiteNav() {
   }, [open])
 
   return (
-    <nav className="sticky top-0 z-50 border-b bg-white/95 backdrop-blur-sm">
+    <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/90 backdrop-blur-md supports-[backdrop-filter]:bg-white/80">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
         <Logo size="sm" />
 

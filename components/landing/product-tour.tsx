@@ -19,7 +19,7 @@ export function ProductTourSection() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Step 1 — Invoice creation */}
           <div className="relative">
-            <div className="absolute -top-3 left-6 z-10 bg-white px-3 py-1 rounded-full border border-blue-200 text-xs font-bold text-blue-700">
+            <div className="mb-3 inline-flex items-center gap-1.5 bg-white px-3 py-1 rounded-full border border-blue-200 text-xs font-bold text-blue-700 shadow-sm">
               1. Tu crées la facture
             </div>
             <div className="rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden">
@@ -65,7 +65,7 @@ export function ProductTourSection() {
 
           {/* Step 2 — Auto reminder */}
           <div className="relative lg:mt-8">
-            <div className="absolute -top-3 left-6 z-10 bg-white px-3 py-1 rounded-full border border-amber-200 text-xs font-bold text-amber-700">
+            <div className="mb-3 inline-flex items-center gap-1.5 bg-white px-3 py-1 rounded-full border border-amber-200 text-xs font-bold text-amber-700 shadow-sm">
               2. RelanceFlow relance (J+7)
             </div>
             <div className="rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden">
@@ -98,7 +98,7 @@ export function ProductTourSection() {
 
           {/* Step 3 — Payment received */}
           <div className="relative lg:mt-16">
-            <div className="absolute -top-3 left-6 z-10 bg-white px-3 py-1 rounded-full border border-green-200 text-xs font-bold text-green-700">
+            <div className="mb-3 inline-flex items-center gap-1.5 bg-white px-3 py-1 rounded-full border border-green-200 text-xs font-bold text-green-700 shadow-sm">
               3. Tu es payé
             </div>
             <div className="rounded-2xl border border-green-200 bg-white shadow-xl overflow-hidden">
