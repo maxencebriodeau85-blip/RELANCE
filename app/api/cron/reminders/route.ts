@@ -5,12 +5,16 @@ import { getDaysOverdue } from '@/lib/metrics'
 import { getAppUrl } from '@/lib/app-url'
 import type { Invoice, Profile, ReminderType } from '@/lib/database.types'
 
-// Reminder schedule: days overdue → reminder type
+// Reminder schedule: each overdue threshold maps to a DISTINCT reminder type.
+// (Previously email_2 was mapped to both J+15 and J+30, so the J+30 step was
+// always deduplicated away — the second reminder never went out.)
+// We pick, for a given daysOverdue, the highest threshold reached whose
+// reminder hasn't been sent yet — tolerant of missed cron days.
 const SCHEDULE: { days: number; type: ReminderType }[] = [
   { days: 7, type: 'email_1' },
   { days: 15, type: 'email_2' },
-  { days: 30, type: 'email_2' },
-  { days: 45, type: 'email_3' },
+  { days: 30, type: 'email_3' },
+  { days: 45, type: 'formal_notice' },
 ]
 
 function sanitizeFromName(name: string): string {
@@ -18,10 +22,11 @@ function sanitizeFromName(name: string): string {
 }
 
 export async function GET(request: Request) {
-  // Verify cron secret to prevent unauthorized triggers
+  // Verify cron secret — FAIL CLOSED. If CRON_SECRET is unset, refuse the
+  // request rather than letting anyone trigger a mass email send.
   const authHeader = request.headers.get('authorization')
   const cronSecret = process.env.CRON_SECRET
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -64,8 +69,8 @@ export async function GET(request: Request) {
 
     const daysOverdue = getDaysOverdue(inv)
 
-    // Find the right step for today's day count
-    const step = SCHEDULE.find((s) => s.days === daysOverdue)
+    // Highest threshold reached (tolerant of missed cron days — uses >= not ===).
+    const step = [...SCHEDULE].reverse().find((s) => daysOverdue >= s.days)
     if (!step) { skipped++; continue }
 
     // Check if this reminder type was already sent for this invoice

@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createClient } from '@/lib/supabase/client'
+import { supabaseAuthError } from '@/lib/auth-errors'
 import { Zap, Eye, EyeOff, AlertCircle } from 'lucide-react'
 
 type Mode = 'loading' | 'form' | 'error'
@@ -64,7 +65,7 @@ export default function ResetPasswordPage() {
     setLoading(true)
     const { error: updateError } = await supabase.auth.updateUser({ password })
     if (updateError) {
-      setError(updateError.message)
+      setError(supabaseAuthError(updateError.message, updateError.status))
       setLoading(false)
     } else {
       window.location.href = '/dashboard'

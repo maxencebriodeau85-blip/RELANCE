@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { assertActiveAccess } from '@/lib/access-control'
+import type { Profile } from '@/lib/database.types'
 
 export async function GET(request: Request) {
   const supabase = await createClient()
@@ -26,6 +28,15 @@ export async function POST(request: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+
+  // Trial gate — a lapsed free-trial can't create new contacts (data kept, writes blocked).
+  const { data: prof } = await supabase
+    .from('profiles')
+    .select('plan, trial_ends_at')
+    .eq('id', user.id)
+    .single()
+  const access = assertActiveAccess(prof as Pick<Profile, 'plan' | 'trial_ends_at'> | null)
+  if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status })
 
   const body = await request.json().catch(() => ({}))
   const name = String(body.name || '').trim()

@@ -81,7 +81,9 @@ export async function createCheckoutSession({
     cancel_url: cancelUrl,
     metadata: { userId },
     subscription_data: {
-      trial_period_days: 30,
+      // No Stripe trial here: the 30-day free trial is already granted at
+      // signup (profiles.trial_ends_at). Adding trial_period_days would give
+      // a SECOND free month billed by Stripe — double trial = revenue leak.
       metadata: { userId },
     },
     allow_promotion_codes: true,

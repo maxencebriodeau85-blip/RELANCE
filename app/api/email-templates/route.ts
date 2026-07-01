@@ -1,8 +1,24 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { assertPlan } from '@/lib/access-control'
+import type { Profile } from '@/lib/database.types'
 
 const VALID_TYPES = ['email_1', 'email_2', 'email_3', 'formal_notice'] as const
 type TemplateType = (typeof VALID_TYPES)[number]
+
+// Templates personnalisés = feature Pro. Shared guard for PUT/DELETE.
+async function requireProPlan(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string
+): Promise<{ error: string; status: number } | null> {
+  const { data } = await supabase
+    .from('profiles')
+    .select('plan, trial_ends_at')
+    .eq('id', userId)
+    .single()
+  const gate = assertPlan(data as Pick<Profile, 'plan' | 'trial_ends_at'> | null, 'pro')
+  return gate.ok ? null : { error: gate.error!, status: gate.status }
+}
 
 export async function GET() {
   try {
@@ -31,6 +47,9 @@ export async function PUT(request: Request) {
       data: { user },
     } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+
+    const gate = await requireProPlan(supabase, user.id)
+    if (gate) return NextResponse.json({ error: gate.error }, { status: gate.status })
 
     const body = await request.json().catch(() => null)
     if (!body) return NextResponse.json({ error: 'Corps invalide' }, { status: 400 })

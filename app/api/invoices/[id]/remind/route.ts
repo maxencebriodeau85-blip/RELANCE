@@ -47,6 +47,14 @@ export async function POST(
     if (inv.status === 'paid') {
       return NextResponse.json({ error: 'Cette facture est déjà payée' }, { status: 400 })
     }
+    // Never relance a disputed invoice — consistent with the cron, which
+    // excludes both paid AND disputed.
+    if (inv.status === 'disputed') {
+      return NextResponse.json(
+        { error: 'Cette facture est en litige — aucune relance ne peut être envoyée.' },
+        { status: 400 }
+      )
+    }
 
     // Rate-limit: one reminder of the same type per invoice per 24 hours.
     const cooldownStart = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()

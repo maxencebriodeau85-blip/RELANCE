@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { generateFormalNotice, type FormalNoticeData } from '@/lib/formal-notice-template'
 import { getDaysOverdue } from '@/lib/metrics'
+import { assertPlan } from '@/lib/access-control'
 import type { Invoice, Profile } from '@/lib/database.types'
 
 export async function GET(
@@ -37,6 +38,13 @@ export async function GET(
 
     const inv = invoice as Invoice
     const profile = profileData as Profile | null
+
+    // Mise en demeure PDF is a Pro feature — gate by plan (+ trial check).
+    const gate = assertPlan(profile, 'pro')
+    if (!gate.ok) {
+      return NextResponse.json({ error: gate.error }, { status: gate.status })
+    }
+
     const daysOverdue = getDaysOverdue(inv)
 
     const noticeData: FormalNoticeData = {

@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { EmailOtpType } from '@supabase/supabase-js'
+import { supabaseAuthError } from '@/lib/auth-errors'
 
 // Creates a Supabase client that collects cookie mutations into an array
 // so they can be explicitly attached to any response object.
@@ -54,7 +55,7 @@ export async function GET(request: NextRequest) {
       return response
     }
     return NextResponse.redirect(
-      `${origin}/auth/login?error=${encodeURIComponent(error.message)}`
+      `${origin}/auth/login?error=${encodeURIComponent(supabaseAuthError(error.message, error.status))}`
     )
   }
 
@@ -68,7 +69,7 @@ export async function GET(request: NextRequest) {
       return response
     }
     return NextResponse.redirect(
-      `${origin}/auth/login?error=${encodeURIComponent(error.message)}`
+      `${origin}/auth/login?error=${encodeURIComponent(supabaseAuthError(error.message, error.status))}`
     )
   }
 

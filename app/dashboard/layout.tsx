@@ -17,10 +17,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .eq('id', user.id)
     .single()
 
+  // Fail-closed: a free_trial with no trial_ends_at (legacy row, or a
+  // cancelled subscription reverted to free_trial) is treated as expired.
   if (
     profile?.plan === 'free_trial' &&
-    profile.trial_ends_at &&
-    new Date(profile.trial_ends_at) < new Date()
+    (!profile.trial_ends_at || new Date(profile.trial_ends_at) < new Date())
   ) {
     redirect('/subscription')
   }

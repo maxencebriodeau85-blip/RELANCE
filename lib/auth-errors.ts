@@ -35,6 +35,10 @@ export function supabaseAuthError(message: string, status?: number): string {
     return 'Un compte existe déjà avec cet email. Connectez-vous.'
   }
 
+  if (m.includes('different from the old password')) {
+    return 'Le nouveau mot de passe doit être différent de l’ancien.'
+  }
+
   if (m.includes('password should be') || m.includes('password is too short')) {
     return 'Le mot de passe doit contenir au moins 8 caractères.'
   }

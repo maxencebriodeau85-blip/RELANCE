@@ -35,12 +35,17 @@ export interface PenaltiesResult {
 }
 
 /**
- * BCE (Banque Centrale Européenne) reference rate + 10 points for B2B (art. L441-10)
- * As of 2024, BCE rate is approximately 4.50%, so penalty rate = 14.50%
- * In practice the rate is updated twice a year. We use a representative value.
+ * Taux de pénalité B2B = taux directeur BCE (refi) + 10 points (art. L441-10).
+ *
+ * ⚠️ Le taux BCE change ~2×/an. Il DOIT être tenu à jour via la variable
+ * d'environnement BCE_REFI_RATE (ex. "2.15" au S2-2026). À défaut, on retombe
+ * sur une valeur par défaut prudente — mais surveiller sur banque-france.fr.
+ *
+ * Le montant figurant sur une mise en demeure a une valeur juridique (LRAR),
+ * d'où l'externalisation plutôt qu'un hardcode qui devient faux silencieusement.
  */
-const BCE_RATE = 4.5 // percent
-const PENALTY_RATE = BCE_RATE + 10 // = 14.5%
+const BCE_RATE = Number(process.env.BCE_REFI_RATE ?? '2.15') // % — MAJ semestrielle
+const PENALTY_RATE = BCE_RATE + 10
 const FIXED_INDEMNITY = 40 // euros (art. D441-5)
 const DAYS_PER_YEAR = 365
 
