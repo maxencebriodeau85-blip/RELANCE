@@ -20,7 +20,7 @@ function welcomeEmailHtml(name: string, appUrl: string): string {
   <div style="background:#fff;border-radius:12px;padding:32px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
     <div style="text-align:center;margin-bottom:24px;">
       <div style="display:inline-flex;align-items:center;gap:8px;">
-        <div style="height:32px;width:32px;background:linear-gradient(135deg,#4F46E5 0%,#A855F7 100%);border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:16px;">⚡</div>
+        <div style="height:32px;width:32px;background:linear-gradient(135deg,#8A6BFF 0%,#6B8CFF 100%);border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:16px;">⚡</div>
         <span style="font-size:18px;font-weight:bold;color:#111827;">RelanceFlow</span>
       </div>
     </div>
@@ -42,7 +42,7 @@ function welcomeEmailHtml(name: string, appUrl: string): string {
     </ol>
 
     <div style="text-align:center;margin:32px 0;">
-      <a href="${escapeHtml(appUrl)}/dashboard" style="background:linear-gradient(135deg,#4F46E5 0%,#A855F7 100%);color:#fff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:15px;display:inline-block;">
+      <a href="${escapeHtml(appUrl)}/dashboard" style="background:linear-gradient(135deg,#8A6BFF 0%,#6B8CFF 100%);color:#fff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:15px;display:inline-block;">
         Démarrer maintenant →
       </a>
     </div>

@@ -2,8 +2,9 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
-import { CheckCircle, AlertCircle, Loader2, CreditCard, Shield, Lock, PartyPopper } from 'lucide-react'
+import { CheckCircle, AlertCircle, Loader2, CreditCard, Shield, Lock } from 'lucide-react'
 import { Logo } from '@/components/brand/logo'
+import { AnimatedCheck } from '@/components/animated-check'
 import Link from 'next/link'
 
 interface InvoicePublic {
@@ -80,7 +81,7 @@ function PaymentPageInner() {
   const isPaid = justPaid || invoice?.status === 'paid'
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-950 via-[#1a1656] to-brand-900 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-ink-950 via-ink-900 to-ink-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
       <div className="brand-orb bg-brand-500/30 h-[300px] w-[300px] -top-20 -left-20" />
       <div className="brand-orb bg-fuchsia-500/20 h-[400px] w-[400px] bottom-0 -right-40" />
       <div className="mb-8 relative">
@@ -111,12 +112,8 @@ function PaymentPageInner() {
         {/* Success state — shown immediately after Stripe redirect, or if already paid */}
         {isPaid && (
           <div className="bg-white rounded-2xl shadow-xl p-8 text-center space-y-4">
-            <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">
-              {justPaid ? (
-                <PartyPopper className="h-8 w-8 text-green-600" />
-              ) : (
-                <CheckCircle className="h-8 w-8 text-green-600" />
-              )}
+            <div className="flex justify-center">
+              <AnimatedCheck size={64} />
             </div>
             <div>
               <h2 className="text-xl font-bold text-gray-900">
@@ -150,8 +147,8 @@ function PaymentPageInner() {
         {!loading && !justPaid && !error && invoice && invoice.status !== 'paid' && (
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5 text-white">
-              <p className="text-blue-200 text-xs uppercase tracking-wider font-semibold mb-1">
+            <div className="bg-brand-gradient px-6 py-5 text-white">
+              <p className="text-white/70 text-xs uppercase tracking-wider font-semibold mb-1">
                 Règlement de facture
               </p>
               <h1 className="text-xl font-bold">{invoice.creditor_name}</h1>

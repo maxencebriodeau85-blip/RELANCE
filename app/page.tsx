@@ -8,6 +8,7 @@ import { ProductTourSection } from '@/components/landing/product-tour'
 import { SiteFooter } from '@/components/landing/footer'
 import { SiteNav } from '@/components/landing/site-nav'
 import { TrustStrip } from '@/components/landing/trust-strip'
+import { Reveal } from '@/components/reveal'
 import {
   ArrowRight,
   CheckCircle,
@@ -110,7 +111,7 @@ export default function HomePage() {
       <SiteNav />
 
       {/* HERO */}
-      <section id="main-content" className="relative bg-gradient-to-b from-brand-950 via-[#1a1656] to-brand-900 pt-20 pb-28 px-4 overflow-hidden">
+      <section id="main-content" className="relative bg-gradient-to-b from-ink-950 via-ink-900 to-ink-950 pt-20 pb-28 px-4 overflow-hidden">
         {/* Brand orbs */}
         <div className="brand-orb bg-brand-500/40 h-[340px] w-[340px] -top-20 -left-32" />
         <div className="brand-orb bg-fuchsia-500/30 h-[420px] w-[420px] top-10 -right-40" />
@@ -217,10 +218,10 @@ export default function HomePage() {
       </section>
 
       {/* PRODUCT TOUR — Le produit en 3 écrans */}
-      <ProductTourSection />
+      <Reveal><ProductTourSection /></Reveal>
 
       {/* RESULTS — Avant/Après chiffrés */}
-      <ResultsSection />
+      <Reveal><ResultsSection /></Reveal>
 
       {/* HOW IT WORKS — La boucle complète */}
       <section id="comment-ca-marche" className="py-20 px-4 bg-white">
@@ -439,13 +440,13 @@ export default function HomePage() {
       </section>
 
       {/* COMPARISON */}
-      <ComparisonSection />
+      <Reveal><ComparisonSection /></Reveal>
 
       {/* TESTIMONIALS */}
-      <TestimonialsSection />
+      <Reveal><TestimonialsSection /></Reveal>
 
       {/* PRICING */}
-      <PricingSection />
+      <Reveal><PricingSection /></Reveal>
 
       {/* FAQ */}
       <section id="faq" className="py-20 px-4 bg-white">
@@ -455,7 +456,7 @@ export default function HomePage() {
       </section>
 
       {/* FOUNDER CLOSE — humain, pas un 3ème CTA identique */}
-      <section className="py-24 px-4 bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900">
+      <section className="py-24 px-4 bg-gradient-to-br from-ink-950 via-ink-900 to-ink-950">
         <div className="mx-auto max-w-2xl text-center">
           <div className="mb-8 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 text-2xl font-bold text-white">
             M

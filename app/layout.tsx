@@ -1,21 +1,18 @@
 import type { Metadata } from 'next'
-import { Inter, Plus_Jakarta_Sans } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
 import { CookieBanner } from '@/components/cookie-banner'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 
+// DA 2026-07 : Inter unique, graisses 400/500/600/700.
+// La même variable alimente --font-body ET --font-display (globals.css).
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-body',
   display: 'swap',
-})
-const jakarta = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  variable: '--font-display',
-  display: 'swap',
-  weight: ['500', '600', '700', '800'],
+  weight: ['400', '500', '600', '700'],
 })
 
 // Canonical & metadata URL — always points to the production domain so that
@@ -114,7 +111,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="fr" className={`${inter.variable} ${jakarta.variable}`} suppressHydrationWarning>
+    <html lang="fr" className={inter.variable} suppressHydrationWarning>
       <head>
         {/* DNS prefetch + TCP preconnect to third parties used on first paint —
             shaves ~100-200ms off LCP on a fresh visit. */}

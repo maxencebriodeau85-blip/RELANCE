@@ -11,40 +11,53 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 239 84% 60%;
+    /* Primary button token darkened vs brand-500 (#6B8CFF ≈ 71% lightness)
+       so white text keeps AA contrast on solid-primary surfaces. */
+    --primary: 227 92% 58%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
+    --secondary: 228 33% 96%;
     --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
+    --muted: 228 33% 96%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 38 92% 50%;
+    --accent: 40 100% 67%;
     --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 239 84% 60%;
+    --ring: 227 100% 71%;
     --radius: 0.625rem;
 
-    /* RelanceFlow brand palette (indigo deep) */
-    --brand-50: 238 100% 97%;
-    --brand-100: 238 100% 93%;
-    --brand-200: 238 100% 86%;
-    --brand-300: 239 90% 76%;
-    --brand-400: 239 88% 66%;
-    --brand-500: 239 84% 60%;
-    --brand-600: 238 78% 54%;
-    --brand-700: 238 72% 46%;
-    --brand-800: 237 64% 38%;
-    --brand-900: 236 58% 30%;
-    --brand-950: 235 56% 18%;
+    /* ─── RelanceFlow DA 2026-07 ─────────────────────────────────────────
+       Accent primaire  #6B8CFF → hsl(227 100% 71%)  = --brand-500
+       Fond sombre 1    #0D0F23 → hsl(235 46% 9%)    = --ink-950
+       Fond sombre 2    #1B1D3D → hsl(237 39% 17%)   = --ink-900
+       Accent rose      #FF67C0 → hsl(325 100% 71%)
+       Accent orange    #FFC857 → hsl(40 100% 67%)
+       Fond clair       #F5F6FA (gray-50 override, tailwind.config)      */
+    --brand-50: 227 100% 97%;
+    --brand-100: 227 100% 94%;
+    --brand-200: 227 100% 88%;
+    --brand-300: 227 100% 81%;
+    --brand-400: 227 100% 76%;
+    --brand-500: 227 100% 71%;
+    --brand-600: 227 92% 62%;
+    --brand-700: 228 80% 52%;
+    --brand-800: 230 65% 42%;
+    --brand-900: 233 52% 30%;
+    --brand-950: 235 46% 9%;
 
-    --accent-amber: 38 92% 50%;
+    --ink-950: 235 46% 9%;
+    --ink-900: 237 39% 17%;
+
+    --accent-amber: 40 100% 67%;
     --accent-emerald: 156 73% 41%;
-    --accent-rose: 350 86% 60%;
+    --accent-rose: 325 100% 71%;
 
-    --font-display: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
-    --font-body: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    /* DA: Inter partout (400/500/600/700) — --font-body est injectée par
+       next/font dans layout.tsx ; display pointe sur la même police. */
+    --font-body: ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-display: var(--font-body);
   }
 
   .dark {
@@ -90,18 +103,29 @@
 }
 
 @layer components {
-  /* Signature gradient — primary CTAs and hero highlights */
+  /* Signature gradient — DA: bouton principal = dégradé violet → bleu.
+     #8A6BFF (violet) → #6B8CFF (bleu). */
   .bg-brand-gradient {
-    background-image: linear-gradient(135deg, hsl(var(--brand-600)) 0%, hsl(var(--brand-500)) 50%, hsl(269 84% 60%) 100%);
+    background-image: linear-gradient(135deg, #8a6bff 0%, #6b8cff 100%);
   }
+  /* Text highlights get one extra stop of rose for warmth on dark heroes. */
   .text-brand-gradient {
-    background-image: linear-gradient(135deg, hsl(var(--brand-700)) 0%, hsl(269 84% 50%) 100%);
+    background-image: linear-gradient(135deg, #8a6bff 0%, #6b8cff 60%, #ff67c0 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
   .ring-brand {
     --tw-ring-color: hsl(var(--brand-500) / 0.4);
+  }
+
+  /* Card micro-interaction — hover: lift + shadow, 180ms (DA: 150-200ms) */
+  .card-lift {
+    transition: transform 180ms ease, box-shadow 180ms ease;
+  }
+  .card-lift:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 12px 32px -12px hsl(var(--brand-500) / 0.25);
   }
 
   /* Subtle grid background — used on hero / empty states */
@@ -127,6 +151,66 @@
 @layer utilities {
   .text-balance { text-wrap: balance; }
   .text-pretty { text-wrap: pretty; }
+}
+
+/* ─── Animations DA (toutes < 400ms, désactivées si reduced-motion) ────── */
+
+/* Page transition — mounted by app/template.tsx on every route change */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-page-enter {
+  animation: page-enter 250ms ease-out both;
+}
+
+/* Scroll reveal — toggled by <Reveal> via IntersectionObserver, fires once */
+.reveal-hidden {
+  opacity: 0;
+  transform: translateY(16px);
+}
+.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 350ms ease-out, transform 350ms ease-out;
+}
+
+/* Drawn checkmark — stroke reveals over 400ms */
+@keyframes check-draw {
+  from { stroke-dashoffset: 48; }
+  to   { stroke-dashoffset: 0; }
+}
+.animate-check-draw {
+  stroke-dasharray: 48;
+  animation: check-draw 400ms ease-out 100ms both;
+}
+@keyframes check-pop {
+  0%   { transform: scale(0.6); opacity: 0; }
+  70%  { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-check-pop {
+  animation: check-pop 300ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-page-enter,
+  .animate-check-draw,
+  .animate-check-pop {
+    animation: none;
+  }
+  .reveal-hidden {
+    opacity: 1;
+    transform: none;
+  }
+  .reveal-visible {
+    transition: none;
+  }
+  .card-lift,
+  .card-lift:hover {
+    transition: none;
+    transform: none;
+  }
 }
 
 /* Anchor scroll offset — the landing has a sticky nav (~64px height) and

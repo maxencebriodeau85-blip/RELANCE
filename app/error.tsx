@@ -17,7 +17,7 @@ export default function GlobalError({
   }, [error])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-950 via-[#1a1656] to-brand-900 flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-ink-950 via-ink-900 to-ink-950 flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
       <div className="brand-orb bg-rose-500/20 h-[300px] w-[300px] -top-20 -right-20" />
       <div className="mb-10 relative">
         <Logo variant="mono-white" size="md" />

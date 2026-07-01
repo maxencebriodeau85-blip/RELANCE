@@ -29,11 +29,14 @@ export function LogoMark({
   return (
     <span
       className={cn(
-        'inline-flex items-center justify-center rounded-xl shadow-sm',
+        // DA 2026-07 : icône éclair dans un CERCLE, dégradé violet→bleu.
+        // Déclinaisons : plein gradient (default), fond blanc (mono-white),
+        // contour seul sur fond sombre (mono-dark).
+        'inline-flex items-center justify-center rounded-full',
         dims.box,
-        variant === 'default' && 'bg-brand-gradient text-white shadow-brand-500/30',
-        variant === 'mono-white' && 'bg-white text-brand-700',
-        variant === 'mono-dark' && 'bg-brand-950 text-white',
+        variant === 'default' && 'bg-brand-gradient text-white shadow-sm shadow-brand-500/30',
+        variant === 'mono-white' && 'bg-white text-brand-600 shadow-sm',
+        variant === 'mono-dark' && 'bg-transparent text-white border-2 border-white/70',
         className
       )}
       aria-hidden="true"

@@ -10,6 +10,7 @@ import {
 } from '@/lib/metrics'
 import { StatusBadge } from '@/components/invoices/status-badge'
 import { OnboardingWizard } from '@/components/dashboard/onboarding-wizard'
+import { CountUp } from '@/components/dashboard/count-up'
 import type { Invoice, Profile } from '@/lib/database.types'
 import {
   TrendingUp,
@@ -36,12 +37,18 @@ function kpiCard({
   sub,
   accent,
   help,
+  numeric,
+  numFormat,
 }: {
   label: string
   value: string
   sub: string
   accent: 'blue' | 'red' | 'green' | 'gray'
   help?: string
+  /** When provided, the KPI counts up on load (DA animation) instead of
+      rendering the static `value` string. */
+  numeric?: number
+  numFormat?: 'euro' | 'int' | 'days' | 'percent'
 }) {
   const accents = {
     blue: { val: 'text-blue-700', bg: 'bg-blue-50 border-blue-100', dot: 'bg-blue-500' },
@@ -66,7 +73,9 @@ function kpiCard({
           </span>
         )}
       </div>
-      <p className={`text-2xl font-bold ${c.val} leading-none`}>{value}</p>
+      <p className={`text-2xl font-bold ${c.val} leading-none`}>
+        {numeric !== undefined ? <CountUp value={numeric} format={numFormat} /> : value}
+      </p>
       <p className="text-xs text-gray-500 mt-2 flex items-center gap-1.5">
         <span className={`inline-block h-1.5 w-1.5 rounded-full ${c.dot}`} />
         {sub}
@@ -456,6 +465,8 @@ export default async function DashboardPage() {
           {kpiCard({
             label: 'Créances en cours',
             value: formatEuro(metrics.totalReceivables),
+            numeric: metrics.totalReceivables,
+            numFormat: 'euro',
             sub: `${metrics.invoiceCount} facture${metrics.invoiceCount > 1 ? 's' : ''} active${metrics.invoiceCount > 1 ? 's' : ''}`,
             accent: 'blue',
             help: "Total TTC des factures non payées (pending, reminded, formal_notice). Exclut les factures payées et en litige.",
@@ -463,6 +474,8 @@ export default async function DashboardPage() {
           {kpiCard({
             label: 'Montant en retard',
             value: formatEuro(metrics.totalOverdue),
+            numeric: metrics.totalOverdue,
+            numFormat: 'euro',
             sub: `${metrics.overdueCount} facture${metrics.overdueCount > 1 ? 's' : ''} en souffrance`,
             accent: metrics.overdueCount > 0 ? 'red' : 'gray',
             help: "Somme des factures dont la date d'échéance est passée et qui ne sont ni payées ni en litige.",
@@ -470,6 +483,8 @@ export default async function DashboardPage() {
           {kpiCard({
             label: 'Récupéré ce mois',
             value: formatEuro(metrics.paidThisMonth),
+            numeric: metrics.paidThisMonth,
+            numFormat: 'euro',
             sub: `Taux de recouvrement : ${metrics.recoveryRate}%`,
             accent: 'green',
             help: "Encaissements ce mois civil. Taux = factures payées / total émis sur les 12 derniers mois.",
@@ -477,6 +492,7 @@ export default async function DashboardPage() {
           {kpiCard({
             label: 'DSO moyen',
             value: metrics.dso > 0 ? `${metrics.dso}j` : '—',
+            ...(metrics.dso > 0 ? { numeric: metrics.dso, numFormat: 'days' as const } : {}),
             sub: 'Délai de paiement moyen',
             accent: 'gray',
             help: "Days Sales Outstanding : nombre moyen de jours entre l'émission d'une facture et son encaissement. Objectif sain : < 30 j.",

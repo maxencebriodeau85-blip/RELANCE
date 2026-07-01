@@ -19,7 +19,7 @@ export default async function Image() {
           justifyContent: 'space-between',
           padding: 80,
           background:
-            'linear-gradient(135deg, #1E1B5E 0%, #4F46E5 50%, #A855F7 100%)',
+            'linear-gradient(135deg, #0D0F23 0%, #1B1D3D 45%, #6B8CFF 100%)',
           fontFamily: 'system-ui, sans-serif',
         }}
       >
@@ -77,7 +77,7 @@ export default async function Image() {
             style={{
               fontSize: 72,
               fontWeight: 800,
-              background: 'linear-gradient(90deg, #FCD34D, #F0ABFC, #C7D2FE)',
+              background: 'linear-gradient(90deg, #FFC857, #FF67C0, #6B8CFF)',
               backgroundClip: 'text',
               color: 'transparent',
               letterSpacing: -2,

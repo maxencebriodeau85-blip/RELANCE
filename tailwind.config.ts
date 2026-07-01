@@ -65,6 +65,17 @@ const config: Config = {
           900: 'hsl(var(--brand-900))',
           950: 'hsl(var(--brand-950))',
         },
+        // DA 2026-07 — fonds sombres
+        ink: {
+          900: '#1B1D3D',
+          950: '#0D0F23',
+        },
+        // DA — fond clair #F5F6FA remplace le gray-50 Tailwind par défaut
+        // (#F9FAFB) partout où bg-gray-50 est déjà utilisé. Re-skin global
+        // sans toucher aux composants.
+        gray: {
+          50: '#F5F6FA',
+        },
       },
       fontFamily: {
         display: ['var(--font-display)', 'ui-sans-serif', 'system-ui'],

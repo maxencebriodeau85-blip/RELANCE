@@ -56,7 +56,7 @@ function LoginForm() {
   return (
     <div className="min-h-screen flex">
       {/* Left — branding */}
-      <div className="hidden lg:flex lg:w-5/12 flex-col justify-between bg-gradient-to-br from-brand-950 via-[#1a1656] to-brand-900 p-10 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-5/12 flex-col justify-between bg-gradient-to-br from-ink-950 via-ink-900 to-ink-950 p-10 relative overflow-hidden">
         <div className="brand-orb bg-brand-500/40 h-[300px] w-[300px] -top-20 -left-20" />
         <div className="brand-orb bg-fuchsia-500/30 h-[400px] w-[400px] bottom-0 -right-40" />
         <div className="relative">
