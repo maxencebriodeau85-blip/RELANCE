@@ -1,7 +1,21 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { Download, Mail, AlertTriangle, CheckCircle, Copy, ChevronRight } from 'lucide-react'
 import { Logo } from '@/components/brand/logo'
 import { SiteFooter } from '@/components/landing/footer'
+
+export const metadata: Metadata = {
+  title: 'Modèles de relance de facture — cordial, ferme, mise en demeure',
+  description:
+    "5 modèles d'emails de relance gratuits, prêts à l'emploi et copiables : rappel cordial, relance ferme, pré-contentieux, litige et mise en demeure conforme au droit français.",
+  alternates: { canonical: '/modeles' },
+  openGraph: {
+    title: 'Modèles de relance de facture gratuits | RelanceFlow',
+    description:
+      "5 modèles d'emails de relance prêts à l'emploi pour indépendants français.",
+    type: 'website',
+  },
+}
 
 const templates = [
   {

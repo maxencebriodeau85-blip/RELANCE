@@ -1,8 +1,21 @@
 import { NextResponse } from 'next/server'
 import { escapeHtml, isValidEmail } from '@/lib/validation'
+import { rateLimit, getIp } from '@/lib/rate-limit'
 
 export async function POST(request: Request) {
   try {
+    const rl = rateLimit(getIp(request), {
+      key: 'contact-form',
+      limit: 5,
+      windowMs: 60 * 60 * 1000,
+    })
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: `Trop de messages. Réessayez dans ${rl.retryAfterSec}s.` },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfterSec) } }
+      )
+    }
+
     const body = await request.json().catch(() => null)
     if (!body) {
       return NextResponse.json({ error: 'Corps de requête invalide' }, { status: 400 })

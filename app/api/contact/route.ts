@@ -1,10 +1,24 @@
 import { NextResponse } from 'next/server'
 import { isValidEmail } from '@/lib/validation'
+import { rateLimit, getIp } from '@/lib/rate-limit'
 
 const MAX_LENGTH = 5000
 
 export async function POST(request: Request) {
   try {
+    // Rate limit: 5 messages per IP per hour.
+    const rl = rateLimit(getIp(request), {
+      key: 'contact',
+      limit: 5,
+      windowMs: 60 * 60 * 1000,
+    })
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: `Trop de messages. Réessayez dans ${rl.retryAfterSec}s.` },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfterSec) } }
+      )
+    }
+
     const body = await request.json().catch(() => null)
     if (!body) return NextResponse.json({ error: 'Corps invalide' }, { status: 400 })
 

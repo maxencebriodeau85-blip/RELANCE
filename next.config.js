@@ -3,7 +3,7 @@
 const cspHeader = [
   "default-src 'self'",
   // Next.js inline scripts + Stripe.js
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://checkout.stripe.com",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://checkout.stripe.com https://va.vercel-scripts.com",
   // Styles: inline (Next.js) + Google Fonts
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   // Fonts

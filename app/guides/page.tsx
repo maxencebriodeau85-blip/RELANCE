@@ -1,6 +1,20 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { ArrowLeft, FileText, Clock, ChevronRight, Scale, Euro, AlertTriangle, Download } from 'lucide-react'
 import { GUIDES } from '@/lib/guides-content'
+
+export const metadata: Metadata = {
+  title: 'Guides — Recouvrement, mise en demeure & droit commercial',
+  description:
+    "10 guides gratuits sur le recouvrement amiable, la mise en demeure, les pénalités de retard, la prescription des créances et la trésorerie pour indépendants français.",
+  alternates: { canonical: '/guides' },
+  openGraph: {
+    title: 'Guides recouvrement & droit commercial | RelanceFlow',
+    description:
+      "10 guides gratuits sur le recouvrement, la mise en demeure et le droit commercial pour indépendants français.",
+    type: 'website',
+  },
+}
 import { SiteFooter } from '@/components/landing/footer'
 import { Logo } from '@/components/brand/logo'
 

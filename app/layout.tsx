@@ -3,6 +3,8 @@ import { Inter, Plus_Jakarta_Sans } from 'next/font/google'
 import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
 import { CookieBanner } from '@/components/cookie-banner'
+import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -136,6 +138,10 @@ export default function RootLayout({
         {children}
         <Toaster />
         <CookieBanner />
+        {/* Cookie-less analytics + Core Web Vitals — served from *.vercel-scripts.com,
+            allowed by CSP in next.config.js. */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )

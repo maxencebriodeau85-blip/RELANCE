@@ -70,6 +70,7 @@ export default function PrivacyPage() {
       <ul>
         <li><strong>Supabase</strong> — hébergement base de données (UE)</li>
         <li><strong>Vercel</strong> — hébergement application (UE)</li>
+        <li><strong>Vercel Analytics &amp; Speed Insights</strong> — mesure d&apos;audience sans cookies (aucune donnée personnelle collectée, uniquement des vues de page anonymisées et des indicateurs de performance)</li>
         <li><strong>Stripe</strong> — traitement des paiements</li>
         <li><strong>Resend</strong> — envoi des emails transactionnels</li>
       </ul>
