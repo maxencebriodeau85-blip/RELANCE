@@ -49,8 +49,20 @@ function LoginForm() {
       }
 
       window.location.href = redirectTo
-    } catch {
-      setError('Une erreur est survenue. Veuillez réessayer.')
+    } catch (err) {
+      // Distinguish the real cause instead of a useless catch-all. The #1
+      // reason a fresh deploy "can't log in" is missing Supabase env vars.
+      const msg = err instanceof Error ? err.message : ''
+      if (/Missing NEXT_PUBLIC_SUPABASE/i.test(msg)) {
+        setError(
+          "Service d'authentification non configuré : les variables Supabase manquent sur le serveur. " +
+            'Si tu es l’administrateur, ajoute NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY dans Vercel puis redéploie.'
+        )
+      } else if (/failed to fetch|networkerror|network request failed/i.test(msg)) {
+        setError('Impossible de joindre le serveur d’authentification. Vérifie ta connexion et réessaie.')
+      } else {
+        setError('Une erreur est survenue. Veuillez réessayer.')
+      }
       setLoading(false)
     }
   }
