@@ -28,14 +28,12 @@ export function TestimonialsSection() {
   return (
     <section className="py-20 px-4 bg-white">
       <div className="mx-auto max-w-5xl">
-        <div className="text-center mb-12">
-          <span className="inline-block text-xs font-bold uppercase tracking-wider text-brand-700 bg-brand-100 rounded-full px-3 py-1 mb-3">
-            Early access
-          </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+        <div className="flex flex-col items-center text-center mb-12">
+          <span className="section-eyebrow mb-4">Early access</span>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight text-balance">
             On préfère être honnête.
           </h2>
-          <p className="text-gray-500 mt-3 text-lg max-w-2xl mx-auto text-pretty">
+          <p className="text-gray-500 mt-4 text-lg max-w-2xl mx-auto text-pretty">
             RelanceFlow est jeune. On construit l&apos;outil avec nos premiers utilisateurs
             indépendants français. Si tu cherches un produit ultra-poli avec 10 000 logos clients
             en bas de page, ce n&apos;est pas encore nous. Si tu cherches un outil qui marche, conçu
@@ -47,8 +45,8 @@ export function TestimonialsSection() {
           {EARLY_PROMISES.map((p) => {
             const Icon = p.icon
             return (
-              <div key={p.title} className="rounded-2xl border border-gray-200 bg-white p-6 hover:border-brand-200 hover:shadow-sm transition-all">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600 mb-4">
+              <div key={p.title} className="card-premium p-6">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600 ring-1 ring-inset ring-brand-500/10 mb-4">
                   <Icon className="h-5 w-5" />
                 </div>
                 <h3 className="text-sm font-bold text-gray-900 mb-2">{p.title}</h3>

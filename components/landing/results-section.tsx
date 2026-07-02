@@ -32,14 +32,12 @@ export function ResultsSection() {
   return (
     <section className="py-20 px-4 bg-gradient-to-br from-brand-50/40 via-white to-purple-50/40">
       <div className="mx-auto max-w-5xl">
-        <div className="text-center mb-12">
-          <span className="inline-block text-xs font-bold uppercase tracking-wider text-brand-700 bg-brand-100 rounded-full px-3 py-1 mb-3">
-            Ce qui change concrètement
-          </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+        <div className="flex flex-col items-center text-center mb-12">
+          <span className="section-eyebrow mb-4">Ce qui change concrètement</span>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight text-balance">
             Le geste devient automatique.
           </h2>
-          <p className="text-gray-500 mt-3 text-lg max-w-2xl mx-auto text-pretty">
+          <p className="text-gray-500 mt-4 text-lg max-w-2xl mx-auto text-pretty">
             Pas de magie ni de chiffres marketing — juste 4 moments de ta semaine qui passent
             de « je dois penser à faire ça » à « c&apos;est déjà fait ».
           </p>
@@ -47,10 +45,7 @@ export function ResultsSection() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {COMPARISONS.map((c) => (
-            <div
-              key={c.metric}
-              className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow"
-            >
+            <div key={c.metric} className="card-premium p-6">
               <h3 className="text-sm font-semibold text-gray-900 mb-4">{c.metric}</h3>
               <div className="space-y-3">
                 <div className="flex items-start gap-2.5">
