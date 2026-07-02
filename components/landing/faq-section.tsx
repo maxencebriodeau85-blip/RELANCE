@@ -77,12 +77,13 @@ export function FAQSection() {
   return (
     <section id="faq" className="py-20 bg-white">
       <div className="container mx-auto px-4 max-w-3xl">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+        <div className="flex flex-col items-center text-center mb-12">
+          <span className="section-eyebrow mb-4">FAQ</span>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight text-balance">
             Questions fréquentes
           </h2>
-          <p className="text-xl text-gray-600">
-            Tout ce que vous devez savoir avant de vous lancer
+          <p className="text-lg text-gray-500 mt-4 text-pretty">
+            Tout ce que tu dois savoir avant de te lancer
           </p>
         </div>
 
@@ -92,8 +93,8 @@ export function FAQSection() {
             return (
               <div
                 key={i}
-                className={`border rounded-xl overflow-hidden transition-shadow ${
-                  isOpen ? 'shadow-md border-blue-200' : 'border-gray-200'
+                className={`rounded-xl overflow-hidden transition-all ${
+                  isOpen ? 'shadow-soft ring-1 ring-brand-500/30' : 'ring-1 ring-gray-200'
                 }`}
               >
                 <button
