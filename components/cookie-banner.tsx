@@ -52,7 +52,7 @@ export function CookieBanner() {
       aria-label="Préférences cookies"
       className="fixed bottom-4 left-4 right-4 sm:left-6 sm:right-auto sm:max-w-md z-[60] animate-in fade-in slide-in-from-bottom-4 duration-300"
     >
-      <div className="rounded-2xl border border-gray-200 bg-white shadow-2xl p-5 relative">
+      <div className="rounded-2xl border border-gray-200 bg-white shadow-2xl p-4 relative">
         <button
           onClick={reject}
           aria-label="Refuser et fermer"
@@ -61,21 +61,22 @@ export function CookieBanner() {
           <X className="h-4 w-4" />
         </button>
 
-        <div className="flex items-start gap-3 mb-3">
-          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+        <div className="flex items-start gap-3 mb-3 pr-6">
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
             <Cookie className="h-4 w-4" />
           </div>
           <div>
             <h2 className="text-sm font-semibold text-gray-900">Cookies &amp; vie privée</h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Nous utilisons des cookies strictement nécessaires au fonctionnement
-              de l&apos;application. Les cookies de mesure d&apos;audience sont optionnels et
-              ne sont chargés qu&apos;avec votre accord.
+              Cookies nécessaires uniquement. La mesure d&apos;audience est optionnelle
+              et n&apos;est activée qu&apos;avec ton accord.
             </p>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-2 mt-4">
+        {/* Buttons side-by-side even on mobile to keep the banner compact so
+            it never covers a centered CTA (e.g. the login button). */}
+        <div className="flex flex-row gap-2 mt-3">
           <button
             onClick={accept}
             className="flex-1 rounded-lg bg-brand-gradient text-white text-sm font-semibold px-4 py-2 transition-all hover:shadow-md"

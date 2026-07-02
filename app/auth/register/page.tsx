@@ -164,8 +164,8 @@ export default function RegisterPage() {
     <div className="min-h-screen flex">
       <LeftPanel />
 
-      {/* Right — form */}
-      <div className="flex-1 flex items-center justify-center p-6 bg-white">
+      {/* Right — form (bottom clearance for the fixed cookie banner on mobile) */}
+      <div className="flex-1 flex items-center justify-center p-6 pb-28 sm:pb-6 bg-white overflow-y-auto">
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
           <div className="mb-8 lg:hidden">

@@ -111,8 +111,10 @@ function LoginForm() {
         </p>
       </div>
 
-      {/* Right — form */}
-      <div className="flex-1 flex items-center justify-center p-6 bg-white">
+      {/* Right — form. Extra bottom padding on mobile so the vertically
+          centered form clears the fixed cookie banner (which otherwise
+          covers the "Se connecter" button on short screens). */}
+      <div className="flex-1 flex items-center justify-center p-6 pb-28 sm:pb-6 bg-white overflow-y-auto">
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
           <div className="mb-8 lg:hidden">
