@@ -138,14 +138,14 @@ export function OnboardingWizard({ initialStep = 1 }: { initialStep?: number }) 
             </button>
 
             {'href' in current && current.href ? (
-              <Button asChild className="bg-blue-600 hover:bg-blue-700">
+              <Button asChild className="bg-brand-600 hover:bg-brand-700">
                 <Link href={current.href} onClick={() => close()}>
                   {current.cta}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
             ) : (
-              <Button onClick={next} className="bg-blue-600 hover:bg-blue-700">
+              <Button onClick={next} className="bg-brand-600 hover:bg-brand-700">
                 {current.cta}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>

@@ -290,7 +290,7 @@ export default function TemplatesPage() {
                         <Mail className="h-4 w-4" />
                         {tpl.label}
                         {isCustomized && (
-                          <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 rounded px-1.5 py-0.5">
+                          <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-brand-700 rounded px-1.5 py-0.5">
                             Personnalisé
                           </span>
                         )}

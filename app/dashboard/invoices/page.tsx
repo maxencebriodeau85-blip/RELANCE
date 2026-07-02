@@ -235,7 +235,7 @@ export default function InvoicesPage() {
         {!loading && invoices.length > 0 && (
           <div className="flex gap-2 flex-wrap">
             {[
-              { label: 'Total créances', value: formatEuro(invoices.reduce((s, i) => s + i.amount, 0)), cls: 'bg-blue-50 text-blue-700 border-blue-100' },
+              { label: 'Total créances', value: formatEuro(invoices.reduce((s, i) => s + i.amount, 0)), cls: 'bg-blue-50 text-brand-700 border-blue-100' },
               { label: 'En retard', value: `${invoices.filter(i => getDaysOverdue(i) > 0 && i.status !== 'paid' && i.status !== 'disputed').length}`, cls: 'bg-red-50 text-red-700 border-red-100' },
               { label: 'Payées', value: `${invoices.filter(i => i.status === 'paid').length}`, cls: 'bg-green-50 text-green-700 border-green-100' },
             ].map((chip) => (
@@ -261,7 +261,7 @@ export default function InvoicesPage() {
                 onClick={() => { setQuickFilter(f.id as typeof quickFilter); setPage(1) }}
                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all border ${
                   quickFilter === f.id
-                    ? 'bg-blue-600 border-blue-600 text-white'
+                    ? 'bg-brand-600 border-brand-600 text-white'
                     : 'bg-white border-gray-200 text-gray-700 hover:border-gray-300'
                 }`}
               >
@@ -339,7 +339,7 @@ export default function InvoicesPage() {
                 <CheckCircle className="mr-1.5 h-3.5 w-3.5 text-green-600" />Marquer payé
               </Button>
               <Button size="sm" variant="outline" onClick={bulkSendReminder} disabled={bulkLoading} className="h-7 text-xs">
-                <Send className="mr-1.5 h-3.5 w-3.5 text-blue-600" />Relancer
+                <Send className="mr-1.5 h-3.5 w-3.5 text-brand-600" />Relancer
               </Button>
               <Button size="sm" variant="outline" onClick={() => exportToCSV(invoices.filter(i => selected.has(i.id)))} className="h-7 text-xs">
                 <Download className="mr-1.5 h-3.5 w-3.5" />Exporter
@@ -348,7 +348,7 @@ export default function InvoicesPage() {
                 <Trash2 className="mr-1.5 h-3.5 w-3.5" />Supprimer
               </Button>
             </div>
-            <button onClick={clearSelection} className="ml-auto text-blue-400 hover:text-blue-600 transition-colors">
+            <button onClick={clearSelection} className="ml-auto text-blue-400 hover:text-brand-600 transition-colors">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -364,7 +364,7 @@ export default function InvoicesPage() {
                 <TableHead className="w-10 pl-4">
                   <button onClick={toggleSelectAll} className="flex items-center justify-center" aria-label="Tout sélectionner">
                     {allPageSelected
-                      ? <CheckSquare className="h-4 w-4 text-blue-600" />
+                      ? <CheckSquare className="h-4 w-4 text-brand-600" />
                       : <Square className="h-4 w-4 text-gray-400" />}
                   </button>
                 </TableHead>
@@ -425,7 +425,7 @@ export default function InvoicesPage() {
                       <TableCell className="pl-4">
                         <button onClick={() => toggleSelect(invoice.id)} aria-label="Sélectionner">
                           {isSelected
-                            ? <CheckSquare className="h-4 w-4 text-blue-600" />
+                            ? <CheckSquare className="h-4 w-4 text-brand-600" />
                             : <Square className="h-4 w-4 text-gray-300 hover:text-gray-500" />}
                         </button>
                       </TableCell>

@@ -23,7 +23,7 @@ interface Notif {
 }
 
 const TYPE_CONFIG: Record<string, { icon: typeof Bell; color: string; label: string }> = {
-  follow_up:       { icon: Phone,    color: 'text-blue-600 bg-blue-50',    label: 'Relance' },
+  follow_up:       { icon: Phone,    color: 'text-brand-600 bg-blue-50',    label: 'Relance' },
   reminder:        { icon: Bell,     color: 'text-amber-600 bg-amber-50',  label: 'Rappel' },
   invoice_overdue: { icon: FileText, color: 'text-red-600 bg-red-50',      label: 'Facture' },
   deal_signed:     { icon: Users,    color: 'text-green-600 bg-green-50',  label: 'Deal signé' },
@@ -115,7 +115,7 @@ export default function NotificationsPage() {
               className={cn(
                 'px-3 py-1.5 text-sm font-medium rounded-lg transition-colors',
                 filter === tab.key
-                  ? 'bg-blue-50 text-blue-700'
+                  ? 'bg-blue-50 text-brand-700'
                   : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
               )}
             >

@@ -41,7 +41,7 @@ const SCENARIOS: Scenario[] = [
     id: 'standard',
     name: 'Standard',
     badge: 'Recommandé',
-    badgeColor: 'bg-blue-100 text-blue-700',
+    badgeColor: 'bg-blue-100 text-brand-700',
     description: 'Couverture complète de J+7 à J+45. Convient à 80 % des situations — passe de cordial à ferme puis pré-contentieux.',
     steps: [
       { day: 7,  type: 'email_1', subject: 'Rappel amiable — Facture {n°}', tone: 'cordial', channel: 'email' },
@@ -77,7 +77,7 @@ const SCENARIOS: Scenario[] = [
 ]
 
 const toneConfig = {
-  cordial:        { label: 'Cordial',           color: 'bg-blue-100 text-blue-700',   dot: 'bg-blue-500' },
+  cordial:        { label: 'Cordial',           color: 'bg-blue-100 text-brand-700',   dot: 'bg-blue-500' },
   ferme:          { label: 'Ferme',             color: 'bg-yellow-100 text-yellow-700', dot: 'bg-yellow-500' },
   precontentieux: { label: 'Pré-contentieux',   color: 'bg-orange-100 text-orange-700', dot: 'bg-orange-500' },
   formal_notice:  { label: 'Mise en demeure',   color: 'bg-red-100 text-red-700',     dot: 'bg-red-500' },
@@ -231,7 +231,7 @@ export default function ScenariosPage() {
                 >
                   {isActive && (
                     <div className="absolute top-3 right-3">
-                      <CheckCircle className="h-4 w-4 text-blue-600" />
+                      <CheckCircle className="h-4 w-4 text-brand-600" />
                     </div>
                   )}
                   <div className="flex items-start gap-2 mb-2">
@@ -260,7 +260,7 @@ export default function ScenariosPage() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-blue-600" />
+                  <Zap className="h-4 w-4 text-brand-600" />
                   Détail du scénario — {activeScenario.name}
                 </CardTitle>
                 <CardDescription className="mt-1">{activeScenario.description}</CardDescription>
@@ -283,7 +283,7 @@ export default function ScenariosPage() {
                         step.tone === 'formal_notice' ? 'bg-red-100 text-red-700' :
                         step.tone === 'precontentieux' ? 'bg-orange-100 text-orange-700' :
                         step.tone === 'ferme' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-blue-100 text-blue-700'
+                        'bg-blue-100 text-brand-700'
                       }`}>
                         {step.day}
                       </div>
@@ -314,7 +314,7 @@ export default function ScenariosPage() {
         <Card className="border-blue-100 bg-blue-50/40">
           <CardContent className="pt-5">
             <div className="flex items-start gap-2 mb-4">
-              <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+              <Info className="h-4 w-4 text-brand-600 mt-0.5 flex-shrink-0" />
               <h3 className="text-sm font-semibold text-blue-900">Comment fonctionne l&apos;automatisation ?</h3>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -339,11 +339,11 @@ export default function ScenariosPage() {
                 return (
                   <div key={item.title} className="flex items-start gap-3">
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 flex-shrink-0">
-                      <Icon className="h-4 w-4 text-blue-600" />
+                      <Icon className="h-4 w-4 text-brand-600" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-blue-900">{item.title}</p>
-                      <p className="text-xs text-blue-700/70 mt-0.5 leading-relaxed">{item.body}</p>
+                      <p className="text-xs text-brand-700/70 mt-0.5 leading-relaxed">{item.body}</p>
                     </div>
                   </div>
                 )

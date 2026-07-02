@@ -190,7 +190,7 @@ export default function ImportPage() {
                 <div
                   className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${
                     isCurrent
-                      ? 'bg-blue-100 text-blue-700'
+                      ? 'bg-blue-100 text-brand-700'
                       : isDone
                       ? 'bg-green-100 text-green-700'
                       : 'text-gray-400'

@@ -35,7 +35,7 @@ const PLAN_LABELS: Record<string, string> = {
 
 const PLAN_COLORS: Record<string, string> = {
   free_trial: 'bg-gray-100 text-gray-700 border-gray-200',
-  starter: 'bg-blue-100 text-blue-700 border-blue-200',
+  starter: 'bg-blue-100 text-brand-700 border-blue-200',
   pro: 'bg-purple-100 text-purple-700 border-purple-200',
   business: 'bg-amber-100 text-amber-700 border-amber-200',
 }
@@ -48,7 +48,7 @@ const PLANS = [
     limit: "Jusqu'à 30 factures/mois",
     features: ['Pipeline kanban 5 étapes', 'Relances email automatiques', 'Facturation & paiement Stripe', 'Dashboard commercial'],
     icon: Zap,
-    color: 'text-blue-600',
+    color: 'text-brand-600',
     border: 'border-blue-200 hover:border-blue-400',
   },
   {
@@ -287,7 +287,7 @@ export default function SettingsPage() {
                         className={`mt-3 block w-full text-center rounded-lg py-1.5 text-xs font-semibold text-white transition-colors ${
                           plan.id === 'pro' ? 'bg-purple-600 hover:bg-purple-700' :
                           plan.id === 'business' ? 'bg-amber-500 hover:bg-amber-600' :
-                          'bg-blue-600 hover:bg-blue-700'
+                          'bg-brand-600 hover:bg-brand-700'
                         }`}
                       >
                         Passer au {plan.name}
@@ -440,8 +440,8 @@ export default function SettingsPage() {
             </div>
 
             <div className="rounded-lg border bg-blue-50 p-3 flex items-start gap-2">
-              <Shield className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-blue-700">
+              <Shield className="h-4 w-4 text-brand-600 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-brand-700">
                 Les emails sont envoyés via <strong>Resend</strong> depuis le domaine sécurisé
                 <strong> relanceflow.fr</strong>. Conformité RGPD assurée — aucune donnée transmise à des tiers.
               </p>
