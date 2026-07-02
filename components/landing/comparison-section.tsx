@@ -96,8 +96,8 @@ const ROWS: Row[] = [
 function renderCell(cell: Cell, highlight = false) {
   if (cell === true) {
     return (
-      <div className={`inline-flex items-center justify-center h-6 w-6 rounded-full ${highlight ? 'bg-blue-100' : 'bg-green-100'}`}>
-        <Check className={`h-3.5 w-3.5 ${highlight ? 'text-blue-700' : 'text-green-700'}`} />
+      <div className={`inline-flex items-center justify-center h-6 w-6 rounded-full ${highlight ? 'bg-brand-100' : 'bg-green-100'}`}>
+        <Check className={`h-3.5 w-3.5 ${highlight ? 'text-brand-700' : 'text-green-700'}`} />
       </div>
     )
   }
@@ -116,7 +116,7 @@ function renderCell(cell: Cell, highlight = false) {
     )
   }
   return (
-    <span className={`text-xs font-bold ${highlight ? 'text-blue-700' : 'text-gray-700'}`}>{cell}</span>
+    <span className={`text-xs font-bold ${highlight ? 'text-brand-700' : 'text-gray-700'}`}>{cell}</span>
   )
 }
 
@@ -124,19 +124,17 @@ export function ComparisonSection() {
   return (
     <section className="py-20 px-4 bg-gray-50">
       <div className="mx-auto max-w-5xl">
-        <div className="text-center mb-12">
-          <span className="inline-block text-xs font-bold uppercase tracking-wider text-blue-700 bg-blue-100 rounded-full px-3 py-1 mb-3">
-            Comparatif
-          </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+        <div className="flex flex-col items-center text-center mb-12">
+          <span className="section-eyebrow mb-4">Comparatif</span>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight text-balance">
             Pourquoi choisir RelanceFlow ?
           </h2>
-          <p className="text-gray-500 mt-3 text-lg max-w-2xl mx-auto">
+          <p className="text-gray-500 mt-4 text-lg max-w-2xl mx-auto text-pretty">
             Les outils de compta gèrent les relances « en option ». RelanceFlow est conçu pour ça.
           </p>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm">
+        <div className="rounded-2xl ring-1 ring-gray-200/80 bg-white overflow-hidden shadow-soft">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
@@ -144,8 +142,8 @@ export function ComparisonSection() {
                   <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-5 py-4">
                     Fonctionnalité
                   </th>
-                  <th className="text-center px-3 py-4 bg-blue-50 border-x border-blue-100">
-                    <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">RelanceFlow</span>
+                  <th className="text-center px-3 py-4 bg-brand-50 border-x border-brand-100">
+                    <span className="text-xs font-bold text-brand-700 uppercase tracking-wider">RelanceFlow</span>
                   </th>
                   <th className="text-center text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 py-4">
                     Pennylane
@@ -167,7 +165,7 @@ export function ComparisonSection() {
                         <p className="text-sm font-medium text-gray-900">{row.feature}</p>
                         {row.detail && <p className="text-xs text-gray-500 mt-0.5">{row.detail}</p>}
                       </td>
-                      <td className="text-center px-3 py-4 bg-blue-50/40 border-x border-blue-100/60">
+                      <td className="text-center px-3 py-4 bg-brand-50/40 border-x border-brand-100/60">
                         {renderCell(row.rf, true)}
                       </td>
                       <td className="text-center px-3 py-4">{renderCell(row.pennylane)}</td>
