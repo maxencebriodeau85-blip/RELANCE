@@ -12,6 +12,7 @@ import {
   Kanban, Bell, FileText, Loader2,
 } from 'lucide-react'
 import { Logo } from '@/components/brand/logo'
+import { AuthConfigNotice } from '@/components/auth/config-notice'
 
 const sideFeatures = [
   { icon: Kanban, label: 'Pipeline kanban', sub: 'Tous tes deals en un coup d\'œil' },
@@ -176,6 +177,8 @@ export default function RegisterPage() {
             <h1 className="text-2xl font-bold text-gray-900">Ton essai gratuit t&apos;attend ✨</h1>
             <p className="text-gray-500 mt-1 text-sm">30 jours · Sans carte bancaire · Annulable à tout moment</p>
           </div>
+
+          <AuthConfigNotice />
 
           <form action={formAction} className="space-y-4">
             {state?.error && (
