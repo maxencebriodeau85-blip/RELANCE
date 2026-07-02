@@ -20,8 +20,10 @@ const sideFeatures = [
 function LoginForm() {
   const searchParams = useSearchParams()
   const rawRedirect = searchParams.get('redirectedFrom') ?? ''
+  // Only same-origin absolute paths. Reject protocol-relative (//evil.com)
+  // AND backslash tricks (/\evil.com, which some browsers normalise to //).
   const redirectTo =
-    rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') ? rawRedirect : '/dashboard'
+    /^\/[^/\\]/.test(rawRedirect) ? rawRedirect : '/dashboard'
 
   const [error, setError] = useState<string | null>(searchParams.get('error'))
   const [loading, setLoading] = useState(false)
