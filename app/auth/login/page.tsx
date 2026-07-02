@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Eye, EyeOff, AlertCircle, Loader2, CheckCircle, Kanban, FileText, Bell } from 'lucide-react'
 import { Logo } from '@/components/brand/logo'
+import { AuthConfigNotice } from '@/components/auth/config-notice'
 import { createClient } from '@/lib/supabase/client'
 import { supabaseAuthError } from '@/lib/auth-errors'
 
@@ -139,6 +140,8 @@ function LoginForm() {
             <h1 className="text-2xl font-bold text-gray-900">Bon retour 👋</h1>
             <p className="text-gray-500 mt-1 text-sm">Connecte-toi à ton espace RelanceFlow</p>
           </div>
+
+          <AuthConfigNotice />
 
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             {error && (
