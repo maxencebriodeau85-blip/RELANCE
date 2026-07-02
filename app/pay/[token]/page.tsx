@@ -39,8 +39,10 @@ function PaymentPageInner() {
 
   useEffect(() => {
     if (justPaid) {
-      // After Stripe redirect — show success immediately, then quietly load invoice details
-      fetch(`/api/pay/invoice?token=${token}`)
+      // After Stripe redirect — show success immediately, then quietly load
+      // invoice details WITH reconciliation (?reconcile=true) so the invoice
+      // is marked paid even if the Stripe webhook was missed.
+      fetch(`/api/pay/invoice?token=${token}&reconcile=true`)
         .then((r) => r.json())
         .then((data) => { if (!data.error) setInvoice(data) })
         .catch(() => null)

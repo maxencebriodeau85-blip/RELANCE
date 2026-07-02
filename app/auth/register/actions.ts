@@ -64,5 +64,20 @@ export async function registerAction(
     redirect('/dashboard')
   }
 
+  // Anti-enumeration behaviour of Supabase: signing up with an ALREADY
+  // CONFIRMED email returns no error and no session, with an empty
+  // `identities` array. Without this check we'd show "Vérifie ton email"
+  // to a returning user who will never receive a mail — a dead end that
+  // loses the account. Detect it and steer them to login / reset instead.
+  const alreadyRegistered =
+    !data.session && (!data.user || (data.user.identities?.length ?? 0) === 0)
+  if (alreadyRegistered) {
+    return {
+      error:
+        'Un compte existe déjà avec cet email. Connecte-toi, ou réinitialise ton mot de passe si tu l\'as oublié.',
+      email,
+    }
+  }
+
   return { success: true, email }
 }

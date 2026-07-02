@@ -26,8 +26,9 @@ export async function POST(request: NextRequest) {
     rememberMe = form.get('rememberMe') === 'on'
   }
 
-  // Prevent open redirect
-  if (!redirectTo.startsWith('/') || redirectTo.startsWith('//')) {
+  // Prevent open redirect — same-origin absolute paths only, no
+  // protocol-relative (//evil.com) nor backslash tricks (/\evil.com).
+  if (!/^\/[^/\\]/.test(redirectTo)) {
     redirectTo = '/dashboard'
   }
 
