@@ -2,9 +2,24 @@ import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { stripe } from '@/lib/stripe'
 import { getDaysOverdue } from '@/lib/metrics'
+import { rateLimit, getIp } from '@/lib/rate-limit'
 import type { Invoice } from '@/lib/database.types'
 
 export async function GET(request: Request) {
+  // Public, unauthenticated endpoint — throttle per IP so the payment_token
+  // (the only secret guarding invoice data) can't be brute-forced at scale.
+  const rl = rateLimit(getIp(request), {
+    key: 'pay-invoice',
+    limit: 60,
+    windowMs: 60 * 60 * 1000,
+  })
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: `Trop de requêtes. Réessayez dans ${rl.retryAfterSec}s.` },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfterSec) } }
+    )
+  }
+
   const { searchParams } = new URL(request.url)
   const token = searchParams.get('token')
   const reconcile = searchParams.get('reconcile') === 'true'
