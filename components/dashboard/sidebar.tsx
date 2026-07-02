@@ -128,7 +128,7 @@ function SidebarContent({
               className={cn(
                 'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-blue-600 text-white shadow-sm'
+                  ? 'bg-brand-gradient text-white shadow-sm shadow-brand-500/30'
                   : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
               )}
             >
@@ -172,7 +172,7 @@ function SidebarContent({
       {/* User */}
       <div className="border-t p-2">
         <div className="flex items-center gap-2.5 rounded-lg px-2 py-2">
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-white text-xs font-bold">
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-gradient text-white text-xs font-bold">
             {initials || '?'}
           </div>
           <div className="flex-1 min-w-0">
