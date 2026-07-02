@@ -29,9 +29,22 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${appUrl}/dashboard/integrations?error=pennylane_state_mismatch`)
   }
 
-  // Extract userId from state
+  // Derive the target user from the authenticated session — never from a
+  // client-held value alone. The state (and its cookie) is an extra CSRF
+  // guard, but the account the tokens are written to must be the logged-in
+  // user. Require the state's embedded userId to match, as defense in depth.
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return NextResponse.redirect(`${appUrl}/auth/login?redirectedFrom=/dashboard/integrations`)
+  }
+
   const decoded = Buffer.from(state, 'base64url').toString()
-  const userId = decoded.split(':')[0]
+  const stateUserId = decoded.split(':')[0]
+  if (stateUserId !== user.id) {
+    return NextResponse.redirect(`${appUrl}/dashboard/integrations?error=pennylane_state_mismatch`)
+  }
+  const userId = user.id
 
   try {
     const token = await exchangeCode(code)
@@ -40,8 +53,6 @@ export async function GET(request: Request) {
       encrypt(token.access_token),
       encrypt(token.refresh_token || ''),
     ])
-
-    const supabase = await createClient()
 
     // Upsert integration record
     const { error: dbError } = await supabase.from('integrations').upsert({

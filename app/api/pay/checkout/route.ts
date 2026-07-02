@@ -2,9 +2,24 @@ import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { stripe } from '@/lib/stripe'
 import { getAppUrl } from '@/lib/app-url'
+import { rateLimit, getIp } from '@/lib/rate-limit'
 import type { Invoice } from '@/lib/database.types'
 
 export async function POST(request: Request) {
+  // Public, unauthenticated endpoint — throttle per IP to stop token
+  // brute-forcing and checkout-session spam against Stripe.
+  const rl = rateLimit(getIp(request), {
+    key: 'pay-checkout',
+    limit: 20,
+    windowMs: 60 * 60 * 1000,
+  })
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: `Trop de tentatives. Réessayez dans ${rl.retryAfterSec}s.` },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfterSec) } }
+    )
+  }
+
   const { token } = await request.json()
 
   if (!token) {
