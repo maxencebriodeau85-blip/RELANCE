@@ -16,6 +16,15 @@ const LINKS = [
 
 export function SiteNav() {
   const [open, setOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+
+  // Elevate the nav (shadow + stronger blur) once the page scrolls.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   // Close menu on resize to desktop
   useEffect(() => {
@@ -36,7 +45,11 @@ export function SiteNav() {
   }, [open])
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/90 backdrop-blur-md supports-[backdrop-filter]:bg-white/80">
+    <nav className={`sticky top-0 z-50 border-b backdrop-blur-md transition-all duration-300 ${
+      scrolled
+        ? 'border-gray-200/80 bg-white/85 shadow-[0_1px_20px_-8px_rgba(13,15,35,0.15)]'
+        : 'border-transparent bg-white/70'
+    } supports-[backdrop-filter]:bg-white/70`}>
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
         <Logo size="sm" />
 

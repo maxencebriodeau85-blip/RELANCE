@@ -128,6 +128,68 @@
     box-shadow: 0 12px 32px -12px hsl(var(--brand-500) / 0.25);
   }
 
+  /* ─── Premium surfaces ────────────────────────────────────────────────
+     Layered, soft shadows + hairline rings read far more "SaaS pro" than a
+     flat 1px gray border. Used across landing cards, mockups and panels. */
+  .shadow-soft {
+    box-shadow:
+      0 1px 2px hsl(235 46% 9% / 0.04),
+      0 4px 12px -2px hsl(235 46% 9% / 0.06),
+      0 12px 32px -8px hsl(235 46% 9% / 0.05);
+  }
+  .shadow-elevated {
+    box-shadow:
+      0 2px 4px hsl(235 46% 9% / 0.04),
+      0 8px 24px -4px hsl(235 46% 9% / 0.08),
+      0 24px 56px -12px hsl(235 46% 9% / 0.12);
+  }
+
+  /* Standard landing card: white surface, hairline ring, soft shadow, and a
+     gentle lift on hover. One class = consistent depth everywhere. */
+  .card-premium {
+    background-color: #fff;
+    border-radius: 1rem;
+    box-shadow:
+      0 0 0 1px hsl(228 33% 90% / 0.9),
+      0 1px 2px hsl(235 46% 9% / 0.04),
+      0 8px 24px -12px hsl(235 46% 9% / 0.08);
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+  .card-premium:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      0 0 0 1px hsl(227 100% 71% / 0.35),
+      0 12px 28px -8px hsl(227 60% 40% / 0.14),
+      0 24px 48px -16px hsl(227 60% 40% / 0.12);
+  }
+
+  /* Editorial section label sitting above a heading. */
+  .section-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: hsl(var(--brand-700));
+  }
+  .section-eyebrow::before {
+    content: '';
+    width: 1.5rem;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--brand-500)));
+  }
+  .section-eyebrow--center::before {
+    background: linear-gradient(90deg, transparent, hsl(var(--brand-500)));
+  }
+
+  /* Gradient hairline divider. */
+  .divider-gradient {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--border)), transparent);
+  }
+
   /* Subtle grid background — used on hero / empty states */
   .bg-grid {
     background-image:
@@ -136,6 +198,16 @@
     background-size: 48px 48px;
     -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
     mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  }
+
+  /* Dark hero grid — faint white lines, fades toward the edges. */
+  .bg-grid-dark {
+    background-image:
+      linear-gradient(to right, hsl(0 0% 100% / 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(0 0% 100% / 0.05) 1px, transparent 1px);
+    background-size: 56px 56px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 80%);
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 80%);
   }
 
   /* Decorative blur orbs for hero backgrounds */

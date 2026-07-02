@@ -88,20 +88,21 @@ export function PricingSection() {
   return (
     <section id="pricing" className="py-20 px-4 bg-gray-50">
       <div className="mx-auto max-w-6xl">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+        <div className="flex flex-col items-center text-center mb-10">
+          <span className="section-eyebrow mb-4">Tarifs</span>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight text-balance">
             Un plan pour chaque étape
           </h2>
-          <p className="text-gray-500 mt-3 text-lg">
+          <p className="text-gray-500 mt-4 text-lg text-pretty">
             30 jours d&apos;essai gratuit. Sans carte bancaire. Annulation à tout moment.
           </p>
 
           {/* Toggle */}
-          <div className="inline-flex items-center gap-3 mt-8 bg-white rounded-full border border-gray-200 p-1 shadow-sm">
+          <div className="inline-flex items-center gap-1 mt-8 bg-white rounded-full ring-1 ring-gray-200 p-1 shadow-soft">
             <button
               onClick={() => setAnnual(false)}
               className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
-                !annual ? 'bg-blue-600 text-white shadow' : 'text-gray-600 hover:text-gray-900'
+                !annual ? 'bg-brand-gradient text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               Mensuel
@@ -109,7 +110,7 @@ export function PricingSection() {
             <button
               onClick={() => setAnnual(true)}
               className={`px-5 py-2 rounded-full text-sm font-semibold transition-all flex items-center gap-2 ${
-                annual ? 'bg-blue-600 text-white shadow' : 'text-gray-600 hover:text-gray-900'
+                annual ? 'bg-brand-gradient text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               Annuel
@@ -131,8 +132,10 @@ export function PricingSection() {
             return (
               <div
                 key={p.id}
-                className={`relative rounded-2xl border-2 bg-white p-7 transition-all ${p.color} shadow-xl ${
-                  p.recommended ? 'md:scale-110 md:-translate-y-3 md:shadow-2xl md:z-10' : 'md:opacity-90'
+                className={`relative rounded-2xl bg-white p-7 transition-all ${
+                  p.recommended
+                    ? 'ring-2 ring-brand-500 shadow-elevated md:scale-105 md:-translate-y-3 md:z-10'
+                    : 'ring-1 ring-gray-200/80 shadow-soft hover:shadow-elevated hover:-translate-y-1'
                 }`}
               >
                 {p.recommended && (

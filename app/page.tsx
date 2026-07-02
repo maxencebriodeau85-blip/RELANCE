@@ -118,7 +118,7 @@ export default function HomePage() {
         <div className="brand-orb bg-amber-400/20 h-[260px] w-[260px] bottom-0 left-1/3" />
 
         {/* Subtle grid */}
-        <div className="absolute inset-0 bg-grid opacity-30" />
+        <div className="absolute inset-0 bg-grid-dark" />
 
         <div className="mx-auto max-w-4xl text-center relative">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 backdrop-blur px-3 sm:px-4 py-1.5 text-xs sm:text-sm text-white/80 mb-8 max-w-[90vw]">
@@ -166,15 +166,15 @@ export default function HomePage() {
           {/* Mini stats — only what is verifiable about the product itself.
               No fabricated "X% DSO observed on Y users" — those return when
               measured on real, nameable customers. */}
-          <div className="mt-16 grid grid-cols-3 gap-6 border-t border-white/10 pt-12 max-w-lg mx-auto">
+          <div className="mt-16 grid grid-cols-3 gap-px rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-px max-w-lg mx-auto overflow-hidden">
             {[
               { value: '< 60 s', label: 'pour créer une facture' },
               { value: '100 %', label: 'français · RGPD · Europe' },
               { value: 'dès 19 €', label: '/mois après 30 j gratuits' },
             ].map((s) => (
-              <div key={s.label} className="text-center">
-                <div className="font-display text-3xl font-extrabold text-white">{s.value}</div>
-                <div className="text-xs text-white/50 mt-1">{s.label}</div>
+              <div key={s.label} className="text-center bg-ink-950/40 px-3 py-6">
+                <div className="font-display text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{s.value}</div>
+                <div className="text-xs text-white/50 mt-1.5 leading-tight">{s.label}</div>
               </div>
             ))}
           </div>
@@ -187,18 +187,19 @@ export default function HomePage() {
       {/* PAIN POINTS */}
       <section className="py-20 px-4 bg-gray-50">
         <div className="mx-auto max-w-4xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">
+          <div className="flex flex-col items-center text-center mb-12">
+            <span className="section-eyebrow mb-4">Le problème</span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight text-balance">
               Tu gères ton business seul. C&apos;est là que ça coince.
             </h2>
-            <p className="text-gray-500 mt-3 max-w-xl mx-auto">
+            <p className="text-gray-500 mt-4 max-w-xl mx-auto text-pretty">
               Sans outil dédié, les deals s&apos;accumulent dans ta tête, les factures traînent,
               et les relances partent trop tard — ou pas du tout.
             </p>
           </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {painPoints.map((p, i) => (
-              <div key={i} className="rounded-xl bg-white border p-5 space-y-3">
+              <div key={i} className="card-premium p-5 space-y-3">
                 <div className="flex items-start gap-3">
                   <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-red-100 mt-0.5">
                     <X className="h-3.5 w-3.5 text-red-500" />
@@ -226,14 +227,12 @@ export default function HomePage() {
       {/* HOW IT WORKS — La boucle complète */}
       <section id="comment-ca-marche" className="py-20 px-4 bg-white">
         <div className="mx-auto max-w-5xl">
-          <div className="text-center mb-14">
-            <span className="inline-block rounded-full bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 mb-4 uppercase tracking-wider">
-              La boucle complète
-            </span>
-            <h2 className="text-3xl font-bold text-gray-900">
+          <div className="flex flex-col items-center text-center mb-14">
+            <span className="section-eyebrow mb-4">La boucle complète</span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight text-balance">
               Du premier contact à l&apos;encaissement — sans intervention manuelle
             </h2>
-            <p className="text-gray-500 mt-3 max-w-xl mx-auto">
+            <p className="text-gray-500 mt-4 max-w-xl mx-auto text-pretty">
               RelanceFlow connecte ton pipeline commercial, ta facturation et
               tes relances impayées dans une seule interface — pensée pour les indépendants français.
             </p>
@@ -241,7 +240,7 @@ export default function HomePage() {
 
           {/* Flow diagram */}
           <div className="relative">
-            <div className="flex flex-col sm:flex-row items-stretch gap-0 rounded-2xl overflow-hidden border shadow-lg">
+            <div className="flex flex-col sm:flex-row items-stretch gap-0 rounded-2xl overflow-hidden shadow-elevated">
               {steps.map((step, i) => (
                 <div
                   key={step.n}
@@ -292,11 +291,12 @@ export default function HomePage() {
       {/* FEATURES */}
       <section id="fonctionnalites" className="py-20 px-4 bg-gray-50">
         <div className="mx-auto max-w-6xl">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl font-bold text-gray-900">
+          <div className="flex flex-col items-center text-center mb-14">
+            <span className="section-eyebrow mb-4">Fonctionnalités</span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight text-balance">
               Tout ce qu&apos;il faut, rien de superflu
             </h2>
-            <p className="text-gray-500 mt-3">
+            <p className="text-gray-500 mt-4 max-w-xl mx-auto text-pretty">
               Conçu pour les consultants et coaches qui travaillent seuls et n&apos;ont pas de temps à perdre.
             </p>
           </div>
@@ -304,8 +304,8 @@ export default function HomePage() {
             {features.map((f) => {
               const Icon = f.icon
               return (
-                <div key={f.title} className="rounded-xl bg-white border p-6 flex flex-col gap-4">
-                  <div className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${f.color}`}>
+                <div key={f.title} className="card-premium p-6 flex flex-col gap-4">
+                  <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl ring-1 ring-inset ring-black/5 ${f.color}`}>
                     <Icon className="h-5 w-5" />
                   </div>
                   <div>
@@ -322,17 +322,18 @@ export default function HomePage() {
       {/* MOCKUP — Pipeline kanban */}
       <section className="py-20 px-4 bg-white">
         <div className="mx-auto max-w-5xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">
+          <div className="flex flex-col items-center text-center mb-12">
+            <span className="section-eyebrow mb-4">Le produit</span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight text-balance">
               Tous tes deals visibles en un coup d&apos;œil
             </h2>
-            <p className="text-gray-500 mt-3">
+            <p className="text-gray-500 mt-4 max-w-xl mx-auto text-pretty">
               Ajoute un contact en moins de 60 secondes. Glisse-dépose les cartes d&apos;une colonne à l&apos;autre.
             </p>
           </div>
 
           {/* Kanban mockup */}
-          <div className="relative rounded-2xl border shadow-2xl overflow-hidden bg-gray-50">
+          <div className="relative rounded-2xl ring-1 ring-black/5 shadow-elevated overflow-hidden bg-gray-50">
             {/* Window chrome */}
             <div className="flex items-center gap-2 border-b bg-gray-100 px-4 py-2.5">
               <div className="flex gap-1.5">
