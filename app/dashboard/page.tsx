@@ -59,7 +59,7 @@ function kpiCard({
   const c = accents[accent]
   return (
     <div
-      className={`group/kpi relative rounded-xl border ${c.bg} px-5 py-4`}
+      className={`group/kpi relative rounded-xl border ${c.bg} px-5 py-4 shadow-soft`}
       title={help}
     >
       <div className="flex items-start justify-between mb-2">
@@ -196,30 +196,33 @@ export default async function DashboardPage() {
 
         <div className="p-6 max-w-5xl mx-auto space-y-6">
           {/* Welcome */}
-          <div className="rounded-xl bg-gradient-to-br from-blue-700 to-indigo-800 text-white px-6 py-6">
-            <p className="text-blue-200 text-sm mb-1">Bienvenue sur RelanceFlow</p>
-            <h2 className="text-2xl font-bold">
-              {companyName ? `Bonjour, ${companyName}` : 'Votre espace est prêt'}
-            </h2>
-            <p className="text-blue-200 text-sm mt-2 max-w-xl">
-              Commencez par importer vos factures impayées. RelanceFlow se charge ensuite
-              d&apos;envoyer les relances automatiquement selon le scénario que vous choisissez.
-            </p>
-            <div className="mt-4 flex gap-3">
-              <Link
-                href="/dashboard/invoices/import"
-                className="inline-flex items-center gap-2 rounded-lg bg-white text-blue-700 px-4 py-2 text-sm font-semibold hover:bg-blue-50 transition-colors"
-              >
-                <Upload className="h-4 w-4" />
-                Importer un CSV
-              </Link>
-              <Link
-                href="/dashboard/invoices/new"
-                className="inline-flex items-center gap-2 rounded-lg border border-blue-400 text-white px-4 py-2 text-sm font-semibold hover:bg-blue-600 transition-colors"
-              >
-                <Plus className="h-4 w-4" />
-                Saisir manuellement
-              </Link>
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-ink-950 via-ink-900 to-ink-950 text-white px-6 py-7 shadow-elevated">
+            <div className="brand-orb bg-brand-500/30 h-[220px] w-[220px] -top-16 -right-10" />
+            <div className="relative">
+              <p className="text-white/60 text-sm mb-1">Bienvenue sur RelanceFlow</p>
+              <h2 className="font-display text-2xl font-extrabold tracking-tight">
+                {companyName ? `Bonjour, ${companyName}` : 'Ton espace est prêt'}
+              </h2>
+              <p className="text-white/70 text-sm mt-2 max-w-xl leading-relaxed">
+                Commence par importer tes factures impayées. RelanceFlow se charge ensuite
+                d&apos;envoyer les relances automatiquement selon le scénario que tu choisis.
+              </p>
+              <div className="mt-5 flex gap-3">
+                <Link
+                  href="/dashboard/invoices/import"
+                  className="inline-flex items-center gap-2 rounded-lg bg-white text-ink-950 px-4 py-2 text-sm font-semibold hover:bg-white/90 transition-colors"
+                >
+                  <Upload className="h-4 w-4" />
+                  Importer un CSV
+                </Link>
+                <Link
+                  href="/dashboard/invoices/new"
+                  className="inline-flex items-center gap-2 rounded-lg border border-white/20 text-white px-4 py-2 text-sm font-semibold hover:bg-white/10 transition-colors"
+                >
+                  <Plus className="h-4 w-4" />
+                  Saisir manuellement
+                </Link>
+              </div>
             </div>
           </div>
 
@@ -391,7 +394,7 @@ export default async function DashboardPage() {
           </Link>
           <Link
             href="/dashboard/invoices/new"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-brand-gradient px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:shadow-md hover:shadow-brand-500/30 transition-all"
           >
             <Plus className="h-4 w-4" />
             Nouvelle facture
