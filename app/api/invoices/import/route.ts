@@ -110,11 +110,23 @@ export async function POST(request: Request) {
 
     if (error) {
       console.error('Insert error:', error)
+      const code = (error as { code?: string }).code
       // 23505 = unique_violation (duplicate invoice_number for this user)
-      if ((error as { code?: string }).code === '23505') {
+      if (code === '23505') {
         return NextResponse.json(
           { error: 'Un ou plusieurs numéros de facture existent déjà.' },
           { status: 409 }
+        )
+      }
+      // 23514 = check_violation raised by enforce_invoice_quota() — the atomic
+      // DB-side safety net that catches concurrent imports racing the quota.
+      if (code === '23514') {
+        return NextResponse.json(
+          {
+            error: `Limite du plan atteinte (${limit} factures/mois).`,
+            limitReached: true,
+          },
+          { status: 403 }
         )
       }
       return NextResponse.json({ error: "Erreur lors de l'import" }, { status: 500 })

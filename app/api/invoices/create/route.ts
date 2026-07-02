@@ -141,14 +141,24 @@ export async function POST(request: Request) {
 
     if (insertError) {
       console.error('Invoice insert error:', insertError)
+      // 23514 = check_violation raised by enforce_invoice_quota() — the atomic
+      // DB-side safety net for concurrent creates racing the quota.
+      if ((insertError as { code?: string }).code === '23514') {
+        return NextResponse.json(
+          {
+            error: `Limite du plan atteinte (${limit} factures/mois). Passez à un plan supérieur.`,
+            limitReached: true,
+          },
+          { status: 403 }
+        )
+      }
       return NextResponse.json({ error: 'Erreur lors de la création' }, { status: 500 })
     }
 
-    // Update monthly counter
-    await supabase
-      .from('profiles')
-      .update({ invoice_count_month: (currentCount ?? 0) + 1 } as never)
-      .eq('id', user.id)
+    // The monthly usage is derived from a live COUNT of invoices (see
+    // monthlyInvoiceCount / the dashboard), so there's no counter to bump here.
+    // profiles.invoice_count_month is intentionally not updated — it is locked
+    // for the authenticated role by migration 011 and no longer authoritative.
 
     const row = inserted as unknown as { id: string }
     return NextResponse.json({ success: true, id: row.id }, { status: 201 })
