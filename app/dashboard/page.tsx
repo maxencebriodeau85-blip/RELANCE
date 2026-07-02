@@ -51,7 +51,7 @@ function kpiCard({
   numFormat?: 'euro' | 'int' | 'days' | 'percent'
 }) {
   const accents = {
-    blue: { val: 'text-blue-700', bg: 'bg-blue-50 border-blue-100', dot: 'bg-blue-500' },
+    blue: { val: 'text-brand-700', bg: 'bg-blue-50 border-blue-100', dot: 'bg-blue-500' },
     red: { val: 'text-red-600', bg: 'bg-red-50 border-red-100', dot: 'bg-red-500' },
     green: { val: 'text-green-600', bg: 'bg-green-50 border-green-100', dot: 'bg-green-500' },
     gray: { val: 'text-gray-800', bg: 'bg-white border-gray-100', dot: 'bg-gray-400' },
@@ -186,7 +186,7 @@ export default async function DashboardPage() {
             </Link>
             <Link
               href="/dashboard/invoices/new"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700 transition-colors"
             >
               <Plus className="h-4 w-4" />
               Nouvelle facture
@@ -290,7 +290,7 @@ export default async function DashboardPage() {
                         step.done
                           ? 'bg-green-100 text-green-600'
                           : step.active
-                          ? 'bg-blue-600 text-white'
+                          ? 'bg-brand-600 text-white'
                           : 'bg-gray-100 text-gray-400'
                       }`}
                     >
@@ -299,14 +299,14 @@ export default async function DashboardPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <Icon className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                        <span className={`text-sm font-semibold ${step.done ? 'text-green-700 line-through opacity-60' : step.active ? 'text-blue-700' : 'text-gray-700'}`}>
+                        <span className={`text-sm font-semibold ${step.done ? 'text-green-700 line-through opacity-60' : step.active ? 'text-brand-700' : 'text-gray-700'}`}>
                           {step.title}
                         </span>
                       </div>
                       <p className="text-xs text-gray-500 mt-1">{step.desc}</p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0 mt-0.5">
-                      <span className={`text-xs font-medium ${step.done ? 'text-green-600' : step.active ? 'text-blue-600' : 'text-gray-400'}`}>
+                      <span className={`text-xs font-medium ${step.done ? 'text-green-600' : step.active ? 'text-brand-600' : 'text-gray-400'}`}>
                         {step.cta}
                       </span>
                       {!step.done && <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-blue-500 transition-colors" />}
@@ -331,7 +331,7 @@ export default async function DashboardPage() {
                 icon: Clock,
                 title: '3h économisées chaque semaine',
                 body: 'Les relances partent automatiquement selon le scénario configuré — même pendant vos congés ou week-ends.',
-                color: 'text-blue-600',
+                color: 'text-brand-600',
                 bg: 'bg-blue-50',
               },
               {
@@ -507,7 +507,7 @@ export default async function DashboardPage() {
           <Link href="/dashboard/pipeline" className="block rounded-xl border bg-white p-4 hover:shadow-md transition-shadow group">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <Kanban className="h-4 w-4 text-blue-600" />
+                <Kanban className="h-4 w-4 text-brand-600" />
                 <h3 className="text-sm font-semibold text-gray-900">Pipeline commercial</h3>
               </div>
               <div className="flex items-center gap-3 text-xs text-gray-500">
@@ -548,7 +548,7 @@ export default async function DashboardPage() {
               </div>
               <Link
                 href="/dashboard/invoices"
-                className="text-xs font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                className="text-xs font-medium text-brand-600 hover:text-brand-700 flex items-center gap-1"
               >
                 Voir tout
                 <ChevronRight className="h-3.5 w-3.5" />
@@ -700,7 +700,7 @@ export default async function DashboardPage() {
                       className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors group"
                     >
                       <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50">
-                        <Icon className="h-3.5 w-3.5 text-blue-600" />
+                        <Icon className="h-3.5 w-3.5 text-brand-600" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium text-gray-800">{action.label}</p>

@@ -112,7 +112,7 @@ export default async function StatsPage() {
 
   // ── Activity by type
   const activityTypes = [
-    { key: 'call', label: 'Appels', icon: Phone, color: 'text-blue-600 bg-blue-50' },
+    { key: 'call', label: 'Appels', icon: Phone, color: 'text-brand-600 bg-blue-50' },
     { key: 'email', label: 'Emails', icon: Mail, color: 'text-violet-600 bg-violet-50' },
     { key: 'note', label: 'Notes', icon: MessageSquare, color: 'text-gray-600 bg-gray-100' },
     { key: 'meeting', label: 'Réunions', icon: Calendar, color: 'text-amber-600 bg-amber-50' },
@@ -139,7 +139,7 @@ export default async function StatsPage() {
   const kpis = [
     { label: 'Encaissé total', value: formatEuro(totalCollected), sub: `sur ${formatEuro(totalInvoiced)} facturés`, color: 'text-green-600', bg: 'bg-green-50 border-green-100', icon: TrendingUp },
     { label: 'Taux de recouvrement', value: `${recoveryRate}%`, sub: recoveryRate >= 80 ? 'Excellent' : recoveryRate >= 60 ? 'Correct' : 'À améliorer', color: recoveryRate >= 70 ? 'text-green-600' : 'text-amber-600', bg: recoveryRate >= 70 ? 'bg-green-50 border-green-100' : 'bg-amber-50 border-amber-100', icon: Target },
-    { label: 'Pipeline actif', value: formatEuro(pipelineValue), sub: `${activeDeals} deal${activeDeals > 1 ? 's' : ''} en cours`, color: 'text-blue-600', bg: 'bg-blue-50 border-blue-100', icon: Users },
+    { label: 'Pipeline actif', value: formatEuro(pipelineValue), sub: `${activeDeals} deal${activeDeals > 1 ? 's' : ''} en cours`, color: 'text-brand-600', bg: 'bg-blue-50 border-blue-100', icon: Users },
     { label: 'Taux de closing', value: winRate > 0 ? `${winRate}%` : '—', sub: avgDealSize > 0 ? `Taille moy. ${formatEuro(avgDealSize)}` : 'Données insuffisantes', color: 'text-violet-600', bg: 'bg-violet-50 border-violet-100', icon: Award },
   ]
 
@@ -162,7 +162,7 @@ export default async function StatsPage() {
               Ajoutez des factures et des contacts pour voir vos statistiques s&apos;animer.
             </p>
             <div className="flex justify-center gap-3">
-              <Link href="/dashboard/pipeline" className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700 transition-colors">
+              <Link href="/dashboard/pipeline" className="rounded-lg bg-brand-600 text-white px-4 py-2 text-sm font-medium hover:bg-brand-700 transition-colors">
                 Ajouter des contacts
               </Link>
               <Link href="/dashboard/invoices/new" className="rounded-lg border border-gray-200 text-gray-700 px-4 py-2 text-sm font-medium hover:bg-gray-50 transition-colors">
@@ -293,7 +293,7 @@ export default async function StatsPage() {
                 {hasDsoData && (
                   <div className="text-right">
                     <p className="text-xs text-gray-500">Dernier mois</p>
-                    <p className="text-2xl font-bold text-blue-700">
+                    <p className="text-2xl font-bold text-brand-700">
                       {dsoData[dsoData.length - 1].value}
                       <span className="text-sm font-normal text-gray-400 ml-1">j</span>
                     </p>
@@ -327,7 +327,7 @@ export default async function StatsPage() {
                     <h3 className="text-sm font-semibold text-gray-900">Top clients</h3>
                     <p className="text-xs text-gray-400 mt-0.5">Par montant total facturé</p>
                   </div>
-                  <Link href="/dashboard/invoices" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                  <Link href="/dashboard/invoices" className="text-xs text-brand-600 hover:text-brand-700 flex items-center gap-1">
                     Voir factures <ChevronRight className="h-3 w-3" />
                   </Link>
                 </div>

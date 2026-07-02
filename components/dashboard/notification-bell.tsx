@@ -18,7 +18,7 @@ interface Notif {
 }
 
 const TYPE_ICONS: Record<string, { icon: typeof Bell; color: string }> = {
-  follow_up:      { icon: Phone,    color: 'text-blue-600 bg-blue-50' },
+  follow_up:      { icon: Phone,    color: 'text-brand-600 bg-blue-50' },
   reminder:       { icon: Bell,     color: 'text-amber-600 bg-amber-50' },
   invoice_overdue:{ icon: FileText, color: 'text-red-600 bg-red-50' },
   deal_signed:    { icon: Users,    color: 'text-green-600 bg-green-50' },
@@ -166,7 +166,7 @@ export function NotificationBell() {
             <Link
               href="/dashboard/notifications"
               onClick={() => setOpen(false)}
-              className="text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline"
+              className="text-xs font-medium text-brand-600 hover:text-brand-700 hover:underline"
             >
               Voir tout →
             </Link>

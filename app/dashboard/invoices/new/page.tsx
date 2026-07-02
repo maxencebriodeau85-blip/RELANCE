@@ -278,7 +278,7 @@ function NewInvoiceForm() {
                       key={d}
                       type="button"
                       onClick={() => setForm((f) => ({ ...f, due_date: addDays(f.issued_date || todayStr, d) }))}
-                      className="text-xs px-2 py-0.5 rounded border border-gray-200 hover:border-blue-300 hover:text-blue-700 transition-colors"
+                      className="text-xs px-2 py-0.5 rounded border border-gray-200 hover:border-blue-300 hover:text-brand-700 transition-colors"
                     >
                       +{d}j
                     </button>

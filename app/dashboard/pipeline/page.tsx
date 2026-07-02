@@ -33,7 +33,7 @@ const STAGES: {
   border: string
   accent: string
 }[] = [
-  { key: 'prospect',  label: 'Prospect',    color: 'text-blue-700',   bg: 'bg-blue-50/60',   border: 'border-blue-200',   accent: 'bg-blue-500' },
+  { key: 'prospect',  label: 'Prospect',    color: 'text-brand-700',   bg: 'bg-blue-50/60',   border: 'border-blue-200',   accent: 'bg-blue-500' },
   { key: 'qualified', label: 'Qualifié',    color: 'text-violet-700', bg: 'bg-violet-50/60', border: 'border-violet-200', accent: 'bg-violet-500' },
   { key: 'proposal',  label: 'Proposition', color: 'text-amber-700',  bg: 'bg-amber-50/60',  border: 'border-amber-200',  accent: 'bg-amber-500' },
   { key: 'signed',    label: 'Signé',       color: 'text-green-700',  bg: 'bg-green-50/60',  border: 'border-green-200',  accent: 'bg-green-500' },
@@ -219,7 +219,7 @@ export default function PipelinePage() {
             </div>
             <button
               onClick={() => { setShowAdd(true); setFormErr('') }}
-              className="flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3.5 py-2 transition-colors"
+              className="flex items-center gap-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-3.5 py-2 transition-colors"
             >
               <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">Ajouter</span>
@@ -256,7 +256,7 @@ export default function PipelinePage() {
               </p>
               <button
                 onClick={() => { setShowAdd(true); setFormErr('') }}
-                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 transition-colors"
+                className="inline-flex items-center gap-2 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-5 py-2.5 transition-colors"
               >
                 <Plus className="h-4 w-4" />
                 Ajouter mon premier contact
@@ -268,7 +268,7 @@ export default function PipelinePage() {
                   { step: '3', label: 'RelanceFlow relance', sub: 'J+3, J+7, J+14 automatiquement' },
                 ].map(({ step, label, sub }) => (
                   <div key={step} className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-                    <div className="text-xs font-bold text-blue-600 mb-1">Étape {step}</div>
+                    <div className="text-xs font-bold text-brand-600 mb-1">Étape {step}</div>
                     <div className="text-xs font-semibold text-gray-800">{label}</div>
                     <div className="text-xs text-gray-500 mt-0.5">{sub}</div>
                   </div>
@@ -451,7 +451,7 @@ export default function PipelinePage() {
               <button
                 onClick={handleAdd}
                 disabled={saving}
-                className="rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-50 px-4 py-2 text-sm font-medium text-white transition-colors"
+                className="rounded-lg bg-brand-600 hover:bg-brand-700 disabled:opacity-50 px-4 py-2 text-sm font-medium text-white transition-colors"
               >
                 {saving ? 'Création...' : 'Créer le contact'}
               </button>

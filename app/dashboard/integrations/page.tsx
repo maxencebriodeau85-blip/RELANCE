@@ -57,7 +57,7 @@ const CONNECTORS = [
     name: 'EBP',
     description: 'Connexion native aux dossiers EBP Comptabilité et EBP Gestion commerciale.',
     logo: '🔵',
-    color: 'from-blue-500 to-blue-700',
+    color: 'from-blue-500 to-brand-700',
     available: false,
   },
   {
@@ -85,7 +85,7 @@ function WaitlistButton({ name }: { name: string }) {
       onClick={() =>
         toast({ title: `Liste d'attente ${name}`, description: 'Nous vous notifierons dès que cette intégration sera disponible.' })
       }
-      className="text-xs text-gray-400 hover:text-blue-600 underline underline-offset-2 transition-colors"
+      className="text-xs text-gray-400 hover:text-brand-600 underline underline-offset-2 transition-colors"
     >
       M&apos;avertir à la sortie
     </button>

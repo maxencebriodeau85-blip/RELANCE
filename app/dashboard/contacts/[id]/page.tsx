@@ -48,7 +48,7 @@ interface Invoice {
 }
 
 const STAGES: { key: PipelineStage; label: string; color: string; dot: string }[] = [
-  { key: 'prospect',  label: 'Prospect',    color: 'text-blue-600',   dot: 'bg-blue-500' },
+  { key: 'prospect',  label: 'Prospect',    color: 'text-brand-600',   dot: 'bg-blue-500' },
   { key: 'qualified', label: 'Qualifié',    color: 'text-violet-600', dot: 'bg-violet-500' },
   { key: 'proposal',  label: 'Proposition', color: 'text-amber-600',  dot: 'bg-amber-500' },
   { key: 'signed',    label: 'Signé',       color: 'text-green-600',  dot: 'bg-green-500' },
@@ -56,7 +56,7 @@ const STAGES: { key: PipelineStage; label: string; color: string; dot: string }[
 ]
 
 const JOURNAL_TYPES: { key: JournalType; label: string; icon: typeof PhoneCall; color: string }[] = [
-  { key: 'call',    label: 'Appel',    icon: PhoneCall,      color: 'text-blue-600 bg-blue-50 border-blue-200' },
+  { key: 'call',    label: 'Appel',    icon: PhoneCall,      color: 'text-brand-600 bg-blue-50 border-blue-200' },
   { key: 'email',   label: 'Email',    icon: Mail,           color: 'text-violet-600 bg-violet-50 border-violet-200' },
   { key: 'note',    label: 'Note',     icon: MessageSquare,  color: 'text-gray-600 bg-gray-50 border-gray-200' },
   { key: 'meeting', label: 'Réunion',  icon: Users,          color: 'text-amber-600 bg-amber-50 border-amber-200' },
@@ -64,7 +64,7 @@ const JOURNAL_TYPES: { key: JournalType; label: string; icon: typeof PhoneCall; 
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   pending:       { label: 'En attente',  color: 'text-amber-700 bg-amber-50' },
-  reminded:      { label: 'Relancée',    color: 'text-blue-700 bg-blue-50' },
+  reminded:      { label: 'Relancée',    color: 'text-brand-700 bg-blue-50' },
   formal_notice: { label: 'Mise en demeure', color: 'text-red-700 bg-red-50' },
   paid:          { label: 'Payée',       color: 'text-green-700 bg-green-50' },
   disputed:      { label: 'Litige',      color: 'text-gray-700 bg-gray-100' },
@@ -172,7 +172,7 @@ export default function ContactDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-600 border-t-transparent" />
       </div>
     )
   }
@@ -455,7 +455,7 @@ export default function ContactDetailPage() {
               <button
                 onClick={addJournal}
                 disabled={!jContent.trim() || jSaving}
-                className="flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-40 px-3.5 py-1.5 text-sm font-medium text-white transition-colors"
+                className="flex items-center gap-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 disabled:opacity-40 px-3.5 py-1.5 text-sm font-medium text-white transition-colors"
               >
                 <Plus className="h-3.5 w-3.5" />
                 {jSaving ? 'Ajout...' : 'Ajouter'}
@@ -513,7 +513,7 @@ export default function ContactDetailPage() {
         <div className="space-y-3">
           <Link
             href={`/dashboard/invoices/new?contact=${contact.id}&name=${encodeURIComponent(contact.name)}&email=${encodeURIComponent(contact.email || '')}&amount=${contact.deal_amount || ''}`}
-            className="flex items-center gap-2 rounded-xl border border-dashed border-blue-200 bg-blue-50 p-4 text-sm font-medium text-blue-600 hover:bg-blue-100 transition-colors"
+            className="flex items-center gap-2 rounded-xl border border-dashed border-blue-200 bg-blue-50 p-4 text-sm font-medium text-brand-600 hover:bg-blue-100 transition-colors"
           >
             <Plus className="h-4 w-4" />
             Créer une facture pour {contact.name}

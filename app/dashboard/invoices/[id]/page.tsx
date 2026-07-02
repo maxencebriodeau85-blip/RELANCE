@@ -42,7 +42,7 @@ const reminderTypeTone: Record<string, string> = {
 }
 
 const reminderStatusConfig: Record<string, { label: string; color: string; dot: string }> = {
-  sent: { label: 'Envoyé', color: 'text-blue-600', dot: 'bg-blue-500' },
+  sent: { label: 'Envoyé', color: 'text-brand-600', dot: 'bg-blue-500' },
   delivered: { label: 'Délivré', color: 'text-green-600', dot: 'bg-green-500' },
   opened: { label: 'Ouvert', color: 'text-emerald-600', dot: 'bg-emerald-500' },
   clicked: { label: 'Cliqué', color: 'text-purple-600', dot: 'bg-purple-500' },
@@ -433,7 +433,7 @@ export default function InvoiceDetailPage() {
                 </div>
                 <div>
                   <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Email</div>
-                  <a href={`mailto:${invoice.client_email}`} className="flex items-center gap-1 text-blue-600 hover:underline text-sm">
+                  <a href={`mailto:${invoice.client_email}`} className="flex items-center gap-1 text-brand-600 hover:underline text-sm">
                     <Mail className="h-3.5 w-3.5 text-gray-400" />
                     {invoice.client_email}
                   </a>
@@ -458,7 +458,7 @@ export default function InvoiceDetailPage() {
               <Card className="border-blue-100 bg-blue-50/40">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
-                    <Send className="h-4 w-4 text-blue-600" />
+                    <Send className="h-4 w-4 text-brand-600" />
                     Envoyer une relance
                   </CardTitle>
                   <CardDescription>Choisissez le type de relance adapté à la situation</CardDescription>
