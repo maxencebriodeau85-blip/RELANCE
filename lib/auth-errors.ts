@@ -60,7 +60,10 @@ export function supabaseAuthError(message: string, status?: number): string {
   }
 
   if (m.includes('network') || m.includes('fetch')) {
-    return 'Erreur réseau. Vérifiez votre connexion et réessayez.'
+    // "Failed to fetch" côté Supabase = l'API du projet est injoignable.
+    // Cause n°1 : projet Supabase gratuit mis en pause (à réactiver depuis le
+    // dashboard). Cause n°2 : NEXT_PUBLIC_SUPABASE_URL mal renseignée.
+    return "Le service d'authentification ne répond pas. Réessaie dans un instant. Si le problème persiste et que tu gères le site, vérifie que ton projet Supabase n'est pas en pause (dashboard Supabase → Restore)."
   }
 
   // Never expose raw Supabase / English error strings to the user
