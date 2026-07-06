@@ -44,7 +44,21 @@ function ConfirmContent() {
           window.location.href = next
           return
         }
-        setErrorMsg('Ce lien est invalide ou a expiré.')
+        // The PKCE code_verifier lives in a cookie set on the device/browser
+        // where signup happened. Opening the email link in a different
+        // context (an in-app mail browser, another device) means that cookie
+        // is missing and the exchange fails HERE even though the email was
+        // already confirmed server-side. Before declaring an error, check
+        // whether a session already exists (e.g. a previous attempt in this
+        // same browser succeeded) — if so, just proceed instead of blocking
+        // the user on a false "invalid link".
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session) {
+          setStatus('success')
+          window.location.href = next
+          return
+        }
+        setErrorMsg("Ce lien n'a pas pu être validé sur cet appareil ou ce navigateur.")
         setStatus('error')
         return
       }
@@ -110,21 +124,32 @@ function ConfirmContent() {
   if (status === 'error') {
     return (
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-lg p-8 text-center space-y-5">
-        <div className="h-14 w-14 rounded-full bg-red-100 flex items-center justify-center mx-auto">
-          <AlertCircle className="h-7 w-7 text-red-600" />
+        <div className="h-14 w-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto">
+          <AlertCircle className="h-7 w-7 text-amber-600" />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Lien invalide</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Le lien n&apos;a pas pu être validé ici</h2>
           <p className="text-sm text-gray-500 mt-1">{errorMsg}</p>
+          {/* This most often means the email was already confirmed on Supabase's
+              side (verified server-side) but the browser that opened the link
+              (e.g. an in-app mail browser) doesn't have the cookies from the
+              device where the account was created — the PKCE code exchange
+              then fails locally even though confirmation succeeded. Steering
+              to login first avoids the dead end of "email already registered"
+              that "Créer un nouveau compte" used to cause here. */}
+          <p className="text-xs text-gray-400 mt-2">
+            Ton adresse est probablement déjà validée. Essaie de te connecter directement —
+            si ça ne fonctionne pas, redemande un lien depuis la page de connexion.
+          </p>
         </div>
         <Link
-          href="/auth/register"
-          className="block w-full py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
+          href="/auth/login"
+          className="block w-full py-2.5 rounded-xl bg-brand-gradient text-white text-sm font-semibold hover:shadow-md transition-all"
         >
-          Créer un nouveau compte
+          Se connecter
         </Link>
-        <Link href="/auth/login" className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
-          J&apos;ai déjà un compte
+        <Link href="/auth/register" className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+          Créer un nouveau compte
         </Link>
       </div>
     )
