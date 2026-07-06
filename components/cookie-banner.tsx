@@ -25,6 +25,10 @@ function writeConsent(v: Exclude<Consent, null>): void {
   } catch {
     // fallthrough
   }
+  // Lets other fixed-bottom UI (e.g. the mobile sticky CTA bar) know it's now
+  // safe to appear — never show alongside this banner, same "one thing fixed
+  // to the bottom at a time" rule that fixed the login-button overlap bug.
+  window.dispatchEvent(new Event('rf-cookie-consent-changed'))
 }
 
 export function CookieBanner() {

@@ -170,6 +170,11 @@ export function PricingSection() {
                       Économie : {savingsPerYear} € /an
                     </p>
                   )}
+                  {p.id === 'starter' && (
+                    <p className="text-xs font-semibold text-brand-700 mt-2">
+                      Rentabilisé dès ta première facture récupérée
+                    </p>
+                  )}
                 </div>
 
                 <Link

@@ -15,6 +15,7 @@ import { Magnetic } from '@/components/effects/magnetic'
 import { SpotlightGroup } from '@/components/effects/spotlight-group'
 import { TiltCard } from '@/components/effects/tilt-card'
 import { HeroPreviewCard } from '@/components/landing/hero-preview-card'
+import { StickyMobileCta } from '@/components/landing/sticky-mobile-cta'
 import {
   ArrowRight,
   CheckCircle,
@@ -514,6 +515,10 @@ export default function HomePage() {
 
       {/* FOOTER */}
       <SiteFooter />
+
+      {/* Sticky mobile CTA — appears past the hero, hides near the footer,
+          never alongside the cookie banner. See sticky-mobile-cta.tsx. */}
+      <StickyMobileCta />
     </div>
   )
 }
