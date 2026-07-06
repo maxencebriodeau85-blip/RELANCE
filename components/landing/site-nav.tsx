@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Menu, X } from 'lucide-react'
 import { Logo } from '@/components/brand/logo'
+import { Magnetic } from '@/components/effects/magnetic'
 
 const LINKS = [
   { href: '/#produit', label: 'Produit' },
@@ -70,12 +71,14 @@ export function SiteNav() {
           >
             Se connecter
           </Link>
-          <Link
-            href="/auth/register"
-            className="rounded-lg bg-brand-gradient text-white text-sm font-semibold px-4 py-2 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all"
-          >
-            Essai gratuit 30j
-          </Link>
+          <Magnetic strength={0.35}>
+            <Link
+              href="/auth/register"
+              className="rounded-lg bg-brand-gradient text-white text-sm font-semibold px-4 py-2 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all"
+            >
+              Essai gratuit 30j
+            </Link>
+          </Magnetic>
         </div>
 
         {/* Mobile burger */}

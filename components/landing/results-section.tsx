@@ -1,4 +1,5 @@
 import { ArrowRight, Check, X } from 'lucide-react'
+import { SpotlightGroup } from '@/components/effects/spotlight-group'
 
 // "Avant / Après" of the workflow itself — no fabricated %, no claim like
 // "−42% DSO observed on 30 users" (audit June 2026: not measurable yet,
@@ -43,9 +44,9 @@ export function ResultsSection() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <SpotlightGroup className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {COMPARISONS.map((c) => (
-            <div key={c.metric} className="card-premium p-6">
+            <div key={c.metric} className="card-premium card-spotlight p-6">
               <h3 className="text-sm font-semibold text-gray-900 mb-4">{c.metric}</h3>
               <div className="space-y-3">
                 <div className="flex items-start gap-2.5">
@@ -69,7 +70,7 @@ export function ResultsSection() {
               </div>
             </div>
           ))}
-        </div>
+        </SpotlightGroup>
 
         <div className="text-center mt-10 text-sm text-gray-500">
           Tu veux mesurer combien de temps tu gagnes vraiment ?{' '}
