@@ -41,6 +41,18 @@ Vercel → projet `relance` → **Settings → Environment Variables**. Ajoute (
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe → API keys | Checkout |
 | `STRIPE_WEBHOOK_SECRET` | Stripe → Webhooks (étape 4) | Confirmation paiement |
 | `STRIPE_STARTER_PRICE_ID` / `_PRO_` / `_BUSINESS_` | Stripe → Products | Choix du plan |
+
+> **Produits Stripe déjà créés** (compte "environnement de test RelanceFlow", mode test) —
+> colle ces 3 valeurs directement dans les variables `STRIPE_STARTER_PRICE_ID` / `_PRO_` / `_BUSINESS_` :
+> - Starter (19 €/mois) → `price_1TqHKAClFPaDnX9xW2c7NOlf`
+> - Pro (49 €/mois) → `price_1TqHKDClFPaDnX9x7kMBEIBH`
+> - Business (99 €/mois) → `price_1TqHKFClFPaDnX9xZzM6qPa3`
+>
+> Ce sont des IDs de **mode test** — corrects pour valider le parcours de bout en
+> bout sans vraie carte bancaire (utilise le numéro de test Stripe `4242 4242 4242 4242`,
+> n'importe quelle date future, n'importe quel CVC). Avant un vrai lancement
+> commercial, recrée les mêmes produits en **mode live** dans Stripe et remplace
+> ces valeurs par les IDs `price_...` du mode live.
 | `RESEND_API_KEY` | resend.com → API Keys | Envoi des relances |
 | `RESEND_FROM_EMAIL` | ex. `relances@tondomaine.fr` (domaine vérifié Resend) | Envoi des relances |
 | `CRON_SECRET` | une chaîne aléatoire que tu choisis | Sécurise le cron de relances |
