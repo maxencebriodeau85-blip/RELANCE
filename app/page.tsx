@@ -8,6 +8,7 @@ import { ProductTourSection } from '@/components/landing/product-tour'
 import { SiteFooter } from '@/components/landing/footer'
 import { SiteNav } from '@/components/landing/site-nav'
 import { TrustStrip } from '@/components/landing/trust-strip'
+import { HeroNetworkCanvas } from '@/components/landing/hero-network-canvas'
 import { Reveal } from '@/components/reveal'
 import {
   ArrowRight,
@@ -119,6 +120,9 @@ export default function HomePage() {
 
         {/* Subtle grid */}
         <div className="absolute inset-0 bg-grid-dark" />
+
+        {/* Animated constellation network */}
+        <HeroNetworkCanvas />
 
         <div className="mx-auto max-w-4xl text-center relative">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 backdrop-blur px-3 sm:px-4 py-1.5 text-xs sm:text-sm text-white/80 mb-8 max-w-[90vw]">
