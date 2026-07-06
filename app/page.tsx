@@ -10,6 +10,9 @@ import { SiteNav } from '@/components/landing/site-nav'
 import { TrustStrip } from '@/components/landing/trust-strip'
 import { HeroNetworkCanvas } from '@/components/landing/hero-network-canvas'
 import { Reveal } from '@/components/reveal'
+import { ParallaxOrbs } from '@/components/effects/parallax-orbs'
+import { Magnetic } from '@/components/effects/magnetic'
+import { SpotlightGroup } from '@/components/effects/spotlight-group'
 import {
   ArrowRight,
   CheckCircle,
@@ -113,10 +116,8 @@ export default function HomePage() {
 
       {/* HERO */}
       <section id="main-content" className="relative bg-gradient-to-b from-ink-950 via-ink-900 to-ink-950 pt-20 pb-28 px-4 overflow-hidden">
-        {/* Brand orbs */}
-        <div className="brand-orb bg-brand-500/40 h-[340px] w-[340px] -top-20 -left-32" />
-        <div className="brand-orb bg-fuchsia-500/30 h-[420px] w-[420px] top-10 -right-40" />
-        <div className="brand-orb bg-amber-400/20 h-[260px] w-[260px] bottom-0 left-1/3" />
+        {/* Brand orbs — scroll-linked parallax depth */}
+        <ParallaxOrbs />
 
         {/* Subtle grid */}
         <div className="absolute inset-0 bg-grid-dark" />
@@ -147,13 +148,15 @@ export default function HomePage() {
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              href="/auth/register"
-              className="group flex items-center gap-2 rounded-xl bg-brand-gradient text-white font-bold px-7 py-3.5 text-base transition-all shadow-xl shadow-brand-500/40 hover:shadow-2xl hover:scale-[1.02]"
-            >
-              Démarrer gratuitement — 30 jours
-              <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
+            <Magnetic strength={0.3}>
+              <Link
+                href="/auth/register"
+                className="btn-shimmer group flex items-center gap-2 rounded-xl bg-brand-gradient text-white font-bold px-7 py-3.5 text-base transition-all shadow-xl shadow-brand-500/40 hover:shadow-2xl hover:scale-[1.02]"
+              >
+                Démarrer gratuitement — 30 jours
+                <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            </Magnetic>
             <a
               href="#produit"
               className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 backdrop-blur text-white/80 hover:text-white hover:border-white/40 font-medium px-6 py-3.5 text-base transition-all"
@@ -201,9 +204,9 @@ export default function HomePage() {
               et les relances partent trop tard — ou pas du tout.
             </p>
           </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <SpotlightGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {painPoints.map((p, i) => (
-              <div key={i} className="card-premium p-5 space-y-3">
+              <div key={i} className="card-premium card-spotlight p-5 space-y-3">
                 <div className="flex items-start gap-3">
                   <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-red-100 mt-0.5">
                     <X className="h-3.5 w-3.5 text-red-500" />
@@ -218,7 +221,7 @@ export default function HomePage() {
                 </div>
               </div>
             ))}
-          </div>
+          </SpotlightGroup>
         </div>
       </section>
 
@@ -304,11 +307,11 @@ export default function HomePage() {
               Conçu pour les consultants et coaches qui travaillent seuls et n&apos;ont pas de temps à perdre.
             </p>
           </div>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <SpotlightGroup className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((f) => {
               const Icon = f.icon
               return (
-                <div key={f.title} className="card-premium p-6 flex flex-col gap-4">
+                <div key={f.title} className="card-premium card-spotlight p-6 flex flex-col gap-4">
                   <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl ring-1 ring-inset ring-black/5 ${f.color}`}>
                     <Icon className="h-5 w-5" />
                   </div>
@@ -319,7 +322,7 @@ export default function HomePage() {
                 </div>
               )
             })}
-          </div>
+          </SpotlightGroup>
         </div>
       </section>
 
@@ -474,13 +477,15 @@ export default function HomePage() {
             Maxence — créateur de RelanceFlow
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              href="/auth/register"
-              className="group flex items-center gap-2 rounded-xl bg-brand-gradient text-white font-bold px-8 py-4 text-base transition-all shadow-xl shadow-brand-500/40 hover:scale-[1.02]"
-            >
-              Bloquer mon tarif fondateur
-              <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
+            <Magnetic strength={0.25}>
+              <Link
+                href="/auth/register"
+                className="group flex items-center gap-2 rounded-xl bg-brand-gradient text-white font-bold px-8 py-4 text-base transition-all shadow-xl shadow-brand-500/40 hover:scale-[1.02]"
+              >
+                Bloquer mon tarif fondateur
+                <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            </Magnetic>
             <a
               href="mailto:hello@relanceflow.fr"
               className="flex items-center gap-2 rounded-xl border border-white/20 text-white/70 hover:text-white hover:border-white/40 font-medium px-6 py-4 text-base transition-all"

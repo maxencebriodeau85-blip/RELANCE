@@ -1,5 +1,6 @@
 import { Sparkles, MessageSquare, Clock, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { SpotlightGroup } from '@/components/effects/spotlight-group'
 
 // Early-access mode: no fabricated metrics, no nominative quotes with euro
 // amounts (audit June 2026 — these contradict the "avant-première" positioning
@@ -41,11 +42,11 @@ export function TestimonialsSection() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <SpotlightGroup className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           {EARLY_PROMISES.map((p) => {
             const Icon = p.icon
             return (
-              <div key={p.title} className="card-premium p-6">
+              <div key={p.title} className="card-premium card-spotlight p-6">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600 ring-1 ring-inset ring-brand-500/10 mb-4">
                   <Icon className="h-5 w-5" />
                 </div>
@@ -54,7 +55,7 @@ export function TestimonialsSection() {
               </div>
             )
           })}
-        </div>
+        </SpotlightGroup>
 
         <div className="text-center">
           <Link

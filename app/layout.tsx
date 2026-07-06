@@ -5,6 +5,7 @@ import { Toaster } from '@/components/ui/toaster'
 import { CookieBanner } from '@/components/cookie-banner'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import { ScrollProgress } from '@/components/effects/scroll-progress'
 
 // DA 2026-07 : Inter unique, graisses 400/500/600/700.
 // La même variable alimente --font-body ET --font-display (globals.css).
@@ -124,6 +125,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-sans">
+        <ScrollProgress />
         {/* Skip-to-main link — visible on keyboard focus only.
             Lets keyboard / screen-reader users bypass the nav. */}
         <a

@@ -218,6 +218,43 @@
     opacity: 0.45;
     pointer-events: none;
   }
+
+  /* ─── Cursor-follow spotlight glow ──────────────────────────────────────
+     Paired with <SpotlightGroup>, which writes --x/--y in px on pointermove.
+     GPU-cheap: only a radial-gradient position + opacity change per frame. */
+  .card-spotlight {
+    position: relative;
+    overflow: hidden;
+  }
+  .card-spotlight::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(420px circle at var(--x, 50%) var(--y, 50%), hsl(var(--brand-500) / 0.14), transparent 70%);
+    opacity: 0;
+    transition: opacity 300ms ease;
+    pointer-events: none;
+  }
+  .card-spotlight:hover::before {
+    opacity: 1;
+  }
+
+  /* ─── Shimmer sweep ──────────────────────────────────────────────────────
+     Slow looping highlight across the flagship hero CTA — signals "premium"
+     for near-zero cost (background-position is compositor-only). Used
+     sparingly (one button), not as a global button style. */
+  .btn-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-shimmer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 30%, hsl(0 0% 100% / 0.35) 45%, transparent 60%);
+    background-size: 200% 100%;
+    animation: shimmer-sweep 3.2s ease-in-out infinite;
+  }
 }
 
 @layer utilities {
@@ -236,15 +273,24 @@
   animation: page-enter 250ms ease-out both;
 }
 
-/* Scroll reveal — toggled by <Reveal> via IntersectionObserver, fires once */
+/* Scroll reveal — toggled by <Reveal> via IntersectionObserver, fires once.
+   easeOutExpo-style curve reads distinctly more "premium" than plain ease-out
+   for the same transform/opacity cost. */
 .reveal-hidden {
   opacity: 0;
-  transform: translateY(16px);
+  transform: translateY(20px) scale(0.98);
 }
 .reveal-visible {
   opacity: 1;
-  transform: translateY(0);
-  transition: opacity 350ms ease-out, transform 350ms ease-out;
+  transform: translateY(0) scale(1);
+  transition: opacity 550ms cubic-bezier(0.16, 1, 0.3, 1), transform 550ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Shimmer sweep keyframes — see .btn-shimmer above. */
+@keyframes shimmer-sweep {
+  0%   { background-position: 150% 0; }
+  55%  { background-position: -50% 0; }
+  100% { background-position: -50% 0; }
 }
 
 /* Drawn checkmark — stroke reveals over 400ms */
@@ -282,6 +328,13 @@
   .card-lift:hover {
     transition: none;
     transform: none;
+  }
+  .btn-shimmer::after {
+    animation: none;
+  }
+  .card-spotlight::before {
+    transition: none;
+    opacity: 0 !important;
   }
 }
 
