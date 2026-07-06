@@ -255,6 +255,46 @@
     background-size: 200% 100%;
     animation: shimmer-sweep 3.2s ease-in-out infinite;
   }
+
+  /* ─── Hero product visual: floating glow border ─────────────────────────
+     Slowly-rotating conic gradient ring behind the hero dashboard preview —
+     the "flagship visual" treatment on Linear/Framer/Vercel heroes. Falls
+     back to a static gradient ring in browsers without @property support
+     (rotation just doesn't animate — no error, still looks intentional). */
+  .glow-border {
+    position: relative;
+    border-radius: 1rem;
+  }
+  .glow-border::before {
+    content: '';
+    position: absolute;
+    inset: -1.5px;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: conic-gradient(from var(--angle, 0deg), #8a6bff, #6b8cff, #ff67c0, #ffc857, #8a6bff);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: glow-rotate 6s linear infinite;
+    pointer-events: none;
+  }
+  @property --angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+  }
+  @keyframes glow-rotate {
+    to { --angle: 360deg; }
+  }
+
+  /* Gentle floating bob — gives the hero visual a "living" feel. */
+  @keyframes float-idle {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-10px); }
+  }
+  .animate-float {
+    animation: float-idle 5s ease-in-out infinite;
+  }
 }
 
 @layer utilities {
@@ -335,6 +375,12 @@
   .card-spotlight::before {
     transition: none;
     opacity: 0 !important;
+  }
+  .glow-border::before {
+    animation: none;
+  }
+  .animate-float {
+    animation: none;
   }
 }
 

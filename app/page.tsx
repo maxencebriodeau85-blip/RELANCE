@@ -13,6 +13,8 @@ import { Reveal } from '@/components/reveal'
 import { ParallaxOrbs } from '@/components/effects/parallax-orbs'
 import { Magnetic } from '@/components/effects/magnetic'
 import { SpotlightGroup } from '@/components/effects/spotlight-group'
+import { TiltCard } from '@/components/effects/tilt-card'
+import { HeroPreviewCard } from '@/components/landing/hero-preview-card'
 import {
   ArrowRight,
   CheckCircle,
@@ -169,6 +171,17 @@ export default function HomePage() {
           <p className="mt-5 text-sm text-white/40">
             Sans carte bancaire · Données hébergées en Europe · Annulation en 1 clic
           </p>
+
+          {/* Hero product visual — floating 3D-tilt dashboard preview.
+              Purely illustrative (see hero-preview-card.tsx), the flagship
+              "wow" visual treatment used by Linear/Framer/Vercel heroes. */}
+          <div className="mt-14 flex justify-center px-4">
+            <TiltCard className="w-full max-w-md animate-float">
+              <div className="glow-border">
+                <HeroPreviewCard />
+              </div>
+            </TiltCard>
+          </div>
 
           {/* Mini stats — only what is verifiable about the product itself.
               No fabricated "X% DSO observed on Y users" — those return when
