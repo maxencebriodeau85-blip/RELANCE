@@ -268,14 +268,36 @@
   .glow-border::before {
     content: '';
     position: absolute;
-    inset: -1.5px;
+    inset: -1px;
     border-radius: inherit;
-    padding: 1.5px;
-    background: conic-gradient(from var(--angle, 0deg), #8a6bff, #6b8cff, #ff67c0, #ffc857, #8a6bff);
+    padding: 1px;
+    /* Two brand tones only (indigo -> fuchsia, same pair as the H1
+       gradient) with a soft transparent arc in between — reads as a
+       slow-drifting premium sheen, not a rainbow loading spinner. */
+    background: conic-gradient(
+      from var(--angle, 0deg),
+      hsl(var(--brand-500) / 0.9),
+      #e879f9,
+      hsl(var(--brand-500) / 0.15),
+      hsl(var(--brand-500) / 0.9)
+    );
+    opacity: 0.55;
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
-    animation: glow-rotate 6s linear infinite;
+    animation: glow-rotate 14s linear infinite;
+    pointer-events: none;
+  }
+  /* Soft ambient glow behind the card, colour-matched to the ring, so the
+     card reads as "lit from within" instead of just having a thin outline. */
+  .glow-border::after {
+    content: '';
+    position: absolute;
+    inset: -24px;
+    z-index: -1;
+    border-radius: inherit;
+    background: radial-gradient(circle, hsl(var(--brand-500) / 0.35), transparent 70%);
+    filter: blur(28px);
     pointer-events: none;
   }
   @property --angle {
@@ -310,8 +332,17 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 .animate-page-enter {
-  animation: page-enter 250ms ease-out both;
+  animation: page-enter 250ms ease-out;
 }
+/* No "both"/"forwards" on purpose: a lingering non-`none` transform (even an
+   identity translateY(0)) makes this element a containing block for every
+   `position: fixed` descendant on the page — silently breaking them relative
+   to the viewport (discovered via the sticky mobile CTA: its bounding box
+   was offset by the full document height instead of pinned to the bottom of
+   the screen). Without a fill-mode, the element reverts to its normal
+   (transform: none) style the instant the 250ms animation ends, so every
+   fixed-position element on every route stays correctly pinned to the
+   viewport once the page has settled. */
 
 /* Scroll reveal — toggled by <Reveal> via IntersectionObserver, fires once.
    easeOutExpo-style curve reads distinctly more "premium" than plain ease-out
