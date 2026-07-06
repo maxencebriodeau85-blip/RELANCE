@@ -173,11 +173,11 @@ export default function HomePage() {
             Sans carte bancaire · Données hébergées en Europe · Annulation en 1 clic
           </p>
 
-          {/* Hero product visual — floating 3D-tilt dashboard preview.
-              Purely illustrative (see hero-preview-card.tsx), the flagship
-              "wow" visual treatment used by Linear/Framer/Vercel heroes. */}
+          {/* Hero product visual — 3D-tilt dashboard preview (static, no
+              idle float — removed per feedback: read as "jittery" rather
+              than premium). Purely illustrative, see hero-preview-card.tsx. */}
           <div className="mt-14 flex justify-center px-4">
-            <TiltCard className="w-full max-w-md animate-float">
+            <TiltCard className="w-full max-w-md">
               <div className="glow-border">
                 <HeroPreviewCard />
               </div>

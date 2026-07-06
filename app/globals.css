@@ -308,15 +308,6 @@
   @keyframes glow-rotate {
     to { --angle: 360deg; }
   }
-
-  /* Gentle floating bob — gives the hero visual a "living" feel. */
-  @keyframes float-idle {
-    0%, 100% { transform: translateY(0); }
-    50%      { transform: translateY(-10px); }
-  }
-  .animate-float {
-    animation: float-idle 5s ease-in-out infinite;
-  }
 }
 
 @layer utilities {
@@ -408,9 +399,6 @@
     opacity: 0 !important;
   }
   .glow-border::before {
-    animation: none;
-  }
-  .animate-float {
     animation: none;
   }
 }
