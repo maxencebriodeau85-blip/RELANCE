@@ -14,7 +14,9 @@
     "setup:stripe": "npx tsx scripts/setup-stripe.ts",
     "supabase:start": "npx supabase start",
     "supabase:migrate": "npx supabase db push",
-    "supabase:reset": "npx supabase db reset"
+    "supabase:reset": "npx supabase db reset",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
@@ -69,6 +71,7 @@
     "supabase": "^1.178.2",
     "tailwindcss": "^3.4.4",
     "tsx": "^4.15.5",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "vitest": "^4.1.10"
   }
 }
