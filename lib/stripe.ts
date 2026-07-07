@@ -98,6 +98,32 @@ export async function createCheckoutSession({
   return stripe.checkout.sessions.create(sessionParams)
 }
 
+// Changes the price on an EXISTING subscription (upgrade/downgrade) instead
+// of starting a second one. Without this, switching plans from the settings
+// page would call createCheckoutSession again — Stripe would happily create
+// a brand-new subscription alongside the old one, silently double-billing
+// the customer (both subscriptions active, both charging their card) since
+// nothing ever cancels the original. Stripe prorates the difference
+// automatically via 'create_prorations'.
+export async function changeSubscriptionPlan({
+  subscriptionId,
+  newPriceId,
+}: {
+  subscriptionId: string
+  newPriceId: string
+}) {
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+  const itemId = subscription.items.data[0]?.id
+  if (!itemId) {
+    throw new Error(`Subscription ${subscriptionId} has no line item to update`)
+  }
+
+  return stripe.subscriptions.update(subscriptionId, {
+    items: [{ id: itemId, price: newPriceId }],
+    proration_behavior: 'create_prorations',
+  })
+}
+
 export async function createBillingPortalSession({
   customerId,
   returnUrl,

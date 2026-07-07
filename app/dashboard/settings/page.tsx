@@ -109,12 +109,12 @@ export default function SettingsPage() {
           setForm({
             company_name: p.company_name || '',
             siren: p.siren || '',
-            address: (p as any).address || '',
-            postal_code: (p as any).postal_code || '',
-            city: (p as any).city || '',
-            phone: (p as any).phone || '',
+            address: p.address || '',
+            postal_code: p.postal_code || '',
+            city: p.city || '',
+            phone: p.phone || '',
           })
-          setAutoReminders((p as any).auto_reminders ?? true)
+          setAutoReminders(p.auto_reminders ?? true)
         }
       } catch {
         // silent

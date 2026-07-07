@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { createCheckoutSession, STRIPE_PLANS, type PlanKey } from '@/lib/stripe'
+import { createCheckoutSession, changeSubscriptionPlan, STRIPE_PLANS, type PlanKey } from '@/lib/stripe'
 import { getAppUrl } from '@/lib/app-url'
 import type { Profile } from '@/lib/database.types'
 
@@ -30,6 +30,18 @@ export async function POST(request: Request) {
 
     const profile = profileData as unknown as Profile | null
     const appUrl = getAppUrl()
+
+    // Already subscribed (Starter/Pro/Business switching plans): update the
+    // EXISTING Stripe subscription's price instead of starting a second
+    // checkout — see changeSubscriptionPlan for why. No new Checkout Session
+    // is needed since a payment method is already on file.
+    if (profile?.stripe_subscription_id) {
+      await changeSubscriptionPlan({
+        subscriptionId: profile.stripe_subscription_id,
+        newPriceId: STRIPE_PLANS[plan].priceId,
+      })
+      return NextResponse.json({ url: `${appUrl}/dashboard/settings?checkout=success` })
+    }
 
     const session = await createCheckoutSession({
       customerId: profile?.stripe_customer_id || undefined,
@@ -74,6 +86,16 @@ export async function GET(request: Request) {
 
     const profile = profileData as unknown as Profile | null
     const appUrl = getAppUrl()
+
+    // Already subscribed: switch the price on the EXISTING subscription
+    // instead of creating a second one alongside it (see changeSubscriptionPlan).
+    if (profile?.stripe_subscription_id) {
+      await changeSubscriptionPlan({
+        subscriptionId: profile.stripe_subscription_id,
+        newPriceId: STRIPE_PLANS[plan].priceId,
+      })
+      return NextResponse.redirect(new URL('/dashboard/settings?checkout=success', request.url))
+    }
 
     const session = await createCheckoutSession({
       customerId: profile?.stripe_customer_id || undefined,
