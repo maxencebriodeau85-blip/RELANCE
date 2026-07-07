@@ -23,6 +23,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const token = searchParams.get('token')
   const reconcile = searchParams.get('reconcile') === 'true'
+  const sessionId = searchParams.get('session_id')
 
   if (!token) {
     return NextResponse.json({ error: 'Token manquant' }, { status: 400 })
@@ -43,18 +44,17 @@ export async function GET(request: Request) {
   let inv = data as Invoice & { profiles: { company_name: string | null } }
 
   // Webhook-miss safety net: when the debtor returns from Stripe with
-  // ?paid=true and the invoice isn't marked paid yet, ask Stripe directly
-  // whether a checkout session for this invoice succeeded, and reconcile.
-  // Guarantees the creditor sees the payment even if the webhook never fired.
-  if (reconcile && inv.status !== 'paid') {
+  // ?paid=true&session_id=..., ask Stripe directly whether THIS checkout
+  // session succeeded, and reconcile. Guarantees the creditor sees the
+  // payment even if the webhook never fired. Retrieving the exact session
+  // by ID (rather than listing the account's most recent sessions) matters
+  // because `sessions.list` returns the whole Stripe account's recent
+  // checkouts — including unrelated subscription checkouts — so the target
+  // session could fall out of a small "recent" window under normal traffic.
+  if (reconcile && inv.status !== 'paid' && sessionId) {
     try {
-      const sessions = await stripe.checkout.sessions.list({ limit: 5 })
-      const paid = sessions.data.find(
-        (s) =>
-          s.metadata?.invoice_id === inv.id &&
-          s.payment_status === 'paid'
-      )
-      if (paid) {
+      const session = await stripe.checkout.sessions.retrieve(sessionId)
+      if (session.metadata?.invoice_id === inv.id && session.payment_status === 'paid') {
         await supabase
           .from('invoices')
           .update({ status: 'paid' } as never)

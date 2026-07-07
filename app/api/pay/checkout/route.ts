@@ -63,7 +63,7 @@ export async function POST(request: Request) {
         quantity: 1,
       },
     ],
-    success_url: `${appUrl}/pay/${token}?paid=true`,
+    success_url: `${appUrl}/pay/${token}?paid=true&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${appUrl}/pay/${token}`,
     metadata: {
       invoice_id: inv.id,

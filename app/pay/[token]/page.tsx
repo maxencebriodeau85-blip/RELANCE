@@ -31,6 +31,7 @@ function PaymentPageInner() {
   const searchParams = useSearchParams()
   const token = params.token as string
   const justPaid = searchParams.get('paid') === 'true'
+  const sessionId = searchParams.get('session_id')
 
   const [invoice, setInvoice] = useState<InvoicePublic | null>(null)
   const [loading, setLoading] = useState(!justPaid)
@@ -42,7 +43,10 @@ function PaymentPageInner() {
       // After Stripe redirect — show success immediately, then quietly load
       // invoice details WITH reconciliation (?reconcile=true) so the invoice
       // is marked paid even if the Stripe webhook was missed.
-      fetch(`/api/pay/invoice?token=${token}&reconcile=true`)
+      const reconcileUrl = sessionId
+        ? `/api/pay/invoice?token=${token}&reconcile=true&session_id=${encodeURIComponent(sessionId)}`
+        : `/api/pay/invoice?token=${token}&reconcile=true`
+      fetch(reconcileUrl)
         .then((r) => r.json())
         .then((data) => { if (!data.error) setInvoice(data) })
         .catch(() => null)
@@ -57,7 +61,7 @@ function PaymentPageInner() {
       })
       .catch(() => setError('Impossible de charger la facture.'))
       .finally(() => setLoading(false))
-  }, [token, justPaid])
+  }, [token, justPaid, sessionId])
 
   const handlePay = async () => {
     setPaying(true)
