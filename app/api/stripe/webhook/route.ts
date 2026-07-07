@@ -90,6 +90,33 @@ export async function POST(request: Request) {
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription
         const customerId = subscription.customer as string
+
+        // Stripe doesn't guarantee event order: cancelling a subscription
+        // fires BOTH `customer.subscription.updated` (status -> canceled)
+        // and `customer.subscription.deleted`, and `updated` can be
+        // delivered AFTER `deleted` already reverted the account to
+        // free_trial. Without this guard, that late `updated` event would
+        // silently resurrect paid access by re-matching the stale price ID
+        // and rewriting plan + stripe_subscription_id. Mirror the `deleted`
+        // handler for any terminal status so ordering can't matter.
+        if (
+          subscription.status === 'canceled' ||
+          subscription.status === 'unpaid' ||
+          subscription.status === 'incomplete_expired'
+        ) {
+          const { error } = await supabase
+            .from('profiles')
+            .update({
+              plan: 'free_trial',
+              stripe_subscription_id: null,
+              trial_ends_at: new Date(Date.now() - 1000).toISOString(),
+            } as never)
+            .eq('stripe_customer_id', customerId)
+
+          if (error) console.error('subscription.updated (terminal status) error:', error)
+          break
+        }
+
         const priceId = subscription.items.data[0]?.price.id
         const plan = getPlanFromPriceId(priceId)
 
