@@ -56,14 +56,30 @@ export async function POST(request: Request) {
         }
 
         const priceId = subscription.items.data[0]?.price.id
-        const plan = getPlanFromPriceId(priceId) || 'starter'
+        const plan = getPlanFromPriceId(priceId)
+
+        // NEVER silently default an unrecognized price to 'starter': that
+        // would downgrade a paying Business/Pro customer to the cheapest
+        // tier's limits the moment STRIPE_*_PRICE_ID drifts from what's
+        // actually configured in Stripe (a typo, a live/test mode mismatch,
+        // a price ID rotated in the dashboard) — the exact kind of mistake a
+        // human copy-pasting IDs into Vercel is likely to make. Record the
+        // subscription regardless (so the checkout isn't silently lost), but
+        // only touch `plan` when we're certain which one was purchased.
+        if (!plan) {
+          console.error(
+            `Stripe webhook: unrecognized price ID "${priceId}" for user ${userId} — ` +
+              'plan left unchanged. Check STRIPE_STARTER_PRICE_ID / STRIPE_PRO_PRICE_ID / ' +
+              'STRIPE_BUSINESS_PRICE_ID against the Stripe dashboard.'
+          )
+        }
 
         const { error } = await supabase
           .from('profiles')
           .update({
             stripe_customer_id: customerId,
             stripe_subscription_id: subscriptionId,
-            plan,
+            ...(plan ? { plan } : {}),
           } as never)
           .eq('id', userId)
 
@@ -75,12 +91,23 @@ export async function POST(request: Request) {
         const subscription = event.data.object as Stripe.Subscription
         const customerId = subscription.customer as string
         const priceId = subscription.items.data[0]?.price.id
-        const plan = getPlanFromPriceId(priceId) || 'starter'
+        const plan = getPlanFromPriceId(priceId)
+
+        if (!plan) {
+          console.error(
+            `Stripe webhook: unrecognized price ID "${priceId}" for Stripe customer ` +
+              `${customerId} — plan left unchanged. Check STRIPE_STARTER_PRICE_ID / ` +
+              'STRIPE_PRO_PRICE_ID / STRIPE_BUSINESS_PRICE_ID against the Stripe dashboard.'
+          )
+        }
 
         // Single UPDATE by stripe_customer_id — no N+1 loop
         const { error } = await supabase
           .from('profiles')
-          .update({ plan, stripe_subscription_id: subscription.id } as never)
+          .update({
+            stripe_subscription_id: subscription.id,
+            ...(plan ? { plan } : {}),
+          } as never)
           .eq('stripe_customer_id', customerId)
 
         if (error) console.error('subscription.updated error:', error)
