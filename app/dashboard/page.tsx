@@ -96,19 +96,32 @@ function kpiCard({
 // ─── page ─────────────────────────────────────────────────────────────────────
 
 export default async function DashboardPage() {
-  // ── auth: unauthenticated users go to login, not demo ──────────────────────
   let invoices: Invoice[] = []
   let profile: Profile | null = null
   let contacts: { id: string; pipeline_stage: string; deal_amount: number | null }[] = []
+  let loadError = false
 
+  // ── Step 1: authentication ──────────────────────────────────────────────
+  // Only a missing/invalid session sends the visitor to login. This call is
+  // deliberately NOT wrapped in a try/catch that also redirects on failure:
+  // getUser() itself throwing (network blip talking to Supabase) must not be
+  // conflated with "not logged in" — see the data-fetch step below for why
+  // that distinction matters.
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) redirect('/auth/login')
+
+  // ── Step 2: data fetch — failures here must NEVER bounce an authenticated
+  // user back to login. A transient Supabase hiccup on the invoices/profile
+  // query used to redirect straight to /auth/login (indistinguishable from a
+  // real auth failure to the user, who IS logged in) — this is the exact
+  // "je me connecte et ça me renvoie au login" failure mode reported in
+  // production. Instead: fall back to empty data and render the dashboard
+  // anyway, with a non-blocking banner so the user can retry in place.
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) redirect('/auth/login')
-
     const [profileRes, invoicesRes, contactsRes] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', user.id).single(),
       supabase
@@ -125,8 +138,9 @@ export default async function DashboardPage() {
     profile = (profileRes.data as Profile) ?? null
     invoices = (invoicesRes.data as Invoice[]) ?? []
     contacts = (contactsRes.data as { id: string; pipeline_stage: string; deal_amount: number | null }[]) ?? []
-  } catch {
-    redirect('/auth/login')
+  } catch (err) {
+    console.error('Dashboard data fetch error:', err)
+    loadError = true
   }
 
   // ── metrics ────────────────────────────────────────────────────────────────
@@ -165,11 +179,15 @@ export default async function DashboardPage() {
     year: 'numeric',
   })
 
-  // ── EMPTY STATE (new user) ─────────────────────────────────────────────────
+  // ── EMPTY STATE (new user, OR data fetch failed — see loadError) ────────────
+  // Note: a failed fetch always lands here too (invoices stays []), which is
+  // exactly the point — better to show an honest "couldn't load, retry" banner
+  // than to silently pretend an existing account has zero invoices, or worse,
+  // bounce the authenticated user back to the login screen.
   if (!hasInvoices) {
     return (
       <div className="min-h-full bg-gray-50">
-        {showOnboarding && <OnboardingWizard />}
+        {showOnboarding && !loadError && <OnboardingWizard />}
         {/* Page header */}
         <div className="bg-white border-b px-6 py-4 flex items-start justify-between">
           <div>
@@ -195,6 +213,32 @@ export default async function DashboardPage() {
         </div>
 
         <div className="p-6 max-w-5xl mx-auto space-y-6">
+          {/* Non-blocking data-load error — the user IS authenticated and
+              stays on /dashboard; this never bounces back to login. */}
+          {loadError && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-amber-100">
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-amber-900">
+                    Certaines données n&apos;ont pas pu être chargées
+                  </p>
+                  <p className="text-xs text-amber-600 mt-0.5">
+                    Ton compte est bien connecté — c&apos;est temporaire, réessaie dans un instant.
+                  </p>
+                </div>
+              </div>
+              <a
+                href="/dashboard"
+                className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors"
+              >
+                Réessayer
+              </a>
+            </div>
+          )}
+
           {/* Welcome */}
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-ink-950 via-ink-900 to-ink-950 text-white px-6 py-7 shadow-elevated">
             <div className="brand-orb bg-brand-500/30 h-[220px] w-[220px] -top-16 -right-10" />
