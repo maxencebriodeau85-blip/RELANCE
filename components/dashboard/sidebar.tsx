@@ -87,7 +87,7 @@ function SidebarContent({
       <div className="flex h-14 items-center justify-between border-b px-5 flex-shrink-0">
         <Logo href="/dashboard" size="sm" className="hover:opacity-80 transition-opacity" />
         {onClose && (
-          <button onClick={onClose} className="p-1 rounded-md hover:bg-gray-100 text-gray-500">
+          <button onClick={onClose} aria-label="Fermer le menu" className="p-1 rounded-md hover:bg-gray-100 text-gray-500">
             <X className="h-5 w-5" />
           </button>
         )}

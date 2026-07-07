@@ -210,10 +210,10 @@ export default function ContactDetailPage() {
                   onKeyDown={e => { if (e.key === 'Enter') saveField('name', editVal); if (e.key === 'Escape') setEditField(null) }}
                   className="text-xl font-bold text-gray-900 border-b-2 border-blue-500 bg-transparent focus:outline-none w-full"
                 />
-                <button onClick={() => saveField('name', editVal)} disabled={savingField} className="text-green-600 hover:text-green-700">
+                <button onClick={() => saveField('name', editVal)} disabled={savingField} aria-label="Valider" className="text-green-600 hover:text-green-700">
                   <Check className="h-4 w-4" />
                 </button>
-                <button onClick={() => setEditField(null)} className="text-gray-400 hover:text-gray-600">
+                <button onClick={() => setEditField(null)} aria-label="Annuler" className="text-gray-400 hover:text-gray-600">
                   <X className="h-4 w-4" />
                 </button>
               </div>
@@ -238,10 +238,10 @@ export default function ContactDetailPage() {
                   placeholder="Nom de l'entreprise"
                   className="text-sm text-gray-600 border-b border-blue-500 bg-transparent focus:outline-none"
                 />
-                <button onClick={() => saveField('company', editVal)} className="text-green-600">
+                <button onClick={() => saveField('company', editVal)} aria-label="Valider" className="text-green-600">
                   <Check className="h-3.5 w-3.5" />
                 </button>
-                <button onClick={() => setEditField(null)} className="text-gray-400">
+                <button onClick={() => setEditField(null)} aria-label="Annuler" className="text-gray-400">
                   <X className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -270,10 +270,10 @@ export default function ContactDetailPage() {
                   placeholder="0"
                   className="w-24 text-right border-b border-blue-500 bg-transparent focus:outline-none text-lg font-bold"
                 />
-                <button onClick={() => saveField('deal_amount', parseFloat(editVal) || null)} className="text-green-600">
+                <button onClick={() => saveField('deal_amount', parseFloat(editVal) || null)} aria-label="Valider" className="text-green-600">
                   <Check className="h-4 w-4" />
                 </button>
-                <button onClick={() => setEditField(null)} className="text-gray-400">
+                <button onClick={() => setEditField(null)} aria-label="Annuler" className="text-gray-400">
                   <X className="h-4 w-4" />
                 </button>
               </div>
@@ -587,10 +587,10 @@ function EditableField({
           onKeyDown={e => { if (e.key === 'Enter') onSave(); if (e.key === 'Escape') onCancel() }}
           className="border-b border-blue-500 bg-transparent text-sm focus:outline-none w-40"
         />
-        <button onClick={onSave} className="text-green-600">
+        <button onClick={onSave} aria-label="Valider" className="text-green-600">
           <Check className="h-3.5 w-3.5" />
         </button>
-        <button onClick={onCancel} className="text-gray-400">
+        <button onClick={onCancel} aria-label="Annuler" className="text-gray-400">
           <X className="h-3.5 w-3.5" />
         </button>
       </div>
