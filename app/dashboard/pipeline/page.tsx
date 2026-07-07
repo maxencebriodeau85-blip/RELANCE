@@ -363,7 +363,7 @@ export default function PipelinePage() {
           <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b px-6 py-4">
               <h2 className="text-base font-semibold text-gray-900">Nouveau contact</h2>
-              <button onClick={() => setShowAdd(false)} className="rounded-lg p-1 hover:bg-gray-100 text-gray-500">
+              <button onClick={() => setShowAdd(false)} aria-label="Fermer" className="rounded-lg p-1 hover:bg-gray-100 text-gray-500">
                 <X className="h-5 w-5" />
               </button>
             </div>

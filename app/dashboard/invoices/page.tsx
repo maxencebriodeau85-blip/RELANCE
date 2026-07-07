@@ -348,7 +348,7 @@ export default function InvoicesPage() {
                 <Trash2 className="mr-1.5 h-3.5 w-3.5" />Supprimer
               </Button>
             </div>
-            <button onClick={clearSelection} className="ml-auto text-blue-400 hover:text-brand-600 transition-colors">
+            <button onClick={clearSelection} aria-label="Désélectionner tout" className="ml-auto text-blue-400 hover:text-brand-600 transition-colors">
               <X className="h-4 w-4" />
             </button>
           </div>
