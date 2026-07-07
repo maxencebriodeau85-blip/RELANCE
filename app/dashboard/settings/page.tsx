@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { Header } from '@/components/dashboard/header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -74,8 +75,10 @@ const PLANS = [
   },
 ]
 
-export default function SettingsPage() {
+function SettingsPageInner() {
   const { toast } = useToast()
+  const searchParams = useSearchParams()
+  const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [userEmail, setUserEmail] = useState('')
   const [loading, setLoading] = useState(true)
@@ -124,6 +127,26 @@ export default function SettingsPage() {
     }
     loadProfile()
   }, [])
+
+  useEffect(() => {
+    const checkout = searchParams.get('checkout')
+    if (!checkout) return
+
+    if (checkout === 'success') {
+      toast({
+        title: 'Abonnement mis à jour',
+        description: 'Votre paiement a bien été pris en compte. Merci de votre confiance !',
+      })
+    } else if (checkout === 'cancelled') {
+      toast({
+        title: 'Paiement annulé',
+        description: "Aucun changement n'a été effectué sur votre abonnement.",
+      })
+    }
+
+    router.replace('/dashboard/settings')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
 
   const handleSaveProfile = async () => {
     if (form.siren && form.siren.replace(/\s/g, '').length !== 9) {
@@ -482,5 +505,19 @@ export default function SettingsPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-full items-center justify-center text-sm text-gray-400">
+          Chargement des paramètres…
+        </div>
+      }
+    >
+      <SettingsPageInner />
+    </Suspense>
   )
 }
