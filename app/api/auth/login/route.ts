@@ -1,6 +1,6 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { supabaseAuthError } from '@/lib/auth-errors'
+import { createRouteHandlerClient } from '@/lib/supabase/route-handler'
 
 export async function POST(request: NextRequest) {
   // Accept both JSON (legacy) and form-encoded (native form submit)
@@ -36,22 +36,7 @@ export async function POST(request: NextRequest) {
     return loginError(request, 'Veuillez remplir tous les champs.', redirectTo)
   }
 
-  const cookiesToSet: { name: string; value: string; options: CookieOptions }[] = []
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookies: { name: string; value: string; options: CookieOptions }[]) {
-          cookiesToSet.push(...cookies)
-        },
-      },
-    }
-  )
+  const { supabase, cookiesToApply, applyCookies } = createRouteHandlerClient(request)
 
   const { error } = await supabase.auth.signInWithPassword({ email, password })
 
@@ -63,14 +48,15 @@ export async function POST(request: NextRequest) {
   // The browser is guaranteed by the HTTP spec to process Set-Cookie headers
   // before following the redirect, so the next request to /dashboard will
   // carry a valid session and the middleware will let it through.
+  if (!rememberMe) {
+    // Strip maxAge so the cookie is a session cookie that expires when the
+    // browser closes, instead of persisting past this browser session.
+    cookiesToApply.forEach((c) => {
+      c.options = { ...c.options, maxAge: undefined }
+    })
+  }
   const response = NextResponse.redirect(new URL(redirectTo, request.url), { status: 303 })
-  cookiesToSet.forEach(({ name, value, options }) => {
-    // When "remember me" is off, strip maxAge so the cookie is a session cookie
-    // that expires when the browser closes.
-    const finalOptions = rememberMe ? options : { ...options, maxAge: undefined }
-    response.cookies.set(name, value, finalOptions)
-  })
-  return response
+  return applyCookies(response)
 }
 
 function loginError(request: NextRequest, message: string, redirectTo: string) {

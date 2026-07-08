@@ -73,8 +73,11 @@ export async function GET(request: Request) {
     } = await supabase.auth.getUser()
 
     if (!user) {
+      // Through /auth/clear-session, not /auth/login directly — a stale
+      // session cookie here hits the same middleware bounce loop that
+      // app/auth/clear-session/route.ts exists to break (see that file).
       return NextResponse.redirect(
-        new URL(`/auth/login?redirectedFrom=/api/stripe/checkout?plan=${plan}`, request.url)
+        new URL(`/auth/clear-session?redirectedFrom=/api/stripe/checkout?plan=${plan}`, request.url)
       )
     }
 

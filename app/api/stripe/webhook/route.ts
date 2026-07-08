@@ -3,6 +3,58 @@ import { stripe, getPlanFromPriceId } from '@/lib/stripe'
 import { createAdminClient } from '@/lib/supabase/server'
 import type Stripe from 'stripe'
 
+// Reverts a Stripe customer's profile to the unpaid free_trial state.
+// Shared by `customer.subscription.deleted` and the terminal-status branch
+// of `customer.subscription.updated` — Stripe fires BOTH events for every
+// cancellation with no ordering guarantee, so both handlers must apply the
+// exact same revert (see the comment at the `updated` call site).
+//
+// Only reverts if `subscriptionId` matches the profile's currently-recorded
+// subscription: a Stripe customer could in principle have more than one
+// subscription object (a retried checkout, a manual dashboard action) — a
+// stray, unrelated one going terminal must not wipe access granted by a
+// different subscription that's still active.
+async function revertToFreeTrial(
+  supabase: Awaited<ReturnType<typeof createAdminClient>>,
+  customerId: string,
+  subscriptionId: string,
+  logLabel: string
+) {
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('stripe_subscription_id')
+    .eq('stripe_customer_id', customerId)
+    .single()
+
+  const activeSubscriptionId = (profile as { stripe_subscription_id: string | null } | null)
+    ?.stripe_subscription_id
+
+  if (activeSubscriptionId && activeSubscriptionId !== subscriptionId) {
+    console.warn(
+      `Stripe webhook (${logLabel}): terminal subscription ${subscriptionId} for customer ` +
+        `${customerId} does not match the profile's active subscription ` +
+        `${activeSubscriptionId} — not reverting.`
+    )
+    return
+  }
+
+  // Revert to free_trial AND stamp trial_ends_at in the past so the
+  // dashboard gate blocks access immediately. Without this, a cancelled
+  // account whose trial_ends_at was null (legacy rows) would fall through
+  // the `plan==='free_trial' && trial_ends_at && …` gate and keep free
+  // access. Data is preserved — only new actions are blocked.
+  const { error } = await supabase
+    .from('profiles')
+    .update({
+      plan: 'free_trial',
+      stripe_subscription_id: null,
+      trial_ends_at: new Date(Date.now() - 1000).toISOString(),
+    } as never)
+    .eq('stripe_customer_id', customerId)
+
+  if (error) console.error(`${logLabel} error:`, error)
+}
+
 export async function POST(request: Request) {
   const body = await request.text()
   const signature = request.headers.get('stripe-signature')
@@ -104,16 +156,7 @@ export async function POST(request: Request) {
           subscription.status === 'unpaid' ||
           subscription.status === 'incomplete_expired'
         ) {
-          const { error } = await supabase
-            .from('profiles')
-            .update({
-              plan: 'free_trial',
-              stripe_subscription_id: null,
-              trial_ends_at: new Date(Date.now() - 1000).toISOString(),
-            } as never)
-            .eq('stripe_customer_id', customerId)
-
-          if (error) console.error('subscription.updated (terminal status) error:', error)
+          await revertToFreeTrial(supabase, customerId, subscription.id, 'subscription.updated (terminal status)')
           break
         }
 
@@ -145,21 +188,7 @@ export async function POST(request: Request) {
         const subscription = event.data.object as Stripe.Subscription
         const customerId = subscription.customer as string
 
-        // Revert to free_trial AND stamp trial_ends_at in the past so the
-        // dashboard gate blocks access immediately. Without this, a cancelled
-        // account whose trial_ends_at was null (legacy rows) would fall through
-        // the `plan==='free_trial' && trial_ends_at && …` gate and keep free
-        // access. Data is preserved — only new actions are blocked.
-        const { error } = await supabase
-          .from('profiles')
-          .update({
-            plan: 'free_trial',
-            stripe_subscription_id: null,
-            trial_ends_at: new Date(Date.now() - 1000).toISOString(),
-          } as never)
-          .eq('stripe_customer_id', customerId)
-
-        if (error) console.error('subscription.deleted error:', error)
+        await revertToFreeTrial(supabase, customerId, subscription.id, 'subscription.deleted')
         break
       }
 

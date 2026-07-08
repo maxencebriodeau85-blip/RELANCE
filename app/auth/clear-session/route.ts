@@ -1,10 +1,5 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-
-// Must never be statically prerendered at build time (it unconditionally
-// constructs a Supabase client, which requires env vars that aren't present
-// during `next build`) — always run per-request.
-export const dynamic = 'force-dynamic'
+import { createRouteHandlerClient } from '@/lib/supabase/route-handler'
 
 // Server Components (dashboard/layout.tsx, subscription/page.tsx, …) discover
 // a stale/invalid session via getUser(), but they CANNOT clear cookies — Next.js
@@ -18,31 +13,23 @@ export const dynamic = 'force-dynamic'
 // can mutate cookies, so it clears the stale session before handing off to
 // the actual login page.
 //
-// Cookie mutations are collected and attached explicitly to the redirect
-// response (same pattern as app/auth/callback/route.ts) rather than relying
-// on next/headers cookies() auto-attachment, which is not guaranteed to
-// merge onto a separately-constructed NextResponse.redirect().
+// Must never be statically prerendered at build time (it unconditionally
+// constructs a Supabase client, which requires env vars that aren't present
+// during `next build`) — always run per-request.
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
-  const cookiesToClear: { name: string; value: string; options: CookieOptions }[] = []
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
-          cookiesToClear.push(...cookiesToSet)
-        },
-      },
-    }
-  )
-
+  const { supabase, applyCookies } = createRouteHandlerClient(request)
   await supabase.auth.signOut({ scope: 'local' })
 
-  const response = NextResponse.redirect(new URL('/auth/login', request.url))
-  cookiesToClear.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
-  return response
+  // Preserve the page the visitor was actually trying to reach so they land
+  // back there after logging in, instead of always dropping to /dashboard.
+  const { searchParams } = new URL(request.url)
+  const redirectedFrom = searchParams.get('redirectedFrom')
+  const loginUrl = new URL('/auth/login', request.url)
+  if (redirectedFrom && /^\/[^/\\]/.test(redirectedFrom)) {
+    loginUrl.searchParams.set('redirectedFrom', redirectedFrom)
+  }
+
+  return applyCookies(NextResponse.redirect(loginUrl))
 }

@@ -88,7 +88,15 @@ export default function InvoiceDetailPage() {
       const { createClient } = await import('@/lib/supabase/client')
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/auth/login'); return }
+      if (!user) {
+        // Full navigation through /auth/clear-session (not a client-side
+        // router.push to /auth/login) — the invalid session's cookie may
+        // still be present, and middleware would otherwise bounce a
+        // client-side nav to /auth/login straight back to /dashboard. See
+        // app/auth/clear-session/route.ts.
+        window.location.href = '/auth/clear-session'
+        return
+      }
 
       const { data: inv } = await supabase
         .from('invoices')
