@@ -51,10 +51,27 @@ export async function GET(request: Request) {
   // because `sessions.list` returns the whole Stripe account's recent
   // checkouts — including unrelated subscription checkouts — so the target
   // session could fall out of a small "recent" window under normal traffic.
-  if (reconcile && inv.status !== 'paid' && sessionId) {
+  if (reconcile && inv.status !== 'paid') {
     try {
-      const session = await stripe.checkout.sessions.retrieve(sessionId)
-      if (session.metadata?.invoice_id === inv.id && session.payment_status === 'paid') {
+      let paidSession: { metadata?: { invoice_id?: string } | null } | undefined
+
+      if (sessionId) {
+        const session = await stripe.checkout.sessions.retrieve(sessionId)
+        if (session.metadata?.invoice_id === inv.id && session.payment_status === 'paid') {
+          paidSession = session
+        }
+      } else {
+        // Fallback for Checkout Sessions created before session_id was added
+        // to the success_url (Stripe bakes success_url in at session-creation
+        // time, so links already emailed to debtors won't carry it) — best
+        // effort, same scan used before this reconciliation was made precise.
+        const sessions = await stripe.checkout.sessions.list({ limit: 5 })
+        paidSession = sessions.data.find(
+          (s) => s.metadata?.invoice_id === inv.id && s.payment_status === 'paid'
+        )
+      }
+
+      if (paidSession) {
         await supabase
           .from('invoices')
           .update({ status: 'paid' } as never)

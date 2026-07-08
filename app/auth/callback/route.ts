@@ -1,42 +1,7 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { EmailOtpType } from '@supabase/supabase-js'
 import { supabaseAuthError } from '@/lib/auth-errors'
-
-// Creates a Supabase client that collects cookie mutations into an array
-// so they can be explicitly attached to any response object.
-// Provides both the v0.5.0+ (getAll/setAll) and v0.3.x (get/set/remove) APIs
-// so the code works regardless of which minor version is installed.
-function makeClient(
-  request: NextRequest,
-  collector: { name: string; value: string; options: CookieOptions }[]
-) {
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        // v0.5.0+ API
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
-          collector.push(...cookiesToSet)
-        },
-        // v0.3.0 API
-        get(name: string) {
-          return request.cookies.get(name)?.value
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          collector.push({ name, value, options })
-        },
-        remove(name: string, options: CookieOptions) {
-          collector.push({ name, value: '', options })
-        },
-      },
-    }
-  )
-}
+import { createRouteHandlerClient } from '@/lib/supabase/route-handler'
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
@@ -46,13 +11,10 @@ export async function GET(request: NextRequest) {
   const next = searchParams.get('next') ?? '/dashboard'
 
   if (token_hash && type) {
-    const cookies: { name: string; value: string; options: CookieOptions }[] = []
-    const supabase = makeClient(request, cookies)
+    const { supabase, applyCookies } = createRouteHandlerClient(request)
     const { error } = await supabase.auth.verifyOtp({ type, token_hash })
     if (!error) {
-      const response = NextResponse.redirect(`${origin}${next}`)
-      cookies.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
-      return response
+      return applyCookies(NextResponse.redirect(`${origin}${next}`))
     }
     return NextResponse.redirect(
       `${origin}/auth/login?error=${encodeURIComponent(supabaseAuthError(error.message, error.status))}`
@@ -60,13 +22,10 @@ export async function GET(request: NextRequest) {
   }
 
   if (code) {
-    const cookies: { name: string; value: string; options: CookieOptions }[] = []
-    const supabase = makeClient(request, cookies)
+    const { supabase, applyCookies } = createRouteHandlerClient(request)
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      const response = NextResponse.redirect(`${origin}${next}`)
-      cookies.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
-      return response
+      return applyCookies(NextResponse.redirect(`${origin}${next}`))
     }
     return NextResponse.redirect(
       `${origin}/auth/login?error=${encodeURIComponent(supabaseAuthError(error.message, error.status))}`
