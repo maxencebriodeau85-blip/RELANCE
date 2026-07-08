@@ -18,7 +18,9 @@ export default async function SubscriptionPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) redirect('/auth/login')
+  // See app/auth/clear-session/route.ts — an invalid session must be cleared
+  // via a Route Handler, not a redirect straight out of this Server Component.
+  if (!user) redirect('/auth/clear-session')
 
   const { data: profile } = await supabase
     .from('profiles')
