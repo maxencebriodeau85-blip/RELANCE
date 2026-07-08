@@ -9,7 +9,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) redirect('/auth/login')
+  // Not /auth/login directly — see app/auth/clear-session/route.ts for why
+  // an invalid session must be cleared via a Route Handler, not a redirect
+  // straight out of this Server Component.
+  if (!user) redirect('/auth/clear-session')
 
   const { data: profile } = await supabase
     .from('profiles')

@@ -112,7 +112,11 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) redirect('/auth/login')
+  // See app/auth/clear-session/route.ts — a Server Component can't clear the
+  // stale cookie itself, so an invalid session must go through that Route
+  // Handler first, or middleware's cookie-presence check bounces the
+  // subsequent /auth/login request straight back here.
+  if (!user) redirect('/auth/clear-session')
 
   // ── Step 2: data fetch — failures here must NEVER bounce an authenticated
   // user back to login. A transient Supabase hiccup on the invoices/profile

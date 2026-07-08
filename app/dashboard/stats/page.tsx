@@ -36,7 +36,9 @@ function inMonth(dateStr: string, m: { year: number; month: number }) {
 export default async function StatsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/auth/login')
+  // See app/auth/clear-session/route.ts — an invalid session must be cleared
+  // via a Route Handler, not a redirect straight out of this Server Component.
+  if (!user) redirect('/auth/clear-session')
 
   const [invoicesRes, contactsRes, journalRes] = await Promise.all([
     supabase.from('invoices').select('*').eq('user_id', user.id),
