@@ -82,6 +82,10 @@ Supabase → **SQL Editor** → exécute dans l'ordre les fichiers de
 - `011_lock_profile_columns.sql` — verrouille les colonnes de facturation.
 - `012_enforce_invoice_quota.sql` — quota de factures atomique (anti-triche
   d'abonnement).
+- `014_reminders_dedupe_race.sql` — **bloquant** : sans cette migration, une
+  relance (cron `/api/cron/reminders`) relancée deux fois par Vercel peut
+  envoyer le même email — y compris une mise en demeure — deux fois au même
+  débiteur.
 
 Ou, avec la CLI Supabase liée au projet : `supabase db push`.
 
