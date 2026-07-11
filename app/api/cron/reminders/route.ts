@@ -73,16 +73,45 @@ export async function GET(request: Request) {
     const step = [...SCHEDULE].reverse().find((s) => daysOverdue >= s.days)
     if (!step) { skipped++; continue }
 
-    // Check if this reminder type was already sent for this invoice
-    const { data: existing } = await supabase
-      .from('reminders')
-      .select('id')
-      .eq('invoice_id', inv.id)
-      .eq('type', step.type)
-      .eq('status', 'sent')
-      .maybeSingle()
+    const isDryRun = !process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.includes('placeholder')
 
-    if (existing) { skipped++; continue }
+    if (isDryRun) {
+      // Never claim a slot for a run that won't actually send — a claimed
+      // 'pending' row would sit inside the partial unique index (migration
+      // 014) and permanently block the real send once RESEND_API_KEY is
+      // configured for real.
+      console.log(`[DRY RUN] Would send ${step.type} to ${inv.client_email} for invoice ${inv.invoice_number}`)
+      skipped++
+      continue
+    }
+
+    // Atomically claim this reminder slot before sending. A partial unique
+    // index on (invoice_id, type) WHERE status IN ('pending','sent') — see
+    // migration 014 — rejects a second concurrent claim, closing the race
+    // where a Vercel cron retry could send the SAME reminder twice (a plain
+    // SELECT-then-INSERT check here would not be atomic across two
+    // overlapping invocations).
+    const { data: claim, error: claimError } = await supabase
+      .from('reminders')
+      .insert({
+        invoice_id: inv.id,
+        user_id: profile.id,
+        type: step.type,
+        channel: 'email',
+        status: 'pending',
+      } as never)
+      .select('id')
+      .single()
+
+    if (claimError) {
+      if (claimError.code !== '23505') {
+        console.error(`Cron: failed to claim reminder for invoice ${inv.id}:`, claimError)
+        errors.push(`${inv.id}: ${claimError.message}`)
+      }
+      skipped++
+      continue
+    }
+    const reminderId = (claim as { id: string }).id
 
     // Build email
     const appUrl = getAppUrl()
@@ -115,13 +144,6 @@ export async function GET(request: Request) {
       templateData,
       overrideData as { subject: string; body: string; enabled: boolean } | null
     )
-    const isDryRun = !process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.includes('placeholder')
-
-    if (isDryRun) {
-      console.log(`[DRY RUN] Would send ${step.type} to ${inv.client_email} for invoice ${inv.invoice_number}`)
-      skipped++
-      continue
-    }
 
     let resendId: string | null = null
     let sendStatus: 'sent' | 'failed' = 'failed'
@@ -167,17 +189,19 @@ export async function GET(request: Request) {
     // Rate limit: avoid hitting Resend burst limits
     await new Promise((r) => setTimeout(r, 100))
 
-    // Record the reminder with actual send status
-    await supabase.from('reminders').insert({
-      invoice_id: inv.id,
-      user_id: profile.id,
-      type: step.type,
-      channel: 'email',
-      content: emailContent.html,
-      subject: emailContent.subject,
-      status: sendStatus,
-      resend_id: resendId,
-    } as never)
+    // Resolve the claimed slot with the actual send outcome. A 'failed'
+    // status falls outside the partial unique index (migration 014), so a
+    // later cron run can claim a fresh slot and retry.
+    await supabase
+      .from('reminders')
+      .update({
+        content: emailContent.html,
+        subject: emailContent.subject,
+        status: sendStatus,
+        resend_id: resendId,
+        sent_at: new Date().toISOString(),
+      } as never)
+      .eq('id', reminderId)
 
     // Only mark as reminded when email was actually delivered
     if (sendStatus === 'sent') {
