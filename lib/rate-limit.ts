@@ -7,7 +7,14 @@
 // operational cost of Redis. Upgrade to Upstash / Vercel KV when you have
 // abuse in production.
 //
-// Cleanup: entries older than the window are cleared lazily on the next hit.
+// Cleanup: entries are refreshed lazily when the SAME key is hit again after
+// expiry. A one-off caller (e.g. a scraper hitting once from a unique IP)
+// never returns, so its entry is never revisited and sits in the Map
+// forever — on a long-lived warm serverless instance under broad unique-IP
+// traffic this grows unbounded. Bounded by periodically sweeping expired
+// entries (see maybeSweep) rather than tracking per-entry timers, since a
+// timer per bucket would itself be a bigger footgun (leaked timers keep the
+// process alive / one per request under attack).
 
 interface Bucket {
   count: number
@@ -15,6 +22,19 @@ interface Bucket {
 }
 
 const buckets = new Map<string, Bucket>()
+
+let callsSinceSweep = 0
+const SWEEP_EVERY_N_CALLS = 1000
+
+function maybeSweep(now: number) {
+  callsSinceSweep += 1
+  if (callsSinceSweep < SWEEP_EVERY_N_CALLS) return
+  callsSinceSweep = 0
+
+  buckets.forEach((bucket, key) => {
+    if (bucket.resetAt <= now) buckets.delete(key)
+  })
+}
 
 export interface RateLimitOptions {
   /** Unique namespace for this limiter (e.g., 'contact-form') */
@@ -37,6 +57,7 @@ export function rateLimit(
   opts: RateLimitOptions
 ): RateLimitResult {
   const now = Date.now()
+  maybeSweep(now)
   const bucketKey = `${opts.key}:${ident}`
   const existing = buckets.get(bucketKey)
 
