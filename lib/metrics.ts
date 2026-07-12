@@ -64,9 +64,16 @@ export function calculateDSO(invoices: Invoice[]): number {
 export function calculateRecoveryRate(invoices: Invoice[]): number {
   if (invoices.length === 0) return 0
 
+  // Excludes 'disputed' invoices, consistent with calculateDashboardMetrics'
+  // activeInvoices/overdueInvoices and the dashboard's urgentInvoices filter
+  // elsewhere in this codebase — a disputed invoice is out of the normal
+  // collection flow (rarely ever flips to 'paid' while disputed), so
+  // counting it in the denominator here would permanently depress the
+  // recovery rate for accounts with disputes, inconsistent with how every
+  // other metric on the same dashboard treats disputed invoices.
   const overdueInvoices = invoices.filter((inv) => {
     const dueDate = new Date(inv.due_date)
-    return dueDate < new Date()
+    return dueDate < new Date() && inv.status !== 'disputed'
   })
 
   if (overdueInvoices.length === 0) return 100
