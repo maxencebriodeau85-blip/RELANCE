@@ -98,6 +98,17 @@ describe('calculateRecoveryRate', () => {
     ]
     expect(calculateRecoveryRate(invoices)).toBe(50)
   })
+
+  it('excludes disputed invoices from the denominator, consistent with the rest of the dashboard', () => {
+    const invoices = [
+      makeInvoice({ due_date: daysAgo(5), status: 'paid' }),
+      makeInvoice({ due_date: daysAgo(5), status: 'disputed' }),
+      makeInvoice({ due_date: daysAgo(5), status: 'disputed' }),
+    ]
+    // Without the fix, this would be 1/3 = 33% — permanently depressed by
+    // disputed invoices that are excluded everywhere else on the dashboard.
+    expect(calculateRecoveryRate(invoices)).toBe(100)
+  })
 })
 
 describe('calculateDSO', () => {
