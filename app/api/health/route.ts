@@ -31,6 +31,14 @@ export function GET() {
       stripeWebhook: has(process.env.STRIPE_WEBHOOK_SECRET),
       resend: has(process.env.RESEND_API_KEY),
       appUrl: has(process.env.NEXT_PUBLIC_APP_URL),
+      // /api/cron/reminders fails closed: without CRON_SECRET it answers 401
+      // BEFORE opening a DB connection. That failure is silent (Vercel does not
+      // surface a 401 cron as an error) and has a non-obvious knock-on effect:
+      // the daily cron is the only scheduled traffic that touches Postgres, so
+      // when it 401s the database sees zero activity and a free-tier Supabase
+      // project auto-pauses after ~7 days — which takes down login for
+      // everyone. Surfaced here so that root cause is one click away.
+      cronSecret: has(process.env.CRON_SECRET),
     },
   })
 }
