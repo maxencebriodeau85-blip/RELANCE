@@ -18,13 +18,46 @@ Ouvre `https://<ton-url>/api/health`. Le champ `config` te dit tout :
     "stripeSecret": false,
     "stripeWebhook": false,
     "resend": false,
-    "appUrl": false
+    "appUrl": false,
+    "cronSecret": false
   }
 }
 ```
 
 - `authReady: false` → variables Supabase manquantes → **étape 1**.
-- `authReady: true` mais connexion impossible → **étape 2** (config Auth Supabase).
+- `authReady: true` mais connexion impossible → **étape 2** (config Auth Supabase),
+  puis **étape 0 bis** ci-dessous (base Supabase en pause).
+
+### 0 bis. « La connexion remarche plus » alors que rien n'a changé
+
+Symptôme : le site répond, `/api/health` renvoie `authReady: true`, mais toute
+connexion échoue. Cause la plus probable : **le projet Supabase s'est mis en
+pause automatiquement**.
+
+Vérifier : Supabase → le projet doit être `ACTIVE_HEALTHY`. S'il est `INACTIVE`,
+cliquer **Restore** — la connexion remarche quelques minutes après.
+
+Pourquoi ça arrive, et pourquoi ça revient :
+
+1. Un projet Supabase **plan Free** se met en pause après ~7 jours **sans
+   aucune activité sur la base**.
+2. Le seul trafic régulier qui touche Postgres est le cron quotidien
+   `/api/cron/reminders` (08:00).
+3. Ce cron **fail-closed** : si `CRON_SECRET` n'est pas défini côté Vercel, il
+   répond `401` **avant** d'ouvrir la moindre connexion à la base (c'est
+   volontaire : sans ce garde-fou, n'importe qui pourrait déclencher un envoi
+   d'emails en masse).
+4. Résultat : le cron échoue en silence tous les jours, la base ne voit jamais
+   de trafic, elle se met en pause au bout d'une semaine, **et le login tombe
+   pour tout le monde**.
+
+Donc : `cronSecret: false` dans `/api/health` = la panne de connexion va
+**revenir toute seule** dans ~7 jours. Corriger en définissant `CRON_SECRET`
+(tableau de l'étape 1), ce qui suffit à garder la base active en continu.
+
+> Pour un usage réellement commercial, le plan Free Supabase n'est de toute
+> façon pas adapté (mise en pause automatique, pas de sauvegardes longues) :
+> voir « Plans requis pour la mise en production » en fin de document.
 
 ## 1. Variables d'environnement Vercel  *(bloquant pour le login)*
 
@@ -106,10 +139,39 @@ Stripe → **Developers → Webhooks → Add endpoint** :
    vers le domaine (laisse cette variable **absente** tant que le domaine n'est
    pas actif, sinon le site devient inaccessible via l'URL Vercel).
 
+## Plans requis pour la mise en production
+
+Deux limites de plan bloquent une exploitation réellement commerciale. Elles
+n'ont rien à voir avec le code — le code est prêt — mais elles sont bloquantes.
+
+**Vercel : passer de Hobby à Pro (~20 $/mois).** Les *Terms of Service* de
+Vercel réservent le plan Hobby à un usage **personnel et non commercial**. Dès
+que le site encaisse des abonnements, il faut le plan Pro. Effet de bord utile :
+la rétention des logs passe de 1 h à 24 h, ce qui rend les incidents
+diagnosticables après coup (sur Hobby, un cron qui échoue la nuit est
+introuvable le lendemain matin).
+
+**Supabase : passer de Free à Pro (~25 $/mois).** Le plan Free met le projet en
+pause après ~7 jours d'inactivité (voir étape 0 bis) et ne conserve pas de
+sauvegardes exploitables. Pour une base qui contient des factures clients et
+des mises en demeure, la mise en pause automatique et l'absence de sauvegarde
+sont rédhibitoires.
+
 ## Checklist « je peux me connecter »
 
 - [ ] `/api/health` → `authReady: true`
+- [ ] `/api/health` → `cronSecret: true` (sinon la base retombera en pause)
+- [ ] Projet Supabase en `ACTIVE_HEALTHY` (pas `INACTIVE`)
 - [ ] Site URL + Redirect URLs configurés dans Supabase
 - [ ] « Confirm email » désactivé (test) **ou** SMTP configuré (prod)
-- [ ] Migrations 011 + 012 exécutées
+- [ ] Migrations 011 + 012 + 014 exécutées
 - [ ] Redeploy effectué après chaque changement de variable
+
+## Checklist « je peux vendre »
+
+- [ ] Vercel sur plan **Pro** (Hobby interdit l'usage commercial)
+- [ ] Supabase sur plan **Pro** (pas de mise en pause auto)
+- [ ] `/api/health` → `stripeSecret: true` et `stripeWebhook: true`
+- [ ] `/api/health` → `resend: true` (sans ça **aucune relance n'est envoyée** —
+      c'est la fonction principale du produit)
+- [ ] Un paiement test de bout en bout a bien mis à jour le plan du compte
