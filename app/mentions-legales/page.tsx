@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { LegalLayout } from '@/components/legal/legal-layout'
-import { ContactLink, LegalField } from '@/components/legal/legal-field'
+import { LegalField } from '@/components/legal/legal-field'
 import { CONTACT_EMAIL, HOST, LEGAL_LAST_UPDATED, PUBLISHER, VAT_MENTION } from '@/lib/legal'
 
 export const metadata: Metadata = {
@@ -15,7 +15,7 @@ export default function LegalPage() {
       <h2>Éditeur du site</h2>
       <ul>
         <li>
-          <strong>{PUBLISHER.name}</strong>, {PUBLISHER.legalForm.toLowerCase()}, exerçant sous le
+          <strong>{PUBLISHER.name}</strong>, {PUBLISHER.legalForm}, exerçant sous le
           nom commercial <strong>{PUBLISHER.tradeName}</strong>
         </li>
         <li>
@@ -27,7 +27,7 @@ export default function LegalPage() {
         </li>
         <li>{VAT_MENTION}</li>
         <li>
-          Email : <ContactLink email={CONTACT_EMAIL} />
+          Email : <LegalField value={CONTACT_EMAIL} />
         </li>
         <li>
           Téléphone : <LegalField value={PUBLISHER.phone} />
@@ -39,7 +39,7 @@ export default function LegalPage() {
 
       <h2>Hébergement</h2>
       <p>
-        <strong>{HOST.name}</strong>, {HOST.address} —{' '}
+        <strong>{HOST.name}</strong>, {HOST.address}, téléphone : <LegalField value={HOST.phone} /> —{' '}
         <a href={HOST.site} target="_blank" rel="noopener noreferrer">
           vercel.com
         </a>
@@ -47,7 +47,8 @@ export default function LegalPage() {
       </p>
       <p>
         La base de données est hébergée par <strong>Supabase, Inc.</strong> dans l’Union
-        européenne (Suède). La liste complète des prestataires figure dans la{' '}
+        européenne (Suède). Les emails sont envoyés par Resend et les paiements traités par
+        Stripe. La liste complète des prestataires figure dans la{' '}
         <a href="/privacy">politique de confidentialité</a>.
       </p>
 

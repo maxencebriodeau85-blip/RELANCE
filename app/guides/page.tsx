@@ -88,7 +88,7 @@ export default function GuidesPage() {
           <div className="flex-1">
             <h3 className="font-bold text-white text-lg">5 modèles de relance gratuits</h3>
             <p className="text-blue-200 text-sm mt-0.5">
-              Cordial, ferme, précontentieux, litige, mise en demeure : 5 modèles d&apos;emails à copier et adapter.
+              Relance cordiale, ferme, pré-contentieuse, réponse à une contestation et mise en demeure : 5 modèles à copier et adapter.
             </p>
           </div>
           <Link

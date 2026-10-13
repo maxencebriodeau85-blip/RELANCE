@@ -42,7 +42,6 @@ export const metadata: Metadata = {
   openGraph: {
     title: TITLE,
     description: DESCRIPTION,
-    url: SITE_URL,
     siteName: 'Encair',
     type: 'website',
     locale: 'fr_FR',

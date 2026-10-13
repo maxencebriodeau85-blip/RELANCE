@@ -17,8 +17,9 @@ export default function DpaPage() {
         Cet accord, conclu en application de l’article 28 du RGPD, fait partie des{' '}
         <a href="/cgu">conditions générales</a>. Il s’applique aux données personnelles que le
         Client importe ou saisit dans Encair au sujet de ses propres clients (les « Débiteurs »).
-        Pour ces données, le Client est responsable de traitement et {PUBLISHER.name}, éditeur
-        d’Encair, est sous-traitant.
+        Pour ces données, le Client est responsable de traitement et {PUBLISHER.name},{' '}
+        {PUBLISHER.legalForm} exerçant sous le nom commercial Encair (« Encair »), est
+        sous-traitant.
       </p>
 
       <h2>1. Objet, durée et nature du traitement</h2>

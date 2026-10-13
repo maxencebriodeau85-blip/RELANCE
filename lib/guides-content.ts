@@ -208,7 +208,7 @@ export const GUIDES: GuideContent[] = [
     title: "L'indemnité forfaitaire de 40 € : comment l'appliquer sans casser la relation client",
     metaTitle: "Indemnité forfaitaire 40 € : comment l'appliquer",
     metaDescription:
-      "Depuis 2012, toute facture B2B impayée ouvre droit à 40 € d'indemnité forfaitaire de recouvrement. Comment la réclamer, comment la formuler, comment ne pas fâcher.",
+      "Depuis 2013, toute facture impayée entre professionnels ouvre droit à 40 € d'indemnité forfaitaire de recouvrement. Comment la réclamer, comment la formuler, comment ne pas fâcher.",
     category: 'Droit commercial',
     readTime: '5 min',
     publishedAt: '2026-04-08',
@@ -286,7 +286,7 @@ export const GUIDES: GuideContent[] = [
       {
         heading: 'Point de départ des pénalités',
         paragraphs: [
-          "Contrairement à ce que beaucoup croient, les pénalités courent dès le premier jour de retard, sans mise en demeure préalable. Le débiteur est en défaut par la seule échéance du terme (art. L441-10 al. 1).",
+          "Contrairement à ce que beaucoup croient, les pénalités courent dès le premier jour de retard, sans mise en demeure préalable. Le débiteur est en défaut par la seule échéance du terme (art. L441-10 II C. com.).",
           "Pas besoin d'attendre 8 jours, 30 jours, ou d'envoyer un courrier recommandé pour que le compteur démarre. Il tourne dès J+1.",
         ],
       },
@@ -305,7 +305,7 @@ export const GUIDES: GuideContent[] = [
       {
         heading: 'Comment les réclamer',
         paragraphs: [
-          "Les pénalités ne se réclament efficacement qu'à partir de la deuxième relance. Dans un email cordial, ça passe pour un accroc gratuit. Dans une relance ferme ou une mise en demeure, elles font partie du calcul du dû total.",
+          "Les pénalités se réclament plutôt à partir de la deuxième relance : dans un premier rappel cordial, elles crispent inutilement. Dans une relance ferme ou une mise en demeure, elles font partie du calcul du total dû.",
           "Présentez le détail : « Facture 1 200 € + pénalités depuis le 15 septembre (43 jours × 12,40 % / 365) = 17,53 € + indemnité forfaitaire 40 € = total 1 257,53 € ».",
           "Le débiteur voit un calcul, pas une somme arbitraire. Cela déclenche souvent le paiement de la facture principale ; renoncer ensuite aux pénalités reste votre choix commercial.",
         ],
@@ -319,7 +319,7 @@ export const GUIDES: GuideContent[] = [
     title: 'CGV et recouvrement : les 5 clauses essentielles qui vous protègent',
     metaTitle: 'CGV recouvrement : 5 clauses essentielles 2026',
     metaDescription:
-      "5 clauses essentielles à faire figurer dans vos CGV pour recouvrer plus vite et plus sereinement : pénalités, réserve de propriété, résiliation, compétence, protection données.",
+      "5 clauses essentielles à faire figurer dans vos CGV pour recouvrer plus vite et plus sereinement : pénalités, réserve de propriété, résiliation, compétence, protection des données.",
     category: 'Droit commercial',
     readTime: '6 min',
     publishedAt: '2026-03-28',
@@ -467,7 +467,7 @@ export const GUIDES: GuideContent[] = [
         heading: 'Le délai raccourci : 2 ans en B2C',
         paragraphs: [
           "L'article L218-2 du Code de la consommation raccourcit le délai à 2 ans pour les biens ou services fournis à un consommateur.",
-          "Concrètement : si votre client est un particulier (pas une entreprise), vous n'avez que 2 ans à partir de l'échéance pour agir. Passé ce délai, la créance est éteinte, même si le client reconnaît la devoir.",
+          "Concrètement : si votre client est un particulier, vous n'avez que 2 ans pour agir en justice, en général à compter de la livraison ou de l'achèvement de la prestation. Passé ce délai, vous ne pouvez plus obtenir le paiement en justice.",
           "Ce délai concerne : coaching, formation, prestations de service, ventes en ligne, abonnements, etc. dès que le destinataire est un particulier.",
         ],
       },

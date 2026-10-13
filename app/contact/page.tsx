@@ -6,6 +6,7 @@ import { ArrowLeft, Mail, MessageCircle, Send, CheckCircle, AlertCircle } from '
 import { SiteFooter } from '@/components/landing/footer'
 import { Logo } from '@/components/brand/logo'
 import { CONTACT_EMAIL } from '@/lib/legal'
+import { CTA_LABEL } from '@/lib/plans'
 
 export default function ContactPage() {
   const [form, setForm] = useState({
@@ -87,7 +88,7 @@ export default function ContactPage() {
             href="/auth/register"
             className="rounded-lg bg-brand-gradient text-white text-sm font-semibold px-4 py-2 transition-all hover:shadow-md hover:scale-[1.02]"
           >
-            Essai gratuit
+            {CTA_LABEL}
           </Link>
         </div>
       </div>

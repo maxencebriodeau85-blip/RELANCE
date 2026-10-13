@@ -20,7 +20,7 @@ export default function CGUPage() {
       <p>
         Les présentes conditions générales (les « Conditions ») régissent l’utilisation et la
         vente du logiciel Encair (le « Service »), édité par {PUBLISHER.name},{' '}
-        {PUBLISHER.legalForm.toLowerCase()}, SIREN <LegalField value={PUBLISHER.siren} />, dont
+        {PUBLISHER.legalForm}, SIREN <LegalField value={PUBLISHER.siren} />, dont
         les coordonnées figurent dans les <a href="/mentions-legales">mentions légales</a>{' '}
         (l’« Éditeur »). Elles s’appliquent à toute personne qui crée un compte (le « Client »).
       </p>
@@ -34,8 +34,8 @@ export default function CGUPage() {
       </p>
       <p>
         Le Service est réservé aux professionnels agissant pour les besoins de leur activité. Le
-        Client le confirme à l’inscription. Les dispositions du Code de la consommation,
-        notamment le droit de rétractation, ne s’appliquent donc pas.
+        Client le confirme à l’inscription. Sauf disposition impérative contraire, les règles du
+        Code de la consommation ne s’appliquent donc pas aux présentes Conditions.
       </p>
 
       <h2>2. Définitions</h2>
@@ -61,7 +61,7 @@ export default function CGUPage() {
       <h2>4. Essai gratuit</h2>
       <p>
         Tout nouveau compte bénéficie d’un essai gratuit de {OFFER.trialDays} jours, sans carte
-        bancaire, limité à {OFFER.trialInvoiceLimit} nouvelles factures par mois civil.
+        bancaire, dans la limite de {OFFER.trialInvoiceLimit} nouvelles factures par mois civil.
       </p>
       <p>
         À la fin de l’essai, aucun prélèvement n’a lieu. Sans abonnement, les relances sont
@@ -200,7 +200,7 @@ export default function CGUPage() {
         recherchent d’abord une solution amiable pendant 30 jours. À défaut, et lorsque les deux
         parties ont la qualité de commerçant, le litige est porté devant{' '}
         {PUBLISHER.court ?? 'le tribunal de commerce du ressort du domicile professionnel de l’Éditeur'}
-        ; dans les autres cas, les règles de compétence de droit commun s’appliquent.
+        {' ; dans les autres cas, les règles de compétence de droit commun s’appliquent.'}
       </p>
 
       <h2>17. Contact</h2>

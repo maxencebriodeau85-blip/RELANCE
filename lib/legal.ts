@@ -28,7 +28,7 @@ const env = (key: string): string | null => {
 
 export const PUBLISHER = {
   name: env('PUBLISHER_NAME') ?? 'Maxence Briodeau',
-  legalForm: 'Entrepreneur individuel (EI)',
+  legalForm: 'entrepreneur individuel (EI)',
   tradeName: 'Encair',
   address: env('PUBLISHER_ADDRESS'),
   siren: env('PUBLISHER_SIREN'),
@@ -51,6 +51,7 @@ export function missingPublisherFields(): string[] {
   if (!PUBLISHER.siren) missing.push('PUBLISHER_SIREN')
   if (!PUBLISHER.phone) missing.push('PUBLISHER_PHONE')
   if (!CONTACT_EMAIL) missing.push('NEXT_PUBLIC_CONTACT_EMAIL')
+  if (!process.env.HOST_PHONE?.trim()) missing.push('HOST_PHONE')
   return missing
 }
 
@@ -58,6 +59,8 @@ export function missingPublisherFields(): string[] {
 export const HOST = {
   name: 'Vercel Inc.',
   address: '440 N Barranca Ave #4133, Covina, CA 91723, États-Unis',
+  // Téléphone exigé par la LCEN : à reprendre sur vercel.com/legal.
+  phone: process.env.HOST_PHONE?.trim() || null,
   site: 'https://vercel.com',
   note: 'Fonctions serveur exécutées dans la région Paris (cdg1).',
 } as const

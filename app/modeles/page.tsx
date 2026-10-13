@@ -125,7 +125,7 @@ Envoyée par lettre recommandée avec accusé de réception
 (société : ajoutez le capital, le RCS et « représentée par {NOM_SIGNATAIRE}, {QUALITE} » ;
 entrepreneur individuel : indiquez « Prénom Nom, entrepreneur individuel »)
 
-A
+À
 
 {NOM_CLIENT}, société {FORME_JURIDIQUE_CLIENT}, immatriculée sous le numéro SIREN {SIREN_CLIENT}, dont le siège social est situé {ADRESSE_CLIENT},
 
@@ -135,7 +135,7 @@ OBJET : Mise en demeure de payer
 
 Madame, Monsieur,
 
-Par la présente lettre recommandée avec accusé de réception, et conformément à l'article 1344 du Code civil, nous vous mettons en demeure de régler, dans un délai de 8 jours à compter de la réception de ce courrier, la somme de {MONTANT} TTC correspondant à notre facture n°{NUMERO_FACTURE}, échue le {DATE_ECHEANCE}.du {DATE_FACTURE}, dont l'échéance était fixée au {DATE_ECHEANCE}.
+Par la présente lettre recommandée avec accusé de réception, et conformément à l'article 1344 du Code civil, nous vous mettons en demeure de régler, dans un délai de 8 jours à compter de la réception de ce courrier, la somme de {MONTANT} TTC correspondant à notre facture n°{NUMERO_FACTURE}, du {DATE_FACTURE}, échue le {DATE_ECHEANCE}.
 
 À ce montant s'ajoutent :
 - Pénalités de retard au taux de {TAUX_PENALITES} % l'an depuis le {DATE_ECHEANCE} (art. L441-10 du Code de commerce) : {MONTANT_PENALITES} €
@@ -143,7 +143,7 @@ Par la présente lettre recommandée avec accusé de réception, et conformémen
 
 (Client particulier : supprimez ces deux lignes ; seuls des intérêts au taux légal courent à compter de la présente mise en demeure.)
 
-TOTAL DÛ : {TOTAL_DU}€
+TOTAL DÛ : {TOTAL_DU} €
 
 À défaut de règlement sous ce délai, nous nous réservons le droit de :
 - Engager toute procédure judiciaire utile au recouvrement de notre créance
@@ -195,10 +195,10 @@ export default function ModelesPage() {
         <div className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-700 p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="flex-1">
             <h3 className="font-bold text-white">
-              Préparez ces relances dans Encair
+              Préparez vos relances email dans Encair
             </h3>
             <p className="text-blue-200 text-sm mt-1">
-              Encair pré-remplit vos modèles avec les données de chaque facture ; vous validez avant l’envoi.
+              Pour les relances par email, Encair pré-remplit vos modèles avec les données de chaque facture ; vous validez avant l’envoi. La mise en demeure reste un courrier à envoyer vous-même en recommandé.
             </p>
           </div>
           <Link

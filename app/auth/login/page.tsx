@@ -12,7 +12,7 @@ import { AuthConfigNotice } from '@/components/auth/config-notice'
 import { AuthSidePanel } from '@/components/auth/auth-side-panel'
 import { createClient } from '@/lib/supabase/client'
 import { supabaseAuthError } from '@/lib/auth-errors'
-import { OFFER } from '@/lib/plans'
+import { CTA_LABEL } from '@/lib/plans'
 
 function LoginForm() {
   const searchParams = useSearchParams()
@@ -158,7 +158,7 @@ function LoginForm() {
           <p className="mt-6 text-center text-sm text-gray-500">
             Pas encore de compte ?{' '}
             <Link href="/auth/register" className="font-semibold text-blue-600 hover:underline">
-              Essai gratuit {OFFER.trialDays} jours
+              {CTA_LABEL}
             </Link>
           </p>
 

@@ -21,7 +21,7 @@ export default function PrivacyPage() {
 
       <h2>1. Qui est responsable de vos données ?</h2>
       <p>
-        <strong>{PUBLISHER.name}</strong>, {PUBLISHER.legalForm.toLowerCase()} exerçant sous le
+        <strong>{PUBLISHER.name}</strong>, {PUBLISHER.legalForm} exerçant sous le
         nom Encair, adresse : <LegalField value={PUBLISHER.address} />, contact :{' '}
         <ContactLink email={CONTACT_EMAIL} />. Aucun délégué à la protection des données n’est
         désigné.
@@ -46,7 +46,7 @@ export default function PrivacyPage() {
       <ul>
         <li>
           <strong>Compte</strong> : email professionnel, nom ou raison sociale, mot de passe
-          (stocké sous forme chiffrée), date d’acceptation des conditions générales.
+          (stocké sous forme hachée, jamais en clair), date d’acceptation des conditions générales.
         </li>
         <li>
           <strong>Abonnement</strong> : historique des paiements et factures d’abonnement. Les
