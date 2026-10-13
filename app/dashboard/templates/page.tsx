@@ -119,7 +119,7 @@ const PREVIEW_VARS: Record<string, string> = {
   days_overdue: '12',
   creditor_name: 'Mon Entreprise',
   creditor_email: 'contact@mon-entreprise.fr',
-  payment_url: 'https://relanceflow.fr/pay/sample-token',
+  payment_url: '',
   description: 'Mission de conseil — janvier 2026',
 }
 

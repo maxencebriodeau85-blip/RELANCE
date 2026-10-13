@@ -2,7 +2,7 @@
 import { ImageResponse } from 'next/og'
 
 export const runtime = 'edge'
-export const alt = 'RelanceFlow — Automatisez vos relances de factures impayées'
+export const alt = 'Encair — Automatisez vos relances de factures impayées'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -19,7 +19,7 @@ export default async function Image() {
           justifyContent: 'space-between',
           padding: 80,
           background:
-            'linear-gradient(135deg, #0D0F23 0%, #1B1D3D 45%, #6B8CFF 100%)',
+            'linear-gradient(135deg, #182b40 0%, #223b55 100%)',
           fontFamily: 'system-ui, sans-serif',
         }}
       >
@@ -39,7 +39,7 @@ export default async function Image() {
               color: '#fff',
             }}
           >
-            ⚡
+            e↗
           </div>
           <div
             style={{
@@ -49,7 +49,7 @@ export default async function Image() {
               letterSpacing: -0.5,
             }}
           >
-            RelanceFlow
+            Encair
           </div>
         </div>
 
@@ -77,7 +77,7 @@ export default async function Image() {
             style={{
               fontSize: 72,
               fontWeight: 800,
-              background: 'linear-gradient(90deg, #FFC857, #FF67C0, #6B8CFF)',
+              background: 'linear-gradient(90deg, #FFC857, #FF67C0, #ec7041)',
               backgroundClip: 'text',
               color: 'transparent',
               letterSpacing: -2,
@@ -124,7 +124,7 @@ export default async function Image() {
               borderRadius: 999,
             }}
           >
-            dès 19 €/mois
+            Fondateur · 16 € HT/mois
           </div>
         </div>
       </div>

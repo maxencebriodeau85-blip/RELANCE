@@ -13,6 +13,7 @@ import {
 import { StatusBadge } from '@/components/invoices/status-badge'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Skeleton } from '@/components/ui/skeleton'
+import { outstanding, reminderBlock } from '@/lib/collection'
 import { formatEuro, formatDate, getDaysOverdue } from '@/lib/metrics'
 import {
   Plus, Upload, Search, ChevronLeft, ChevronRight, Eye, Send,
@@ -27,18 +28,19 @@ import { useToast } from '@/hooks/use-toast'
 const PAGE_SIZE = 10
 
 function exportToCSV(invoices: Invoice[]) {
-  const headers = ['N° Facture', 'Client', 'Email', 'Montant (€)', 'Échéance', 'Statut', 'Jours de retard']
+  const headers = ['N° Facture', 'Client', 'Email', 'Montant (€)', 'Reste à payer', 'Échéance', 'Statut', 'Jours de retard']
   const rows = invoices.map((inv) => [
     inv.invoice_number,
     inv.client_name,
     inv.client_email,
-    inv.amount.toFixed(2).replace('.', ','),
+    Number(inv.amount).toFixed(2).replace('.', ','),
+    outstanding(inv).toFixed(2).replace('.', ','),
     inv.due_date,
     inv.status,
     getDaysOverdue(inv),
   ])
   const csv = [headers, ...rows]
-    .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(';'))
+    .map((r) => r.map((c) => `"${String(c).replace(/^[=+@\t\r-]/, '\'$&').replace(/"/g, '""')}"`).join(';'))
     .join('\n')
   const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
@@ -133,7 +135,8 @@ export default function InvoicesPage() {
     setBulkLoading(true)
     try {
       const supabase = createClient()
-      await supabase.from('invoices').update({ status: 'paid' } as never).in('id', Array.from(selected))
+      const {error}=await supabase.from('invoices').update({ status: 'paid' } as never).in('id', Array.from(selected))
+      if(error)throw error
       await loadInvoices()
       const n = selected.size
       clearSelection()
@@ -150,10 +153,10 @@ export default function InvoicesPage() {
     // Parallelize sends — bounded concurrency to avoid hammering the Resend API.
     const ids = Array.from(selected).filter((id) => {
       const inv = invoices.find((i) => i.id === id)
-      return inv && inv.status !== 'paid' && inv.status !== 'disputed'
+      return inv && !reminderBlock(inv)
     })
 
-    const CONCURRENCY = 5
+    const CONCURRENCY = 1
     let sent = 0
     let failed = 0
 
@@ -168,6 +171,7 @@ export default function InvoicesPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type: 'email_1' }),
           })
+          await new Promise(resolve=>setTimeout(resolve,550))
           if (res.ok) sent++
           else failed++
         } catch {
@@ -197,7 +201,8 @@ export default function InvoicesPage() {
     setBulkLoading(true)
     try {
       const supabase = createClient()
-      await supabase.from('invoices').delete().in('id', Array.from(selected))
+      const {error}=await supabase.from('invoices').delete().in('id', Array.from(selected))
+      if(error)throw error
       await loadInvoices()
       clearSelection()
       toast({ title: `${n} facture${n > 1 ? 's' : ''} supprimée${n > 1 ? 's' : ''}` })
@@ -208,7 +213,7 @@ export default function InvoicesPage() {
     }
   }
 
-  const totalAmount = filtered.reduce((s, inv) => s + inv.amount, 0)
+  const totalAmount = filtered.reduce((s, inv) => s + outstanding(inv), 0)
 
   return (
     <div>
@@ -224,7 +229,7 @@ export default function InvoicesPage() {
               <Link href="/dashboard/invoices/import"><Upload className="mr-2 h-4 w-4" />Importer</Link>
             </Button>
             <Button size="sm" asChild>
-              <Link href="/dashboard/invoices/new"><Plus className="mr-2 h-4 w-4" />Nouvelle facture</Link>
+              <Link href="/dashboard/invoices/new"><Plus className="mr-2 h-4 w-4" />Ajouter au suivi</Link>
             </Button>
           </div>
         }

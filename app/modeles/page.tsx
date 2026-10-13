@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     "5 modèles d'emails de relance gratuits, prêts à l'emploi et copiables : rappel cordial, relance ferme, pré-contentieux, litige et mise en demeure conforme au droit français.",
   alternates: { canonical: '/modeles' },
   openGraph: {
-    title: 'Modèles de relance de facture gratuits | RelanceFlow',
+    title: 'Modèles de relance de facture gratuits | Encair',
     description:
       "5 modèles d'emails de relance prêts à l'emploi pour indépendants français.",
     type: 'website',
@@ -193,10 +193,10 @@ export default function ModelesPage() {
         <div className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-700 p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="flex-1">
             <h3 className="font-bold text-white">
-              Envoyez ces modèles automatiquement avec RelanceFlow
+              Envoyez ces modèles automatiquement avec Encair
             </h3>
             <p className="text-blue-200 text-sm mt-1">
-              Fini le copier-coller manuel. RelanceFlow déclenche le bon modèle au bon moment, personnalisé avec les données exactes de chaque facture.
+              Fini le copier-coller manuel. Encair déclenche le bon modèle au bon moment, personnalisé avec les données exactes de chaque facture.
             </p>
           </div>
           <Link
@@ -260,7 +260,7 @@ export default function ModelesPage() {
             Arrêtez de copier-coller. Automatisez.
           </h3>
           <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">
-            RelanceFlow remplace toutes les variables automatiquement et envoie le bon email au bon moment — sans que vous ayez à lever le petit doigt.
+            Encair remplace toutes les variables automatiquement et envoie le bon email au bon moment — sans que vous ayez à lever le petit doigt.
           </p>
           <Link
             href="/auth/register"

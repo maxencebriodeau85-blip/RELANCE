@@ -10,7 +10,7 @@ const STEPS = [
   {
     id: 1,
     icon: Sparkles,
-    title: 'Bienvenue sur RelanceFlow !',
+    title: 'Bienvenue sur Encair !',
     body: "Vous venez de débloquer 30 jours pour automatiser vos relances et reprendre le contrôle de votre trésorerie. Voici les 3 étapes pour démarrer en moins de 5 minutes.",
     cta: 'C\'est parti',
   },

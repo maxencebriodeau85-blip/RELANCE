@@ -1,5 +1,7 @@
 'use client'
 
+import { CollectionControls } from '@/components/invoices/collection-controls'
+import { reminderBlock } from '@/lib/collection'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Header } from '@/components/dashboard/header'
@@ -42,6 +44,7 @@ const reminderTypeTone: Record<string, string> = {
 }
 
 const reminderStatusConfig: Record<string, { label: string; color: string; dot: string }> = {
+  pending: { label: 'Envoi à vérifier', color: 'text-amber-700', dot: 'bg-amber-500' },
   sent: { label: 'Envoyé', color: 'text-brand-600', dot: 'bg-blue-500' },
   delivered: { label: 'Délivré', color: 'text-green-600', dot: 'bg-green-500' },
   opened: { label: 'Ouvert', color: 'text-emerald-600', dot: 'bg-emerald-500' },
@@ -59,11 +62,11 @@ function formatTime(s: string): string {
 }
 
 function getNextReminderType(reminders: Reminder[]): 'email_1' | 'email_2' | 'email_3' | 'formal_notice' {
-  const sent = new Set(reminders.map((r) => r.type))
+  const sent = new Set(reminders.filter(r=>r.status!=='failed').map((r) => r.type))
   if (!sent.has('email_1')) return 'email_1'
   if (!sent.has('email_2')) return 'email_2'
   if (!sent.has('email_3')) return 'email_3'
-  return 'formal_notice'
+  return 'email_3'
 }
 
 export default function InvoiceDetailPage() {
@@ -113,7 +116,7 @@ export default function InvoiceDetailPage() {
         .from('reminders')
         .select('*')
         .eq('invoice_id', id)
-        .order('sent_at', { ascending: false })
+        .order('created_at', { ascending: false })
 
       const remList = (rem as Reminder[]) || []
       setReminders(remList)
@@ -123,7 +126,7 @@ export default function InvoiceDetailPage() {
     } finally {
       setLoading(false)
     }
-  }, [id, router])
+  }, [id])
 
   useEffect(() => { loadData() }, [loadData])
 
@@ -165,8 +168,9 @@ export default function InvoiceDetailPage() {
     try {
       const { createClient } = await import('@/lib/supabase/client')
       const supabase = createClient()
-      await supabase.from('invoices').update({ status: 'paid' } as never).eq('id', invoice.id)
-      setInvoice({ ...invoice, status: 'paid' })
+      const {error}=await supabase.from('invoices').update({ status: 'paid' } as never).eq('id', invoice.id)
+      if(error)throw error
+      await loadData()
       toast({ title: 'Facture marquée comme payée', description: `${invoice.invoice_number} clôturée.` })
     } catch {
       toast({ title: 'Erreur', description: 'Impossible de mettre à jour le statut.', variant: 'destructive' })
@@ -181,8 +185,9 @@ export default function InvoiceDetailPage() {
     try {
       const { createClient } = await import('@/lib/supabase/client')
       const supabase = createClient()
-      await supabase.from('invoices').update({ status: 'disputed' } as never).eq('id', invoice.id)
-      setInvoice({ ...invoice, status: 'disputed' })
+      const {error}=await supabase.from('invoices').update({ status: 'disputed' } as never).eq('id', invoice.id)
+      if(error)throw error
+      await loadData()
       toast({ title: 'Facture marquée comme litigieuse', description: `${invoice.invoice_number} mise en litige.` })
     } catch {
       toast({ title: 'Erreur', description: 'Impossible de mettre à jour le statut.', variant: 'destructive' })
@@ -198,7 +203,8 @@ export default function InvoiceDetailPage() {
     try {
       const { createClient } = await import('@/lib/supabase/client')
       const supabase = createClient()
-      await supabase.from('invoices').delete().eq('id', invoice.id)
+      const {error}=await supabase.from('invoices').delete().eq('id', invoice.id)
+      if(error)throw error
       toast({ title: 'Facture supprimée', description: `${invoice.invoice_number} supprimée.` })
       router.push('/dashboard/invoices')
     } catch {
@@ -261,7 +267,7 @@ export default function InvoiceDetailPage() {
   const canSendReminder = invoice.status !== 'paid' && invoice.status !== 'disputed'
   const paymentToken = (invoice as any).payment_token as string | null
   const appOrigin = typeof window !== 'undefined' ? window.location.origin : ''
-  const paymentLink = paymentToken ? `${appOrigin}/pay/${paymentToken}` : null
+  const paymentLink: string | null = null
 
   return (
     <div>
@@ -279,7 +285,7 @@ export default function InvoiceDetailPage() {
             <Button variant="outline" size="sm" asChild>
               <a href={`/api/invoices/${invoice.id}/pdf`} target="_blank" rel="noopener noreferrer">
                 <FileDown className="mr-2 h-4 w-4" />
-                Télécharger PDF
+                Fiche de suivi PDF
               </a>
             </Button>
             {paymentLink && (
@@ -328,7 +334,7 @@ export default function InvoiceDetailPage() {
             <AlertDescription className="text-red-700">
               Échéance dépassée depuis le {formatDate(invoice.due_date)}.{' '}
               {invoice.status === 'pending' && 'Envoyez une 1ère relance dès maintenant.'}
-              {invoice.status === 'reminded' && 'Passez à la 2ème relance ou à la mise en demeure.'}
+              {invoice.status === 'reminded' && 'Consultez l’historique avant votre prochain échange.'}
             </AlertDescription>
           </Alert>
         )}
@@ -354,6 +360,7 @@ export default function InvoiceDetailPage() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Left: invoice + client info */}
           <div className="lg:col-span-2 space-y-4">
+            <CollectionControls key={invoice.updated_at} invoice={invoice} onSaved={loadData} />
             {/* Invoice details */}
             <Card>
               <CardHeader>
@@ -472,9 +479,10 @@ export default function InvoiceDetailPage() {
                   <CardDescription>Choisissez le type de relance adapté à la situation</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
+                  {reminderBlock(invoice) && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">{reminderBlock(invoice)}</p>}
                   {/* Type picker */}
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                    {(['email_1', 'email_2', 'email_3', 'formal_notice'] as const).map((t) => {
+                    {(['email_1', 'email_2', 'email_3'] as const).map((t) => {
                       const sent = reminders.some((r) => r.type === t)
                       return (
                         <button
@@ -497,7 +505,7 @@ export default function InvoiceDetailPage() {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <Button onClick={handleSendReminder} disabled={sending} className="flex-1 sm:flex-none">
+                    <Button onClick={handleSendReminder} disabled={sending || !!reminderBlock(invoice)} className="flex-1 sm:flex-none">
                       <Send className="mr-2 h-4 w-4" />
                       {sending ? 'Envoi en cours…' : `Envoyer — ${reminderTypeLabel[selectedReminderType]}`}
                     </Button>
@@ -529,7 +537,7 @@ export default function InvoiceDetailPage() {
                   Historique des relances
                 </CardTitle>
                 <CardDescription>
-                  {reminders.length === 0 ? 'Aucune relance envoyée' : `${reminders.length} relance${reminders.length > 1 ? 's' : ''} envoyée${reminders.length > 1 ? 's' : ''}`}
+                  {reminders.length === 0 ? 'Aucune relance envoyée' : `${reminders.length} tentative${reminders.length > 1 ? 's' : ''} enregistrée${reminders.length > 1 ? 's' : ''}`}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -555,7 +563,7 @@ export default function InvoiceDetailPage() {
                           complained_at?: string | null
                         }
                         const events = [
-                          { label: 'Envoyé', at: reminder.sent_at, dot: 'bg-blue-500' },
+                          { label: ['pending','failed'].includes(reminder.status) ? 'Tentative enregistrée' : 'Envoyé', at: ['pending','failed'].includes(reminder.status) ? reminder.created_at : reminder.sent_at, dot: 'bg-blue-500' },
                           r.delivered_at && { label: 'Délivré', at: r.delivered_at, dot: 'bg-green-500' },
                           r.opened_at && { label: 'Ouvert', at: r.opened_at, dot: 'bg-emerald-500' },
                           r.clicked_at && { label: 'Cliqué', at: r.clicked_at, dot: 'bg-purple-500' },

@@ -15,7 +15,7 @@ import { Logo } from '@/components/brand/logo'
 import { AuthConfigNotice } from '@/components/auth/config-notice'
 
 const sideFeatures = [
-  { icon: Kanban, label: 'Pipeline kanban', sub: 'Tous tes deals en un coup d\'œil' },
+  { icon: Kanban, label: 'Suivi des impayés', sub: 'Vos prochaines actions en un coup d’œil' },
   { icon: Bell, label: 'Relances automatiques', sub: 'Prospects et factures — sans intervention' },
   { icon: FileText, label: 'Facturation intégrée', sub: 'De la proposition signée à l\'encaissement' },
 ]
@@ -81,7 +81,7 @@ function LeftPanel() {
             Arrête de courir après ton argent.
           </h2>
           <p className="text-white/70 mt-3 text-sm leading-relaxed">
-            Relances automatiques, mise en demeure légale, paiement Stripe intégré —
+            Import CSV, relances email, promesses de paiement —
             le logiciel français pour indépendants qui bossent seuls.
           </p>
         </div>
@@ -118,7 +118,7 @@ function LeftPanel() {
       </div>
 
       <p className="text-xs text-blue-300/40">
-        Données hébergées en Europe · Conforme RGPD · 15 €/mois après l&apos;essai
+        30 jours sans carte bancaire · 16 € HT/mois au tarif fondateur
       </p>
     </div>
   )

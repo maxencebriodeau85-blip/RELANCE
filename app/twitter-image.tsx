@@ -4,7 +4,7 @@
 import OgImage from './opengraph-image'
 
 export const runtime = 'edge'
-export const alt = 'RelanceFlow — Automatisez vos relances de factures impayées'
+export const alt = 'Encair — Automatisez vos relances de factures impayées'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 

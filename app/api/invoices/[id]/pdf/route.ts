@@ -12,7 +12,7 @@ export const runtime = 'nodejs'
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient()
@@ -27,7 +27,7 @@ export async function GET(
     const { data: invoiceData, error: invErr } = await supabase
       .from('invoices')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .eq('user_id', user.id)
       .single()
 

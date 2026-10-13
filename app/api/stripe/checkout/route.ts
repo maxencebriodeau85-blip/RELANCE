@@ -18,8 +18,15 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { plan } = body as { plan: PlanKey }
 
-    if (!plan || !STRIPE_PLANS[plan]) {
+    if (plan !== 'starter') {
       return NextResponse.json({ error: 'Plan invalide' }, { status: 400 })
+    }
+
+    const configuredPrice = STRIPE_PLANS.starter.priceId
+    if (!configuredPrice) return NextResponse.json({ error: 'Abonnement temporairement indisponible.' }, { status: 503 })
+    const actualPrice = await (await import('@/lib/stripe')).stripe.prices.retrieve(configuredPrice)
+    if (!actualPrice.active || actualPrice.unit_amount !== 1600 || actualPrice.currency !== 'eur' || actualPrice.recurring?.interval !== 'month' || actualPrice.recurring.interval_count !== 1) {
+      return NextResponse.json({ error: 'Configuration du tarif à vérifier.' }, { status: 503 })
     }
 
     const { data: profileData } = await supabase
@@ -59,58 +66,5 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const plan = searchParams.get('plan') as PlanKey
-
-  if (!plan || !STRIPE_PLANS[plan]) {
-    return NextResponse.redirect(new URL('/#pricing', request.url))
-  }
-
-  try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-      // Through /auth/clear-session, not /auth/login directly — a stale
-      // session cookie here hits the same middleware bounce loop that
-      // app/auth/clear-session/route.ts exists to break (see that file).
-      return NextResponse.redirect(
-        new URL(`/auth/clear-session?redirectedFrom=/api/stripe/checkout?plan=${plan}`, request.url)
-      )
-    }
-
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single()
-
-    const profile = profileData as unknown as Profile | null
-    const appUrl = getAppUrl()
-
-    // Already subscribed: switch the price on the EXISTING subscription
-    // instead of creating a second one alongside it (see changeSubscriptionPlan).
-    if (profile?.stripe_subscription_id) {
-      await changeSubscriptionPlan({
-        subscriptionId: profile.stripe_subscription_id,
-        newPriceId: STRIPE_PLANS[plan].priceId,
-      })
-      return NextResponse.redirect(new URL('/dashboard/settings?checkout=success', request.url))
-    }
-
-    const session = await createCheckoutSession({
-      customerId: profile?.stripe_customer_id || undefined,
-      priceId: STRIPE_PLANS[plan].priceId,
-      successUrl: `${appUrl}/dashboard/settings?checkout=success`,
-      cancelUrl: `${appUrl}/dashboard/settings?checkout=cancelled`,
-      userId: user.id,
-    })
-
-    return NextResponse.redirect(session.url!)
-  } catch (err) {
-    console.error('Checkout redirect error:', err)
-    return NextResponse.redirect(new URL('/#pricing', request.url))
-  }
+  return NextResponse.redirect(new URL('/dashboard/settings', request.url))
 }

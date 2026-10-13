@@ -13,7 +13,7 @@ import { createClient } from '@/lib/supabase/client'
 import { supabaseAuthError } from '@/lib/auth-errors'
 
 const sideFeatures = [
-  { icon: Kanban, label: 'Pipeline kanban', sub: 'Tous tes deals en un coup d\'œil' },
+  { icon: Kanban, label: 'Suivi des impayés', sub: 'Vos prochaines actions en un coup d’œil' },
   { icon: Bell, label: 'Relances automatiques', sub: 'Prospects et factures — sans intervention' },
   { icon: FileText, label: 'Facturation intégrée', sub: 'De la proposition signée à l\'encaissement' },
 ]
@@ -84,7 +84,7 @@ function LoginForm() {
               Arrête de courir après ton argent.
             </h2>
             <p className="text-white/70 mt-3 text-sm leading-relaxed">
-              Relances automatiques, mise en demeure légale, paiement Stripe intégré —
+              Import CSV, relances email, promesses de paiement —
               le logiciel français pour indépendants qui bossent seuls.
             </p>
           </div>
@@ -122,7 +122,7 @@ function LoginForm() {
         </div>
 
         <p className="text-xs text-blue-300/40">
-          Données hébergées en Europe · Conforme RGPD · 15 €/mois après l&apos;essai
+          30 jours sans carte bancaire · 16 € HT/mois au tarif fondateur
         </p>
       </div>
 
@@ -138,7 +138,7 @@ function LoginForm() {
 
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-gray-900">Bon retour 👋</h1>
-            <p className="text-gray-500 mt-1 text-sm">Connecte-toi à ton espace RelanceFlow</p>
+            <p className="text-gray-500 mt-1 text-sm">Connecte-toi à ton espace Encair</p>
           </div>
 
           <AuthConfigNotice />

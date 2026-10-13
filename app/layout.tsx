@@ -1,3 +1,5 @@
+import { getAppUrl } from '@/lib/app-url'
+import { OFFER } from '@/lib/plans'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
@@ -16,21 +18,17 @@ const inter = Inter({
   weight: ['400', '500', '600', '700'],
 })
 
-// Canonical & metadata URL — always points to the production domain so that
-// Open Graph cards, JSON-LD, canonical and sitemap never leak a Vercel preview
-// hostname. If you change the production domain, edit this constant
-// (NOT the NEXT_PUBLIC_APP_URL env var, which controls runtime links inside
-// emails — that one should also be set to https://relanceflow.fr in prod).
-const SITE_URL = 'https://relanceflow.fr'
+// Canonical URLs follow the configured, owned deployment domain.
+const SITE_URL = getAppUrl()
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'RelanceFlow — Automatisez vos relances de factures impayées',
-    template: '%s | RelanceFlow',
+    default: 'Encair — Automatisez vos relances de factures impayées',
+    template: '%s | Encair',
   },
   description:
-    'Logiciel français de relance automatique des factures impayées pour indépendants, consultants et TPE. Pipeline CRM, mise en demeure conforme, paiement Stripe intégré. 30 jours gratuits, sans carte bancaire.',
+    'Logiciel français de relance automatique des factures impayées pour indépendants, consultants et TPE. Import CSV, relances email et suivi des paiements. Tarif fondateur à 16 € HT/mois. 30 jours gratuits, sans carte bancaire.',
   keywords: [
     'relance facture impayée',
     'logiciel recouvrement',
@@ -38,7 +36,7 @@ export const metadata: Metadata = {
     'mise en demeure',
     'facture impayée que faire',
     'pénalités de retard',
-    'pipeline CRM français',
+    'suivi des impayés',
     'facturation indépendant',
     'consultant',
     'coach',
@@ -46,34 +44,34 @@ export const metadata: Metadata = {
     'TPE',
     'auto-entrepreneur',
   ],
-  authors: [{ name: 'RelanceFlow' }],
-  creator: 'RelanceFlow',
-  publisher: 'RelanceFlow',
-  applicationName: 'RelanceFlow',
+  authors: [{ name: 'Encair' }],
+  creator: 'Encair',
+  publisher: 'Encair',
+  applicationName: 'Encair',
   category: 'business',
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'RelanceFlow — Automatisez vos relances de factures impayées',
+    title: 'Encair — Automatisez vos relances de factures impayées',
     description:
-      'Logiciel français de relance automatique des factures impayées pour indépendants et TPE. Pipeline CRM, mise en demeure conforme, paiement Stripe intégré. 30 jours gratuits.',
+      'Logiciel français de relance automatique des factures impayées pour indépendants et TPE. Import CSV, relances email et suivi des paiements. Tarif fondateur à 16 € HT/mois. 30 jours gratuits.',
     url: SITE_URL,
-    siteName: 'RelanceFlow',
+    siteName: 'Encair',
     type: 'website',
     locale: 'fr_FR',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'RelanceFlow — Automatisez vos relances de factures impayées',
+    title: 'Encair — Automatisez vos relances de factures impayées',
     description:
       'Logiciel français de relance automatique pour indépendants et TPE. 30 jours gratuits.',
   },
   robots: {
-    index: true,
+    index: process.env.VERCEL_ENV !== 'preview',
     follow: true,
     googleBot: {
-      index: true,
+      index: process.env.VERCEL_ENV !== 'preview',
       follow: true,
       'max-image-preview': 'large',
       'max-snippet': -1,
@@ -92,18 +90,14 @@ export const metadata: Metadata = {
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
-  name: 'RelanceFlow',
+  name: 'Encair',
   applicationCategory: 'BusinessApplication',
   operatingSystem: 'Web',
   description:
-    "Logiciel français d'automatisation des relances de factures impayées et de génération de mises en demeure conformes au droit français.",
+    "Suivi des impayés, import CSV et relances email pour les petites entreprises.",
   url: SITE_URL,
   inLanguage: 'fr-FR',
-  offers: [
-    { '@type': 'Offer', name: 'Starter', price: '19', priceCurrency: 'EUR' },
-    { '@type': 'Offer', name: 'Pro', price: '49', priceCurrency: 'EUR' },
-    { '@type': 'Offer', name: 'Business', price: '99', priceCurrency: 'EUR' },
-  ],
+  offers: [{ '@type': 'Offer', name: OFFER.name, price: String(OFFER.price), priceCurrency: 'EUR' }],
 }
 
 export default function RootLayout({
