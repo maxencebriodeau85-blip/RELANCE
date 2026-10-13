@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Zap } from 'lucide-react'
+import { Logo } from '@/components/brand/logo'
 
 export function LegalLayout({
   title,
@@ -14,12 +14,7 @@ export function LegalLayout({
     <div className="min-h-screen bg-white">
       <header className="sticky top-0 z-50 border-b bg-white/95 backdrop-blur-sm">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
-              <Zap className="h-5 w-5 text-white" />
-            </div>
-            <span className="text-lg font-bold text-gray-900">Encair</span>
-          </Link>
+          <Logo size="sm" />
           <nav className="flex items-center gap-6 text-sm font-medium text-gray-600">
             <Link href="/" className="hover:text-gray-900 transition-colors">
               Accueil
@@ -43,12 +38,13 @@ export function LegalLayout({
 
       <footer className="border-t bg-gray-50 py-8 mt-16">
         <div className="container mx-auto px-4 text-center text-sm text-gray-500">
-          <p>© 2024 Encair. Tous droits réservés.</p>
-          <div className="mt-2 flex justify-center gap-4">
-            <Link href="/cgu" className="hover:text-gray-900">CGU</Link>
+          <p>© {new Date().getFullYear()} Encair</p>
+          <div className="mt-2 flex flex-wrap justify-center gap-4">
+            <Link href="/cgu" className="hover:text-gray-900">CGU/CGV</Link>
             <Link href="/privacy" className="hover:text-gray-900">Confidentialité</Link>
+            <Link href="/dpa" className="hover:text-gray-900">Sous-traitance</Link>
             <Link href="/mentions-legales" className="hover:text-gray-900">Mentions légales</Link>
-            <Link href="/support" className="hover:text-gray-900">Support</Link>
+            <Link href="/contact" className="hover:text-gray-900">Contact</Link>
           </div>
         </div>
       </footer>

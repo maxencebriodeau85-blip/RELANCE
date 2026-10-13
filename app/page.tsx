@@ -13,29 +13,48 @@ import { SiteNav } from '@/components/landing/site-nav'
 import { SiteFooter } from '@/components/landing/site-footer'
 import { PricingSection } from '@/components/landing/pricing-section'
 import { ProductPreview } from '@/components/landing/product-preview'
+import { CTA_LABEL, OFFER, TRIAL_LINE } from '@/lib/plans'
+import { CONTACT_EMAIL, PUBLISHER } from '@/lib/legal'
+
+export const metadata = {
+  alternates: { canonical: '/' },
+}
 
 const faq = [
   [
     'Dois-je changer de logiciel de facturation ?',
-    'Non. Exportez vos factures au format CSV depuis votre outil actuel, puis importez-les dans Encair. Vous continuez à établir vos factures dans votre logiciel habituel.',
+    'Non. Exportez vos factures au format CSV depuis votre outil actuel (ou un fichier Excel enregistré en CSV), puis importez-les dans Encair. Vous continuez à établir vos factures dans votre logiciel habituel.',
   ],
   [
-    'Comment les paiements sont-ils mis à jour ?',
-    'Actualisez votre fichier CSV avec la colonne « Reste à payer », ou renseignez le montant déjà encaissé sur la fiche de la facture. La connexion bancaire automatique ne fait pas partie de cette offre.',
+    'Mon logiciel de facturation relance déjà, pourquoi Encair ?',
+    'Si ses relances vous suffisent, gardez-les. Encair sert quand une relance doit tenir compte de ce que le client vous a dit : une promesse pour vendredi, un acompte versé, une facture contestée. Ces situations mettent l’envoi en pause automatiquement, et vous voyez chaque jour les factures qui demandent une action.',
+  ],
+  [
+    'De quelle adresse partent les relances ?',
+    'Elles partent au nom de votre entreprise, depuis l’adresse d’envoi d’Encair. Le bouton « Répondre » de votre client vous écrit directement, sur l’adresse email de votre compte.',
   ],
   [
     'Est-ce que les relances partent immédiatement ?',
-    'Les nouvelles factures sont importées en pause. Vérifiez les informations, confirmez le solde et activez les relances. Une promesse de paiement, un litige ou un solde non vérifié depuis sept jours suspend l’envoi automatique.',
+    'Non. Les nouvelles factures sont importées en pause. Vérifiez les informations, confirmez le solde et activez les relances. Une promesse de paiement, un litige ou un solde non vérifié depuis sept jours suspend l’envoi automatique.',
   ],
   [
-    'Que comprend le tarif fondateur ?',
-    '100 nouvelles factures par mois, l’actualisation des factures existantes, les relances email, leurs modèles et le suivi des paiements. Le tarif de 16 € HT/mois est conservé tant que l’abonnement reste actif. Le tarif public prévu est de 29 € HT/mois.',
+    'Comment les paiements sont-ils mis à jour ?',
+    'Réimportez votre fichier CSV avec la colonne « Reste à payer », ou renseignez le montant encaissé sur la fiche de la facture. La connexion bancaire automatique n’est pas disponible pour l’instant.',
   ],
   [
-    'Puis-je essayer avant de payer ?',
-    'Oui : 30 jours d’essai sans carte bancaire, avec 10 factures. Aucun abonnement n’est déclenché automatiquement à la fin de l’essai.',
+    'Que se passe-t-il après l’essai ?',
+    'Rien n’est prélevé : aucune carte bancaire n’est demandée à l’inscription. Si vous ne vous abonnez pas, les relances s’arrêtent et vous ne pouvez plus ajouter de factures, mais vous gardez l’accès à vos données pour les consulter et les exporter en CSV.',
+  ],
+  [
+    'Et au-delà de 100 factures dans le mois ?',
+    'Le quota compte les nouvelles factures ajoutées dans le mois civil. L’actualisation des factures déjà suivies n’est pas décomptée. Une fois les 100 atteintes, l’ajout de nouvelles factures reprend le 1er du mois suivant ; rien n’est facturé en plus.',
+  ],
+  [
+    'Mon assistante ou mon expert-comptable peut-il y accéder ?',
+    'L’offre fondateur comprend un seul utilisateur. Si vous avez besoin d’un accès partagé, écrivez-moi : c’est le genre de retour qui décide de la suite.',
   ],
 ]
+
 export default function HomePage() {
   return (
     <div className="rf-site">
@@ -44,21 +63,21 @@ export default function HomePage() {
         <section className="rf-hero">
           <div className="rf-hero-copy">
             <div className="rf-launch">
-              <span /> Pour les petites entreprises qui veulent garder le fil
+              <span /> Pour les TPE qui ont plusieurs factures en retard
             </div>
             <h1>
-              Vos factures attendent.
+              Vos factures impayées,
               <br />
-              <em>Votre activité, non.</em>
+              <em>suivies et relancées.</em>
             </h1>
             <p>
-              Importez vos impayés, préparez vos relances et suivez chaque
-              promesse de paiement. Retrouvez une vue claire sur l’argent qui
-              vous est dû.
+              Sans changer de logiciel de facturation. Exportez vos factures en
+              CSV et importez-les : Encair vous montre chaque jour qui relancer,
+              qui a promis de payer et quelles factures sont en litige.
             </p>
             <div className="rf-hero-actions">
               <Link className="rf-button rf-button-dark" href="/auth/register">
-                Essayer gratuitement <ArrowUpRight size={19} />
+                {CTA_LABEL} <ArrowUpRight size={19} />
               </Link>
               <a href="#produit" className="rf-text-link">
                 Découvrir le produit <ArrowRight size={17} />
@@ -67,11 +86,11 @@ export default function HomePage() {
             <div className="rf-hero-proof">
               <span>
                 <Check size={15} />
-                30 jours sans carte bancaire
+                {OFFER.trialDays} jours gratuits · {OFFER.trialInvoiceLimit} factures
               </span>
               <span>
                 <Check size={15} />
-                Puis 16 € HT/mois
+                Sans carte bancaire · aucun prélèvement automatique
               </span>
             </div>
           </div>
@@ -80,7 +99,7 @@ export default function HomePage() {
             <p>
               Moins de « je vous relance ».
               <br />
-              <b>Plus de visibilité.</b>
+              <b>Plus de factures payées.</b>
             </p>
             <CornerDownRight size={34} />
           </div>
@@ -94,16 +113,16 @@ export default function HomePage() {
             <ShieldCheck size={17} />
             Vous gardez la main sur les envois.
           </span>
-          <span>Un tarif. L’essentiel.</span>
+          <span>{OFFER.price} € HT/mois, sans engagement.</span>
         </div>
         <section id="fonctionnalites" className="rf-section">
           <div className="rf-section-heading">
             <div>
               <span className="rf-eyebrow">DU FICHIER À L’ACTION</span>
               <h2>
-                Un suivi qui avance.
+                Du CSV à la relance,
                 <br />
-                Avec vous.
+                en trois étapes.
               </h2>
             </div>
             <p>
@@ -116,19 +135,19 @@ export default function HomePage() {
               {
                 n: '01',
                 icon: Upload,
-                title: 'Rassemblez vos impayés.',
-                text: 'Importez votre CSV et associez ses colonnes. Réimportez ensuite les soldes pour actualiser les factures existantes.',
+                title: 'Importez vos impayés.',
+                text: 'Importez l’export CSV de votre logiciel de facturation (ou un fichier Excel enregistré en CSV) et associez ses colonnes. Réimportez ensuite les soldes pour actualiser les factures existantes.',
               },
               {
                 n: '02',
                 icon: Mail,
-                title: 'Trouvez les bons mots.',
-                text: 'Personnalisez vos modèles et choisissez un rythme de relance. Consultez l’historique des envois sur chaque facture.',
+                title: 'Relancez avec vos propres modèles.',
+                text: 'Personnalisez vos modèles et choisissez un rythme de relance. Les emails partent à votre nom et l’historique des envois reste sur chaque facture.',
               },
               {
                 n: '03',
                 icon: ListChecks,
-                title: 'Gardez une longueur d’avance.',
+                title: 'Promesses, acomptes, litiges : tout est suivi.',
                 text: 'Un règlement partiel, une promesse pour vendredi, une facture contestée : chaque situation reste visible et exploitable.',
               },
             ].map((f) => (
@@ -145,19 +164,19 @@ export default function HomePage() {
         </section>
         <section className="rf-control">
           <div>
-            <span className="rf-eyebrow">AUTOMATISER AVEC DISCERNEMENT</span>
+            <span className="rf-eyebrow">AUCUNE RELANCE GÊNANTE</span>
             <h2>
-              La bonne relance.
+              Jamais de relance
               <br />
-              Au bon moment.
+              à un client qui a payé.
             </h2>
             <p>
-              Les paiements ne se devinent pas. Encair vous demande des soldes à
-              jour et met les envois en pause quand une vérification est
-              nécessaire.
+              Sans solde confirmé depuis sept jours, rien ne part. Une promesse,
+              un litige ou un paiement reçu mettent les envois en pause
+              automatiquement.
             </p>
             <Link href="/auth/register" className="rf-button rf-button-light">
-              Reprendre le contrôle <ArrowUpRight size={18} />
+              {CTA_LABEL} <ArrowUpRight size={18} />
             </Link>
           </div>
           <div className="rf-control-list">
@@ -187,6 +206,33 @@ export default function HomePage() {
           </div>
         </section>
         <PricingSection />
+        <section className="rf-section rf-faq" aria-labelledby="fondateur">
+          <div>
+            <span className="rf-eyebrow">QUI EST DERRIÈRE</span>
+            <h2 id="fondateur">
+              Un fondateur,
+              <br />
+              joignable.
+            </h2>
+          </div>
+          <div>
+            <p className="rf-lead">
+              Encair est conçu par {PUBLISHER.name}, alternant en cabinet
+              d’expertise comptable. J’y vois chaque semaine des petites
+              entreprises perdre du temps à relancer, faute de savoir qui a
+              promis quoi.
+            </p>
+            <p className="rf-lead">
+              Encair est en lancement : vous faites partie des premiers
+              utilisateurs, et je lis chaque retour.{' '}
+              {CONTACT_EMAIL ? (
+                <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+              ) : (
+                <Link href="/contact">Me poser une question</Link>
+              )}
+            </p>
+          </div>
+        </section>
         <section id="faq" className="rf-section rf-faq">
           <div>
             <span className="rf-eyebrow">EN TOUTE CLARTÉ</span>
@@ -216,9 +262,9 @@ export default function HomePage() {
             Dès aujourd’hui.
           </h2>
           <Link href="/auth/register" className="rf-button rf-button-dark">
-            Créer mon espace <ArrowUpRight size={18} />
+            {CTA_LABEL} <ArrowUpRight size={18} />
           </Link>
-          <p>30 jours gratuits · Sans carte bancaire</p>
+          <p>{TRIAL_LINE}</p>
         </section>
       </main>
       <SiteFooter />

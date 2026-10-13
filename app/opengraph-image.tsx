@@ -2,7 +2,7 @@
 import { ImageResponse } from 'next/og'
 
 export const runtime = 'edge'
-export const alt = 'Encair — Automatisez vos relances de factures impayées'
+export const alt = 'Encair — Suivi et relance des factures impayées pour TPE'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -39,7 +39,13 @@ export default async function Image() {
               color: '#fff',
             }}
           >
-            e↗
+            <svg viewBox="0 0 32 32" width="40" height="40" fill="none">
+              <path
+                d="M7 10h12M7 16h10M7 22h7M19 23l7-7m-7 0h7v7"
+                stroke="#fff"
+                strokeWidth="2.5"
+              />
+            </svg>
           </div>
           <div
             style={{
@@ -84,7 +90,7 @@ export default async function Image() {
               lineHeight: 1.05,
             }}
           >
-            relancées toutes seules.
+            suivies et relancées.
           </div>
         </div>
 

@@ -158,7 +158,7 @@ function SidebarContent({
 
       {/* Help */}
       <Link
-        href="/support"
+        href="/contact"
         onClick={onClose}
         className="mx-2 mb-1 flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
       >

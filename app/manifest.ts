@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Encair — Recouvrement de factures pour indépendants',
+    name: 'Encair — Suivi des impayés et relances',
     short_name: 'Encair',
     description:
       'Suivi des impayés, soldes, relances email, promesses de paiement et litiges.',

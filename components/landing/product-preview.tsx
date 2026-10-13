@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { ArrowUpRight, Check, Clock3, Mail, MoreHorizontal } from 'lucide-react'
+import { LogoMark } from '@/components/brand/logo'
 const invoices = [
   {
     name: 'Studio Rivage',
@@ -47,45 +48,45 @@ export function ProductPreview() {
     >
       <div className="rf-preview-top">
         <div className="rf-mini-brand">
-          <span>e↗</span> Votre espace de suivi
+          <LogoMark size="sm" /> Votre espace de suivi
         </div>
         <span className="rf-demo-label">Données de démonstration</span>
       </div>
       <div className="rf-preview-body">
         <div className="rf-preview-heading">
           <div>
-            <span className="rf-eyebrow">VOTRE TRÉSORERIE, AU CLAIR</span>
-            <h3>Chaque paiement a sa suite.</h3>
+            <span className="rf-eyebrow">BUREAU D’ÉTUDES (EXEMPLE)</span>
+            <h3>Vos actions du jour</h3>
           </div>
-          <span className="rf-avatar">MB</span>
+          <span className="rf-avatar">BE</span>
         </div>
         <div className="rf-demo-kpis">
           <div>
             <span>Reste à encaisser</span>
             <strong>
-              5 210 <small>€</small>
+              38 400 <small>€</small>
             </strong>
-            <p>3 factures suivies</p>
+            <p>27 factures suivies</p>
           </div>
           <div>
-            <span>À relancer</span>
+            <span>À relancer aujourd’hui</span>
             <strong>
-              2 400 <small>€</small>
+              9 650 <small>€</small>
             </strong>
-            <p className="rf-orange">1 action à préparer</p>
+            <p className="rf-orange">4 relances à préparer</p>
           </div>
           <div>
-            <span>Paiement promis</span>
+            <span>Paiements promis</span>
             <strong>
-              1 850 <small>€</small>
+              6 120 <small>€</small>
             </strong>
-            <p>À vérifier vendredi</p>
+            <p>3 à vérifier cette semaine</p>
           </div>
         </div>
         <div className="rf-demo-grid">
           <div>
             <div className="rf-table-title">
-              Vos priorités <MoreHorizontal size={18} />
+              Vos priorités du jour <MoreHorizontal size={18} />
             </div>
             {invoices.map((item, i) => (
               <button

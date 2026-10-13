@@ -9,8 +9,9 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createClient } from '@/lib/supabase/client'
+import { Logo } from '@/components/brand/logo'
 import { supabaseAuthError } from '@/lib/auth-errors'
-import { Zap, AlertCircle, CheckCircle, ArrowLeft, Clock } from 'lucide-react'
+import { AlertCircle, CheckCircle, ArrowLeft, Clock } from 'lucide-react'
 
 const COUNTDOWN_SECONDS = 8
 const RATE_LIMIT_SECONDS = 60
@@ -93,11 +94,8 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4 pb-28 sm:pb-4 overflow-y-auto">
       <div className="w-full max-w-md">
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600">
-            <Zap className="h-6 w-6 text-white" />
-          </div>
-          <span className="text-2xl font-bold text-gray-900">Encair</span>
+        <div className="flex items-center justify-center mb-8">
+          <Logo size="md" />
         </div>
 
         {sent ? (

@@ -1,18 +1,20 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { Download, Mail, AlertTriangle, CheckCircle, Copy, ChevronRight } from 'lucide-react'
+import { Mail, AlertTriangle, Info, ChevronRight, ClipboardCopy } from 'lucide-react'
 import { Logo } from '@/components/brand/logo'
 import { SiteFooter } from '@/components/landing/footer'
+import { CTA_LABEL, TRIAL_LINE } from '@/lib/plans'
+import { PUBLISHER } from '@/lib/legal'
 
 export const metadata: Metadata = {
   title: 'Modèles de relance de facture — cordial, ferme, mise en demeure',
   description:
-    "5 modèles d'emails de relance gratuits, prêts à l'emploi et copiables : rappel cordial, relance ferme, pré-contentieux, litige et mise en demeure conforme au droit français.",
+    "5 modèles d'emails de relance gratuits à copier et adapter : rappel cordial, relance ferme, pré-contentieux, réponse à une contestation et mise en demeure.",
   alternates: { canonical: '/modeles' },
   openGraph: {
-    title: 'Modèles de relance de facture gratuits | Encair',
+    title: 'Modèles de relance de facture gratuits',
     description:
-      "5 modèles d'emails de relance prêts à l'emploi pour indépendants français.",
+      "5 modèles d'emails de relance à copier et adapter, du rappel cordial à la mise en demeure.",
     type: 'website',
   },
 }
@@ -23,7 +25,7 @@ const templates = [
     title: 'Relance cordiale — J+7',
     tone: 'Cordial',
     toneColor: 'bg-blue-100 text-blue-700',
-    context: "Pour un retard de moins de 15 jours. Suppose un simple oubli. Préserve la relation.",
+    context: "Une semaine après l'échéance. Suppose un simple oubli et préserve la relation.",
     subject: 'Rappel : Facture n°{NUMERO_FACTURE} — Échéance du {DATE_ECHEANCE}',
     body: `Madame, Monsieur,
 
@@ -38,10 +40,10 @@ Dans l'attente de votre retour, nous vous adressons nos cordiales salutations.
   },
   {
     id: 'ferme',
-    title: 'Relance ferme — J+21',
+    title: 'Relance ferme — J+15',
     tone: 'Ferme',
     toneColor: 'bg-yellow-100 text-yellow-700',
-    context: "Pour un retard de 15 à 30 jours. Rappel explicite des conséquences légales.",
+    context: "Quinze jours après l'échéance, sans réponse au premier rappel. Rappelle les conséquences du retard.",
     subject: '2ème relance — Facture n°{NUMERO_FACTURE} impayée',
     body: `Madame, Monsieur,
 
@@ -51,7 +53,7 @@ Malgré ce rappel, nous constatons qu'aucun règlement n'est intervenu.
 
 Nous vous demandons de bien vouloir nous faire parvenir votre règlement de {MONTANT} TTC sous 8 jours à compter de la présente.
 
-À défaut, nous serons contraints de faire valoir nos droits par toute voie de recours appropriée, et notamment le recouvrement des pénalités de retard prévues aux conditions générales de vente, au taux légal de {TAUX_PENALITES}% l'an, ainsi que l'indemnité forfaitaire de recouvrement de 40€.
+À défaut, nous serons contraints de faire valoir nos droits par toute voie de recours appropriée, et notamment réclamer les pénalités de retard prévues à nos conditions générales de vente, au taux de {TAUX_PENALITES} % l'an, ainsi que l'indemnité forfaitaire de recouvrement de 40 € (articles L441-10 et D441-5 du Code de commerce).
 
 Veuillez agréer nos salutations distinguées.
 
@@ -60,10 +62,10 @@ Veuillez agréer nos salutations distinguées.
   },
   {
     id: 'precontentieux',
-    title: 'Relance pré-contentieuse — J+45',
+    title: 'Relance pré-contentieuse — J+30',
     tone: 'Pré-contentieux',
     toneColor: 'bg-orange-100 text-orange-700',
-    context: "Pour un retard de 30 à 60 jours. Dernier avertissement avant mise en demeure.",
+    context: "Un mois après l'échéance. Dernier avertissement avant la mise en demeure.",
     subject: 'URGENT — Facture n°{NUMERO_FACTURE} — Avant toute procédure judiciaire',
     body: `Madame, Monsieur,
 
@@ -72,8 +74,8 @@ Malgré nos relances des {DATE_RELANCE_1} et {DATE_RELANCE_2}, la facture n°{NU
 Cette situation nous contraint à vous informer que, sans règlement de votre part sous 72 heures, nous serons dans l'obligation de :
 
 1. Émettre une mise en demeure officielle par courrier recommandé avec accusé de réception
-2. Réclamer les pénalités de retard au taux légal ({TAUX_PENALITES}% l'an) depuis le {DATE_ECHEANCE}
-3. Facturer l'indemnité forfaitaire légale de recouvrement de 40€ par facture impayée
+2. Réclamer les pénalités de retard au taux de {TAUX_PENALITES} % l'an depuis le {DATE_ECHEANCE}
+3. Réclamer l'indemnité forfaitaire de recouvrement de 40 € par facture impayée
 4. Engager une procédure d'injonction de payer devant le Tribunal compétent
 
 Nous regrettons d'en arriver là et restons disponibles pour tout arrangement amiable.
@@ -83,20 +85,20 @@ Nous regrettons d'en arriver là et restons disponibles pour tout arrangement am
   },
   {
     id: 'litige',
-    title: 'Email en cas de contestation — J+30',
+    title: 'Réponse à une contestation',
     tone: 'Litige',
     toneColor: 'bg-red-100 text-red-700',
-    context: "Lorsque le client conteste la prestation ou la facture. Réponse structurée.",
+    context: "Dès que le client conteste la prestation ou la facture. Suspendez les relances le temps d'y répondre.",
     subject: 'Réponse à votre contestation — Facture n°{NUMERO_FACTURE}',
     body: `Madame, Monsieur,
 
 Nous avons bien pris note de votre contestation concernant notre facture n°{NUMERO_FACTURE}.
 
-Après examen de votre courrier, nous maintenant notre position pour les raisons suivantes :
+Après examen de votre courrier, nous maintenons notre position pour les raisons suivantes :
 
 {ARGUMENTS_DEFENSE}
 
-Conformément à l'article 1344 du Code civil, la contestation d'une créance ne suspend pas l'obligation de paiement. Le règlement de la partie non contestée ({MONTANT_NON_CONTESTE}) doit donc intervenir immédiatement.
+Nous vous demandons de régler sans délai la partie non contestée de la facture, soit {MONTANT_NON_CONTESTE}.
 
 Pour la partie contestée, nous vous proposons :
 ☐ Un rendez-vous de médiation sous 15 jours
@@ -110,18 +112,18 @@ Sans réponse de votre part sous 10 jours, nous serons contraints d'engager une 
   },
   {
     id: 'mise-en-demeure',
-    title: 'Mise en demeure — J+60',
+    title: 'Mise en demeure — J+45',
     tone: 'Mise en demeure',
     toneColor: 'bg-red-100 text-red-800',
-    context: "Document légal officiel. À envoyer par LRAR. Fait courir les intérêts moratoires.",
+    context: "À envoyer en recommandé avec accusé de réception. Formalise votre demande et prépare l'injonction de payer.",
     subject: 'MISE EN DEMEURE — Facture n°{NUMERO_FACTURE} — {MONTANT} TTC',
     body: `MISE EN DEMEURE
 
 Envoyée par lettre recommandée avec accusé de réception
 
-{NOM_ENTREPRISE}, société {FORME_JURIDIQUE} au capital de {CAPITAL}€, immatriculée au RCS de {VILLE_RCS} sous le numéro {SIREN}, dont le siège social est situé {ADRESSE},
-
-Représentée par {NOM_SIGNATAIRE}, en sa qualité de {QUALITE},
+{NOM_ENTREPRISE}, {FORME_JURIDIQUE}, SIREN {SIREN}, {ADRESSE},
+(société : ajoutez le capital, le RCS et « représentée par {NOM_SIGNATAIRE}, {QUALITE} » ;
+entrepreneur individuel : indiquez « Prénom Nom, entrepreneur individuel »)
 
 A
 
@@ -133,17 +135,19 @@ OBJET : Mise en demeure de payer
 
 Madame, Monsieur,
 
-Par la présente lettre recommandée avec accusé de réception, nous vous mettons en demeure de régler, dans un délai de 8 jours à compter de la réception de ce courrier, la somme de {MONTANT} TTC correspondant à notre facture n°{NUMERO_FACTURE} du {DATE_FACTURE}, dont l'échéance était fixée au {DATE_ECHEANCE}.
+Par la présente lettre recommandée avec accusé de réception, et conformément à l'article 1344 du Code civil, nous vous mettons en demeure de régler, dans un délai de 8 jours à compter de la réception de ce courrier, la somme de {MONTANT} TTC correspondant à notre facture n°{NUMERO_FACTURE}, échue le {DATE_ECHEANCE}.du {DATE_FACTURE}, dont l'échéance était fixée au {DATE_ECHEANCE}.
 
 À ce montant s'ajoutent :
-- Pénalités de retard au taux de {TAUX_PENALITES}% l'an depuis le {DATE_ECHEANCE} : {MONTANT_PENALITES}€
-- Indemnité forfaitaire de recouvrement : 40,00€ (décret n°2012-1115 du 2 octobre 2012)
+- Pénalités de retard au taux de {TAUX_PENALITES} % l'an depuis le {DATE_ECHEANCE} (art. L441-10 du Code de commerce) : {MONTANT_PENALITES} €
+- Indemnité forfaitaire de recouvrement : 40,00 € (art. D441-5 du Code de commerce)
+
+(Client particulier : supprimez ces deux lignes ; seuls des intérêts au taux légal courent à compter de la présente mise en demeure.)
 
 TOTAL DÛ : {TOTAL_DU}€
 
 À défaut de règlement sous ce délai, nous nous réservons le droit de :
 - Engager toute procédure judiciaire utile au recouvrement de notre créance
-- Saisir le Tribunal de Commerce de {JURIDICTION} compétent
+- Saisir la juridiction compétente du lieu de votre domicile ou siège ({JURIDICTION})
 - Réclamer le remboursement des frais de procédure sur le fondement de l'article 700 du CPC
 
 Veuillez agréer, Madame, Monsieur, l'expression de nos salutations distinguées.
@@ -151,9 +155,7 @@ Veuillez agréer, Madame, Monsieur, l'expression de nos salutations distinguées
 Fait à {VILLE}, le {DATE}
 
 {NOM_SIGNATAIRE}
-{QUALITE}
-
-Lu et approuvé — Signature :`,
+{QUALITE}`,
   },
 ]
 
@@ -168,7 +170,7 @@ export default function ModelesPage() {
             href="/auth/register"
             className="rounded-lg bg-brand-gradient text-white text-sm font-semibold px-4 py-2 transition-all hover:shadow-md hover:scale-[1.02]"
           >
-            Essai gratuit 30j
+            {CTA_LABEL}
           </Link>
         </div>
       </div>
@@ -177,15 +179,15 @@ export default function ModelesPage() {
         {/* Hero */}
         <div className="text-center max-w-2xl mx-auto">
           <div className="inline-flex items-center gap-2 rounded-full bg-green-100 text-green-700 text-sm font-semibold px-4 py-1.5 mb-5">
-            <Download className="h-4 w-4" />
-            5 modèles gratuits — téléchargement immédiat
+            <ClipboardCopy className="h-4 w-4" />
+            5 modèles gratuits à copier
           </div>
           <h1 className="text-4xl font-extrabold text-gray-900 mb-4">
             Modèles de lettres de relance
           </h1>
           <p className="text-gray-500 text-lg leading-relaxed">
-            5 modèles prêts à l&apos;emploi, rédigés par des professionnels du credit management.
-            De la relance cordiale à la mise en demeure légale.
+            5 modèles rédigés par {PUBLISHER.name}, fondateur d’Encair, à adapter à votre situation.
+            Un calendrier simple : J+7, J+15, J+30, puis mise en demeure à J+45.
           </p>
         </div>
 
@@ -193,17 +195,17 @@ export default function ModelesPage() {
         <div className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-700 p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="flex-1">
             <h3 className="font-bold text-white">
-              Envoyez ces modèles automatiquement avec Encair
+              Préparez ces relances dans Encair
             </h3>
             <p className="text-blue-200 text-sm mt-1">
-              Fini le copier-coller manuel. Encair déclenche le bon modèle au bon moment, personnalisé avec les données exactes de chaque facture.
+              Encair pré-remplit vos modèles avec les données de chaque facture ; vous validez avant l’envoi.
             </p>
           </div>
           <Link
             href="/auth/register"
             className="flex-shrink-0 rounded-xl bg-white text-blue-700 font-bold text-sm px-5 py-2.5 hover:bg-blue-50 transition-colors whitespace-nowrap flex items-center gap-1.5"
           >
-            Automatiser maintenant
+            {CTA_LABEL}
             <ChevronRight className="h-4 w-4" />
           </Link>
         </div>
@@ -242,8 +244,8 @@ export default function ModelesPage() {
               {/* Footer */}
               <div className="px-6 py-3 border-t bg-gray-50 flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                  <CheckCircle className="h-3.5 w-3.5 text-green-500" />
-                  Conforme droit français — Gratuit & libre de droits
+                  <Info className="h-3.5 w-3.5 text-amber-500" />
+                  À adapter — pénalités et 40 € : clients professionnels uniquement
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-gray-400">Variables entre {'{}'} à remplacer</span>
@@ -257,19 +259,19 @@ export default function ModelesPage() {
         <div className="rounded-2xl border bg-white p-8 text-center">
           <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto mb-3" />
           <h3 className="text-xl font-bold text-gray-900 mb-2">
-            Arrêtez de copier-coller. Automatisez.
+            Moins de copier-coller, aucune relance oubliée
           </h3>
           <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">
-            Encair remplace toutes les variables automatiquement et envoie le bon email au bon moment — sans que vous ayez à lever le petit doigt.
+            Encair remplit les variables avec les données de chaque facture et vous rappelle quoi relancer ; vous validez chaque envoi.
           </p>
           <Link
             href="/auth/register"
             className="inline-flex items-center gap-2 rounded-xl bg-brand-gradient text-white font-bold px-6 py-3 transition-all hover:shadow-lg hover:shadow-brand-500/30"
           >
-            Automatiser mes relances — Gratuit 30j
+            {CTA_LABEL}
             <ChevronRight className="h-4 w-4" />
           </Link>
-          <p className="text-xs text-gray-400 mt-3">Sans carte bancaire · Sans engagement</p>
+          <p className="text-xs text-gray-400 mt-3">{TRIAL_LINE}</p>
         </div>
       </div>
 

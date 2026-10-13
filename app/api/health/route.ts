@@ -18,7 +18,7 @@ export function GET() {
 
   return NextResponse.json({
     status: 'ok',
-    service: 'relanceflow',
+    service: 'encair',
     version: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? 'dev',
     timestamp: new Date().toISOString(),
     // Config presence — booleans only, no secret material is exposed.

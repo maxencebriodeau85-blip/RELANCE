@@ -21,41 +21,27 @@ const inter = Inter({
 // Canonical URLs follow the configured, owned deployment domain.
 const SITE_URL = getAppUrl()
 
+const TITLE = 'Encair — Suivi et relance des factures impayées pour TPE'
+const DESCRIPTION =
+  'Import CSV depuis votre logiciel de facturation, relances email, promesses de paiement et litiges. Pour les TPE. 30 jours gratuits, sans carte bancaire.'
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'Encair — Automatisez vos relances de factures impayées',
+    default: TITLE,
     template: '%s | Encair',
   },
-  description:
-    'Logiciel français de relance automatique des factures impayées pour indépendants, consultants et TPE. Import CSV, relances email et suivi des paiements. Tarif fondateur à 16 € HT/mois. 30 jours gratuits, sans carte bancaire.',
-  keywords: [
-    'relance facture impayée',
-    'logiciel recouvrement',
-    'relance client automatique',
-    'mise en demeure',
-    'facture impayée que faire',
-    'pénalités de retard',
-    'suivi des impayés',
-    'facturation indépendant',
-    'consultant',
-    'coach',
-    'freelance',
-    'TPE',
-    'auto-entrepreneur',
-  ],
+  description: DESCRIPTION,
   authors: [{ name: 'Encair' }],
   creator: 'Encair',
   publisher: 'Encair',
   applicationName: 'Encair',
   category: 'business',
-  alternates: {
-    canonical: '/',
-  },
+  // Pas de canonical ici : chaque page déclare la sienne (sinon toutes
+  // les pages hériteraient de la canonical de l'accueil).
   openGraph: {
-    title: 'Encair — Automatisez vos relances de factures impayées',
-    description:
-      'Logiciel français de relance automatique des factures impayées pour indépendants et TPE. Import CSV, relances email et suivi des paiements. Tarif fondateur à 16 € HT/mois. 30 jours gratuits.',
+    title: TITLE,
+    description: DESCRIPTION,
     url: SITE_URL,
     siteName: 'Encair',
     type: 'website',
@@ -63,9 +49,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Encair — Automatisez vos relances de factures impayées',
-    description:
-      'Logiciel français de relance automatique pour indépendants et TPE. 30 jours gratuits.',
+    title: TITLE,
+    description: DESCRIPTION,
   },
   robots: {
     index: process.env.VERCEL_ENV !== 'preview',
@@ -97,7 +82,21 @@ const jsonLd = {
     "Suivi des impayés, import CSV et relances email pour les petites entreprises.",
   url: SITE_URL,
   inLanguage: 'fr-FR',
-  offers: [{ '@type': 'Offer', name: OFFER.name, price: String(OFFER.price), priceCurrency: 'EUR' }],
+  offers: [
+    {
+      '@type': 'Offer',
+      name: OFFER.name,
+      price: String(OFFER.price),
+      priceCurrency: 'EUR',
+      priceSpecification: {
+        '@type': 'UnitPriceSpecification',
+        price: String(OFFER.price),
+        priceCurrency: 'EUR',
+        unitText: 'mois',
+        valueAddedTaxIncluded: false,
+      },
+    },
+  ],
 }
 
 export default function RootLayout({
@@ -108,10 +107,7 @@ export default function RootLayout({
   return (
     <html lang="fr" className={inter.variable} suppressHydrationWarning>
       <head>
-        {/* DNS prefetch + TCP preconnect to third parties used on first paint —
-            shaves ~100-200ms off LCP on a fresh visit. */}
-        <link rel="dns-prefetch" href="https://js.stripe.com" />
-        <link rel="preconnect" href="https://js.stripe.com" crossOrigin="" />
+        {/* Stripe n'est chargé que sur la page d'abonnement : pas de preconnect global. */}
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <script
           type="application/ld+json"
