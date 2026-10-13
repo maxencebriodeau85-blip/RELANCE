@@ -11,7 +11,13 @@ import { NextResponse, type NextRequest } from 'next/server'
 // every Server Component / Route Handler, which has a much higher timeout
 // budget and runs in the Node.js runtime (not Edge).
 
-const CANONICAL_HOST = 'relanceflow.fr'
+// Only an explicitly configured, owned domain may receive redirects.
+const configuredUrl = process.env.NEXT_PUBLIC_APP_URL
+let canonicalHost: string | null = null
+try {
+  const url = new URL(configuredUrl || '')
+  if (url.protocol === 'https:' && !/(^|\.)relanceflow\.fr$/.test(url.hostname)) canonicalHost = url.hostname
+} catch { /* Domain not configured yet. */ }
 
 function hasSessionCookie(request: NextRequest): boolean {
   // @supabase/ssr stores the session in a cookie named:
@@ -50,8 +56,8 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/api/health')
 
   const enforceCanonical = process.env.ENFORCE_CANONICAL_HOST === 'true'
-  if (enforceCanonical && !isLocalHost && !isWebhook && hostname !== CANONICAL_HOST) {
-    const canonical = new URL(`https://${CANONICAL_HOST}${pathname}${search}`)
+  if (enforceCanonical && canonicalHost && process.env.VERCEL_ENV !== 'preview' && !isLocalHost && !isWebhook && hostname !== canonicalHost) {
+    const canonical = new URL(`https://${canonicalHost}${pathname}${search}`)
     return NextResponse.redirect(canonical, 301)
   }
 
@@ -69,17 +75,6 @@ export function middleware(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
     url.searchParams.set('redirectedFrom', pathname)
-    return NextResponse.redirect(url)
-  }
-
-  if (
-    loggedIn &&
-    (pathname === '/auth/login' ||
-      pathname === '/auth/register' ||
-      pathname === '/auth/forgot-password')
-  ) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
     return NextResponse.redirect(url)
   }
 

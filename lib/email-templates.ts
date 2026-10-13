@@ -109,7 +109,7 @@ export function getEmailCordial(data: EmailTemplateData): {
   <p>Cordialement,<br><strong>${eName}</strong></p>
 
   <div style="border-top: 1px solid #E5E7EB; padding-top: 16px; margin-top: 24px; font-size: 12px; color: #9CA3AF;">
-    <p>Ce message est généré automatiquement par RelanceFlow. Pour toute question, contactez directement ${eName}.</p>
+    <p>Ce message est généré automatiquement par Encair. Pour toute question, contactez directement ${eName}.</p>
   </div>
 </body>
 </html>`
@@ -182,7 +182,7 @@ export function getEmailFerme(data: EmailTemplateData): {
   <p>Cordialement,<br><strong>${eName}</strong></p>
 
   <div style="border-top: 1px solid #E5E7EB; padding-top: 16px; margin-top: 24px; font-size: 12px; color: #9CA3AF;">
-    <p>Ce message est généré automatiquement par RelanceFlow.</p>
+    <p>Ce message est généré automatiquement par Encair.</p>
   </div>
 </body>
 </html>`
@@ -426,7 +426,7 @@ export function wrapCustomBody(
   <div style="font-size: 14px;">${escapedBody}</div>
   ${paymentButton}
   <div style="border-top: 1px solid #E5E7EB; padding-top: 16px; margin-top: 24px; font-size: 12px; color: #9CA3AF;">
-    <p>Envoyé par RelanceFlow pour ${eName}.</p>
+    <p>Envoyé par Encair pour ${eName}.</p>
   </div>
 </body>
 </html>`

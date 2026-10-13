@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { PLAN_LIMITS } from '@/lib/metrics'
+import { PLAN_LIMITS } from './plans'
 
 export type Plan = 'free_trial' | 'starter' | 'pro' | 'business'
 
@@ -29,11 +29,12 @@ export function assertActiveAccess(profile: AccessProfile | null): AccessResult 
   if (!profile) {
     return { ok: false, status: 404, error: 'Profil introuvable' }
   }
+  if (!(profile.plan in PLAN_RANK)) return { ok: false, status: 403, error: 'Abonnement non reconnu.' }
   if (profile.plan === 'free_trial') {
     // free_trial with a null trial_ends_at is treated as expired (fail-closed):
     // covers legacy rows and cancelled subscriptions reverted to free_trial.
     const expired =
-      !profile.trial_ends_at || new Date(profile.trial_ends_at) < new Date()
+      !profile.trial_ends_at || !Number.isFinite(Date.parse(profile.trial_ends_at)) || Date.parse(profile.trial_ends_at) <= Date.now()
     if (expired) {
       return {
         ok: false,
@@ -70,11 +71,12 @@ export async function monthlyInvoiceCount(
   const monthStart = new Date()
   monthStart.setUTCDate(1)
   monthStart.setUTCHours(0, 0, 0, 0)
-  const { count } = await supabase
+  const { count, error } = await supabase
     .from('invoices')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', userId)
     .gte('created_at', monthStart.toISOString())
+  if (error) throw error
   return count ?? 0
 }
 

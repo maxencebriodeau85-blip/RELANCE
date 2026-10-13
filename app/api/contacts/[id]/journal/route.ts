@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 
 const VALID_TYPES = ['call', 'email', 'note', 'meeting']
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
@@ -12,7 +12,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
   const { data: contact } = await supabase
     .from('contacts')
     .select('id')
-    .eq('id', params.id)
+    .eq('id', (await params).id)
     .eq('user_id', user.id)
     .single()
 
@@ -27,7 +27,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
   const { data, error } = await supabase
     .from('journal_entries')
     .insert({
-      contact_id:       params.id,
+      contact_id:       (await params).id,
       user_id:          user.id,
       type,
       content,
@@ -41,7 +41,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
   return NextResponse.json({ entry: data }, { status: 201 })
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
@@ -54,7 +54,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     .delete()
     .eq('id', entryId)
     .eq('user_id', user.id)
-    .eq('contact_id', params.id)
+    .eq('contact_id', (await params).id)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ success: true })

@@ -42,12 +42,11 @@ const SCENARIOS: Scenario[] = [
     name: 'Standard',
     badge: 'Recommandé',
     badgeColor: 'bg-blue-100 text-brand-700',
-    description: 'Couverture complète de J+7 à J+45. Convient à 80 % des situations — passe de cordial à ferme puis pré-contentieux.',
+    description: 'Trois rappels à J+7, J+15 et J+30. Les pauses et les promesses sont respectées.',
     steps: [
       { day: 7,  type: 'email_1', subject: 'Rappel amiable — Facture {n°}', tone: 'cordial', channel: 'email' },
       { day: 15, type: 'email_2', subject: 'Relance — Facture {n°} en retard', tone: 'ferme', channel: 'email' },
-      { day: 30, type: 'email_2', subject: '2ème relance — Action requise', tone: 'ferme', channel: 'email' },
-      { day: 45, type: 'email_3', subject: 'Dernière relance avant mise en demeure', tone: 'precontentieux', channel: 'email' },
+      { day: 30, type: 'email_3', subject: 'Troisième rappel — Facture en attente', tone: 'precontentieux', channel: 'email' },
     ],
   },
   {
@@ -66,12 +65,11 @@ const SCENARIOS: Scenario[] = [
     name: 'Ferme',
     badge: 'Mauvais payeurs',
     badgeColor: 'bg-orange-100 text-orange-700',
-    description: 'Escalade rapide avec mise en demeure. Pour les clients avec historique de retard ou montants importants.',
+    description: 'Trois rappels rapprochés à J+3, J+10 et J+20, sans mise en demeure automatique.',
     steps: [
-      { day: 7,  type: 'email_1', subject: 'Relance — Facture {n°} impayée', tone: 'ferme', channel: 'email' },
-      { day: 15, type: 'email_2', subject: '2ème relance ferme — Facture {n°}', tone: 'ferme', channel: 'email' },
-      { day: 30, type: 'email_3', subject: 'Ultime rappel avant procédure', tone: 'precontentieux', channel: 'email' },
-      { day: 45, type: 'formal_notice', subject: 'MISE EN DEMEURE — Facture {n°}', tone: 'formal_notice', channel: 'email' },
+      { day: 3,  type: 'email_1', subject: 'Relance — Facture {n°} impayée', tone: 'ferme', channel: 'email' },
+      { day: 10, type: 'email_2', subject: '2ème relance ferme — Facture {n°}', tone: 'ferme', channel: 'email' },
+      { day: 20, type: 'email_3', subject: 'Ultime rappel avant procédure', tone: 'precontentieux', channel: 'email' },
     ],
   },
 ]
@@ -107,7 +105,7 @@ export default function ScenariosPage() {
 
         const { data } = await supabase
           .from('profiles')
-          .select('auto_reminders')
+          .select('auto_reminders, active_scenario')
           .eq('id', user.id)
           .single()
 

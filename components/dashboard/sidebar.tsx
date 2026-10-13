@@ -26,20 +26,17 @@ import { createClient } from '@/lib/supabase/client'
 import type { Profile } from '@/lib/database.types'
 
 const navItems = [
-  { href: '/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
-  { href: '/dashboard/pipeline', label: 'Pipeline', icon: Kanban },
-  { href: '/dashboard/invoices', label: 'Factures', icon: FileText },
+  { href: '/dashboard', label: 'Vue d’ensemble', icon: LayoutDashboard },
+  { href: '/dashboard/invoices', label: 'Mes impayés', icon: FileText },
   { href: '/dashboard/scenarios', label: 'Scénarios', icon: Bell },
-  { href: '/dashboard/templates', label: 'Templates email', icon: Mail },
-  { href: '/dashboard/mise-en-demeure', label: 'Mise en demeure', icon: AlertTriangle },
-  { href: '/dashboard/integrations', label: 'Intégrations', icon: Plug },
+  { href: '/dashboard/templates', label: 'Modèles email', icon: Mail },
   { href: '/dashboard/stats', label: 'Statistiques', icon: BarChart3 },
   { href: '/dashboard/settings', label: 'Paramètres', icon: Settings },
 ]
 
 const PLAN_LABELS: Record<string, string> = {
   free_trial: 'Essai gratuit',
-  starter: 'Starter',
+  starter: 'Fondateur',
   pro: 'Pro',
   business: 'Business',
 }
@@ -153,7 +150,7 @@ function SidebarContent({
             onClick={onClose}
             className="flex items-center justify-between rounded-md bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium px-2.5 py-1.5 transition-colors"
           >
-            Choisir un plan
+            Activer mon tarif fondateur
             <ChevronRight className="h-3 w-3" />
           </Link>
         </div>
@@ -161,7 +158,7 @@ function SidebarContent({
 
       {/* Help */}
       <Link
-        href="/support"
+        href="/contact"
         onClick={onClose}
         className="mx-2 mb-1 flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
       >

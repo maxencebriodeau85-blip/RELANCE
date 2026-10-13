@@ -2,14 +2,14 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'RelanceFlow — Recouvrement de factures pour indépendants',
-    short_name: 'RelanceFlow',
+    name: 'Encair — Suivi des impayés et relances',
+    short_name: 'Encair',
     description:
-      'Logiciel français de relance automatique des factures impayées. Pipeline CRM, mise en demeure conforme, paiement Stripe intégré.',
+      'Suivi des impayés, soldes, relances email, promesses de paiement et litiges.',
     start_url: '/dashboard',
     display: 'standalone',
     background_color: '#FFFFFF',
-    theme_color: '#6B8CFF',
+    theme_color: '#182b40',
     lang: 'fr-FR',
     orientation: 'portrait-primary',
     categories: ['business', 'finance', 'productivity'],

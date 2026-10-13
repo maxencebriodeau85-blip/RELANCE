@@ -265,7 +265,7 @@ export default function PipelinePage() {
                 {[
                   { step: '1', label: 'Ajoute un prospect', sub: 'Nom, email, montant du deal' },
                   { step: '2', label: 'Envoie ta proposition', sub: 'Glisse-le dans la colonne' },
-                  { step: '3', label: 'RelanceFlow relance', sub: 'J+3, J+7, J+14 automatiquement' },
+                  { step: '3', label: 'Encair relance', sub: 'J+3, J+7, J+14 automatiquement' },
                 ].map(({ step, label, sub }) => (
                   <div key={step} className="rounded-xl border border-gray-100 bg-gray-50 p-3">
                     <div className="text-xs font-bold text-brand-600 mb-1">Étape {step}</div>

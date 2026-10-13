@@ -71,7 +71,7 @@ export default function NotFound() {
                 </Link>
               </li>
               <li>
-                <Link href="/support" className="text-blue-600 hover:underline">
+                <Link href="/contact" className="text-blue-600 hover:underline">
                   → Support et contact
                 </Link>
               </li>
@@ -82,7 +82,7 @@ export default function NotFound() {
 
       <footer className="border-t bg-white/60 backdrop-blur-sm py-6">
         <div className="container mx-auto px-4 text-center text-sm text-gray-500">
-          © 2026 RelanceFlow · <Link href="/support" className="hover:text-gray-900">Support</Link>
+          © 2026 Encair · <Link href="/contact" className="hover:text-gray-900">Contact</Link>
         </div>
       </footer>
     </div>

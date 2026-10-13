@@ -35,6 +35,17 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      // Une seule page de contact et une seule FAQ (accueil).
+      { source: '/support', destination: '/contact', permanent: true },
+      // Le journal des versions publiait d'anciens prix et des détails internes.
+      { source: '/changelog', destination: '/', permanent: true },
+      { source: '/cgv', destination: '/cgu', permanent: true },
+      { source: '/conditions-generales-de-vente', destination: '/cgu', permanent: true },
+      { source: '/confidentialite', destination: '/privacy', permanent: true },
+    ]
+  },
   async headers() {
     return [
       {

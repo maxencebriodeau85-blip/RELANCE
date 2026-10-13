@@ -1,5 +1,6 @@
 'use client'
 
+import { OFFER } from '@/lib/plans'
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Header } from '@/components/dashboard/header'
@@ -29,7 +30,7 @@ import type { Profile } from '@/lib/database.types'
 
 const PLAN_LABELS: Record<string, string> = {
   free_trial: 'Essai gratuit',
-  starter: 'Starter',
+  starter: 'Fondateur',
   pro: 'Pro',
   business: 'Business',
 }
@@ -41,39 +42,7 @@ const PLAN_COLORS: Record<string, string> = {
   business: 'bg-amber-100 text-amber-700 border-amber-200',
 }
 
-const PLANS = [
-  {
-    id: 'starter',
-    name: 'Starter',
-    price: '19',
-    limit: "Jusqu'à 30 factures/mois",
-    features: ['Pipeline kanban 5 étapes', 'Relances email automatiques', 'Facturation & paiement Stripe', 'Dashboard commercial'],
-    icon: Zap,
-    color: 'text-brand-600',
-    border: 'border-blue-200 hover:border-blue-400',
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    price: '49',
-    limit: "Jusqu'à 200 factures/mois",
-    features: ['Tout Starter +', 'Scénarios personnalisables', 'Export CSV & stats avancées', 'Mise en demeure PDF', 'Support prioritaire'],
-    icon: Star,
-    color: 'text-purple-600',
-    border: 'border-purple-200 hover:border-purple-400',
-    recommended: true,
-  },
-  {
-    id: 'business',
-    name: 'Business',
-    price: '99',
-    limit: "Jusqu'à 1000 factures/mois",
-    features: ['Tout Pro +', 'API & webhooks', 'Multi-utilisateurs', 'Intégration Pennylane', 'Account manager dédié'],
-    icon: Rocket,
-    color: 'text-amber-600',
-    border: 'border-amber-200 hover:border-amber-400',
-  },
-]
+const PLANS = [{ id: OFFER.key, name: OFFER.name, price: String(OFFER.price), limit: '100 nouvelles factures / mois', features: [...OFFER.features], icon: Zap, color: 'text-brand-700', border: 'border-emerald-200', recommended: false }]
 
 function SettingsPageInner() {
   const { toast } = useToast()
@@ -194,7 +163,7 @@ function SettingsPageInner() {
       toast({
         title: autoReminders ? 'Relances automatiques activées' : 'Relances automatiques désactivées',
         description: autoReminders
-          ? 'RelanceFlow enverra les relances selon votre scénario actif.'
+          ? 'Encair enverra les relances selon votre scénario actif.'
           : 'Les relances automatiques sont suspendues. Vous pouvez les envoyer manuellement.',
       })
     } catch {
@@ -308,8 +277,7 @@ function SettingsPageInner() {
                       <a
                         href={`/api/stripe/checkout?plan=${plan.id}`}
                         className={`mt-3 block w-full text-center rounded-lg py-1.5 text-xs font-semibold text-white transition-colors ${
-                          plan.id === 'pro' ? 'bg-purple-600 hover:bg-purple-700' :
-                          plan.id === 'business' ? 'bg-amber-500 hover:bg-amber-600' :
+
                           'bg-brand-600 hover:bg-brand-700'
                         }`}
                       >
@@ -422,7 +390,7 @@ function SettingsPageInner() {
               Relances automatiques
             </CardTitle>
             <CardDescription>
-              RelanceFlow peut envoyer vos relances automatiquement chaque matin selon votre scénario actif
+              Encair peut envoyer vos relances automatiquement chaque matin selon votre scénario actif
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -466,7 +434,7 @@ function SettingsPageInner() {
               <Shield className="h-4 w-4 text-brand-600 mt-0.5 flex-shrink-0" />
               <p className="text-sm text-brand-700">
                 Les emails sont envoyés via <strong>Resend</strong> depuis le domaine sécurisé
-                <strong> relanceflow.fr</strong>. Conformité RGPD assurée — aucune donnée transmise à des tiers.
+                <strong> Encair</strong>. Les prestataires techniques sont décrits dans la politique de confidentialité.
               </p>
             </div>
 
@@ -492,7 +460,7 @@ function SettingsPageInner() {
             <div className="rounded-lg bg-gray-50 border p-3">
               <div className="text-xs text-gray-500 mb-1">Aperçu — ce que voit votre client :</div>
               <div className="font-mono text-sm text-gray-800">
-                De : <strong>{form.company_name || 'Votre Entreprise'}</strong> &lt;relances@relanceflow.fr&gt;
+                De : <strong>{form.company_name || 'Votre Entreprise'}</strong> via le domaine d’envoi configuré
               </div>
               <div className="font-mono text-sm text-gray-500">
                 Répondre à : {userEmail || 'votre@email.fr'}

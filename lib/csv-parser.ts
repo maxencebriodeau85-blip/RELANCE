@@ -1,3 +1,4 @@
+import { isValidDate } from './validation'
 import Papa from 'papaparse'
 
 export interface CSVRow {
@@ -10,6 +11,7 @@ export interface ParsedInvoice {
   invoice_number: string
   amount: number
   due_date: string
+  remaining_amount?: number
   issued_date?: string
   client_address?: string
   client_siren?: string
@@ -21,6 +23,7 @@ export interface ColumnMapping {
   invoice_number: string
   amount: string
   due_date: string
+  remaining_amount?: string
   issued_date?: string
   client_address?: string
   client_siren?: string
@@ -57,6 +60,7 @@ export function parseCSVFile(file: File): Promise<ParseResult> {
           headers,
           rows,
           totalRows: rows.length,
+          error: results.errors[0]?.message,
         })
       },
       error: (error) => {
@@ -85,65 +89,26 @@ export function parseCSVString(csvString: string): ParseResult {
   }
 }
 
-function parseDate(dateStr: string): string | null {
-  if (!dateStr || dateStr.trim() === '') return null
-
-  const cleaned = dateStr.trim()
-
-  // Try dd/mm/yyyy
-  const frenchMatch = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
-  if (frenchMatch) {
-    const [, day, month, year] = frenchMatch
-    const date = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`)
-    if (!isNaN(date.getTime())) {
-      return date.toISOString().split('T')[0]
-    }
-  }
-
-  // Try dd-mm-yyyy
-  const dashMatch = cleaned.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/)
-  if (dashMatch) {
-    const [, day, month, year] = dashMatch
-    const date = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`)
-    if (!isNaN(date.getTime())) {
-      return date.toISOString().split('T')[0]
-    }
-  }
-
-  // Try yyyy-mm-dd (ISO)
-  const isoMatch = cleaned.match(/^(\d{4})-(\d{2})-(\d{2})$/)
-  if (isoMatch) {
-    const date = new Date(cleaned)
-    if (!isNaN(date.getTime())) {
-      return cleaned
-    }
-  }
-
-  // Try generic Date parsing
-  const genericDate = new Date(cleaned)
-  if (!isNaN(genericDate.getTime())) {
-    return genericDate.toISOString().split('T')[0]
-  }
-
-  return null
+export function parseDate(input: string): string | null {
+  const value = input.trim()
+  const match = value.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/)
+  const iso = match
+    ? `${match[3]}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}`
+    : value
+  return isValidDate(iso) ? iso : null
 }
-
-function parseAmount(amountStr: string): number | null {
-  if (!amountStr || amountStr.trim() === '') return null
-
-  // Remove currency symbols, spaces
-  const cleaned = amountStr
-    .trim()
-    .replace(/[€$£\s]/g, '')
-    .replace(/\s/g, '')
-    // Handle French number format: 1.234,56 → 1234.56
-    .replace(/\.(?=\d{3})/g, '')
-    .replace(',', '.')
-
-  const num = parseFloat(cleaned)
-  if (isNaN(num) || num < 0) return null
-  if (num > 10_000_000) return null // 10 M€ hard cap — catches data entry errors
-  return Math.round(num * 100) / 100
+export function parseAmount(input: string): number | null {
+  const value = input.trim().replace(/[€\s\u00a0\u202f]/g, '')
+  // Explicit decimal formats; never accept trailing garbage or ambiguous commas.
+  let normalized = value
+  if (/^\d{1,3}(\.\d{3})+,\d{1,2}$/.test(value))
+    normalized = value.replace(/\./g, '').replace(',', '.')
+  else if (/^\d+(,\d{1,2})?$/.test(value)) normalized = value.replace(',', '.')
+  else if (!/^\d+(\.\d{1,2})?$/.test(value)) return null
+  const amount = Number(normalized)
+  return Number.isFinite(amount) && amount >= 0 && amount <= 10000000
+    ? Math.round(amount * 100) / 100
+    : null
 }
 
 function isValidEmail(email: string): boolean {
@@ -152,7 +117,7 @@ function isValidEmail(email: string): boolean {
 
 export function applyColumnMapping(
   rows: CSVRow[],
-  mapping: ColumnMapping
+  mapping: ColumnMapping,
 ): MappingResult {
   const valid: ParsedInvoice[] = []
   const errors: ValidationError[] = []
@@ -162,7 +127,9 @@ export function applyColumnMapping(
     const rowErrors: ValidationError[] = []
 
     // client_name
-    const clientName = mapping.client_name ? row[mapping.client_name]?.trim() : ''
+    const clientName = mapping.client_name
+      ? row[mapping.client_name]?.trim()
+      : ''
     if (!clientName) {
       rowErrors.push({
         row: rowNum,
@@ -173,7 +140,9 @@ export function applyColumnMapping(
     }
 
     // client_email
-    const clientEmail = mapping.client_email ? row[mapping.client_email]?.trim() : ''
+    const clientEmail = mapping.client_email
+      ? row[mapping.client_email]?.trim()
+      : ''
     if (!clientEmail) {
       rowErrors.push({
         row: rowNum,
@@ -191,7 +160,9 @@ export function applyColumnMapping(
     }
 
     // invoice_number
-    const invoiceNumber = mapping.invoice_number ? row[mapping.invoice_number]?.trim() : ''
+    const invoiceNumber = mapping.invoice_number
+      ? row[mapping.invoice_number]?.trim()
+      : ''
     if (!invoiceNumber) {
       rowErrors.push({
         row: rowNum,
@@ -204,7 +175,7 @@ export function applyColumnMapping(
     // amount
     const amountRaw = mapping.amount ? row[mapping.amount]?.trim() : ''
     const amount = parseAmount(amountRaw || '')
-    if (amount === null) {
+    if (amount === null || amount === 0) {
       rowErrors.push({
         row: rowNum,
         field: 'amount',
@@ -220,17 +191,52 @@ export function applyColumnMapping(
       rowErrors.push({
         row: rowNum,
         field: 'due_date',
-        message: 'Date d\'échéance invalide (formats acceptés : JJ/MM/AAAA, AAAA-MM-JJ)',
+        message:
+          "Date d'échéance invalide (formats acceptés : JJ/MM/AAAA, AAAA-MM-JJ)",
         value: dueDateRaw,
       })
     }
 
     // Optional fields
-    const issuedDateRaw = mapping.issued_date ? row[mapping.issued_date]?.trim() : ''
-    const issuedDate = issuedDateRaw ? parseDate(issuedDateRaw) || undefined : undefined
+    const issuedDateRaw = mapping.issued_date
+      ? row[mapping.issued_date]?.trim()
+      : ''
+    const issuedDate = issuedDateRaw
+      ? parseDate(issuedDateRaw) || undefined
+      : undefined
 
-    const clientAddress = mapping.client_address ? row[mapping.client_address]?.trim() || undefined : undefined
-    const clientSiren = mapping.client_siren ? row[mapping.client_siren]?.trim() || undefined : undefined
+    const remainingRaw = mapping.remaining_amount
+      ? row[mapping.remaining_amount]?.trim()
+      : undefined
+    const remaining =
+      remainingRaw === undefined ? undefined : parseAmount(remainingRaw)
+    if (
+      remaining === null ||
+      (remaining !== undefined && amount !== null && remaining > amount)
+    )
+      rowErrors.push({
+        row: rowNum,
+        field: 'remaining_amount',
+        message: 'Solde invalide ou supérieur au montant TTC',
+      })
+    if (issuedDateRaw && !issuedDate)
+      rowErrors.push({
+        row: rowNum,
+        field: 'issued_date',
+        message: 'Date d’émission invalide',
+      })
+    if (issuedDate && dueDate && issuedDate > dueDate)
+      rowErrors.push({
+        row: rowNum,
+        field: 'due_date',
+        message: 'L’échéance précède l’émission',
+      })
+    const clientAddress = mapping.client_address
+      ? row[mapping.client_address]?.trim() || undefined
+      : undefined
+    const clientSiren = mapping.client_siren
+      ? row[mapping.client_siren]?.trim() || undefined
+      : undefined
 
     if (rowErrors.length > 0) {
       errors.push(...rowErrors)
@@ -240,6 +246,9 @@ export function applyColumnMapping(
         client_email: clientEmail!,
         invoice_number: invoiceNumber!,
         amount: amount!,
+        ...(remaining !== undefined && remaining !== null
+          ? { remaining_amount: remaining }
+          : {}),
         due_date: dueDate!,
         issued_date: issuedDate,
         client_address: clientAddress,
@@ -251,22 +260,74 @@ export function applyColumnMapping(
   return { valid, errors }
 }
 
-export function suggestColumnMapping(headers: string[]): Partial<ColumnMapping> {
+export function suggestColumnMapping(
+  headers: string[],
+): Partial<ColumnMapping> {
   const mapping: Partial<ColumnMapping> = {}
 
   const patterns: Record<keyof ColumnMapping, RegExp[]> = {
-    client_name: [/nom.*client/i, /client.*name/i, /raison.*sociale/i, /entreprise/i, /client/i, /nom/i],
-    client_email: [/email.*client/i, /client.*email/i, /email/i, /mail/i, /courriel/i, /e-mail/i],
-    invoice_number: [/num.*facture/i, /invoice.*num/i, /n°.*facture/i, /facture.*num/i, /ref.*facture/i, /facture/i, /invoice/i, /ref/i, /n°/i],
-    amount: [/montant/i, /amount/i, /total.*ttc/i, /ttc/i, /prix/i, /somme/i, /amount/i],
-    due_date: [/ech[eé]ance/i, /due.*date/i, /date.*ech/i, /date.*due/i, /date.*limite/i, /expiration/i],
-    issued_date: [/emission/i, /issued/i, /date.*fact/i, /fact.*date/i, /creation/i, /cr[eé]ation/i],
+    remaining_amount: [/reste.*payer/i, /solde/i, /remaining/i],
+    client_name: [
+      /nom.*client/i,
+      /client.*name/i,
+      /raison.*sociale/i,
+      /entreprise/i,
+      /client/i,
+      /nom/i,
+    ],
+    client_email: [
+      /email.*client/i,
+      /client.*email/i,
+      /email/i,
+      /mail/i,
+      /courriel/i,
+      /e-mail/i,
+    ],
+    invoice_number: [
+      /num.*facture/i,
+      /invoice.*num/i,
+      /n°.*facture/i,
+      /facture.*num/i,
+      /ref.*facture/i,
+      /facture/i,
+      /invoice/i,
+      /ref/i,
+      /n°/i,
+    ],
+    amount: [
+      /montant/i,
+      /amount/i,
+      /total.*ttc/i,
+      /ttc/i,
+      /prix/i,
+      /somme/i,
+      /amount/i,
+    ],
+    due_date: [
+      /ech[eé]ance/i,
+      /due.*date/i,
+      /date.*ech/i,
+      /date.*due/i,
+      /date.*limite/i,
+      /expiration/i,
+    ],
+    issued_date: [
+      /emission/i,
+      /issued/i,
+      /date.*fact/i,
+      /fact.*date/i,
+      /creation/i,
+      /cr[eé]ation/i,
+    ],
     client_address: [/adresse/i, /address/i, /rue/i, /street/i],
     client_siren: [/siren/i, /siret/i, /rcs/i, /identifiant/i],
   }
 
   for (const header of headers) {
-    for (const [field, regexps] of Object.entries(patterns) as [keyof ColumnMapping, RegExp[]][]) {
+    for (const [field, regexps] of Object.entries(patterns) as [
+      keyof ColumnMapping,
+      RegExp[],
+    ][]) {
       if (!mapping[field]) {
         for (const regex of regexps) {
           if (regex.test(header)) {

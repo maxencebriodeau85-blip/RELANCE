@@ -127,7 +127,7 @@ function NewInvoiceForm() {
   return (
     <div>
       <Header
-        title="Nouvelle facture"
+        title="Ajouter une facture au suivi"
         description="Saisir manuellement une facture à recouvrer"
         actions={
           <Button variant="outline" size="sm" asChild>
@@ -339,7 +339,7 @@ function NewInvoiceForm() {
           <div className="flex items-center gap-3 pt-1">
             <Button type="submit" disabled={loading} className="min-w-32">
               <Save className="mr-2 h-4 w-4" />
-              {loading ? 'Création…' : 'Créer la facture'}
+              {loading ? 'Création…' : 'Ajouter au suivi'}
             </Button>
             <Button variant="ghost" type="button" asChild>
               <Link href="/dashboard/invoices">Annuler</Link>

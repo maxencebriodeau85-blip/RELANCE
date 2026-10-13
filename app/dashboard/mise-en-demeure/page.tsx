@@ -1,4 +1,5 @@
 'use client'
+import Link from 'next/link'
 
 import { Suspense, useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
@@ -150,7 +151,7 @@ function MiseEnDemeurContent() {
       invoiceNumber: selectedInvoice.invoice_number,
       invoiceAmount: selectedInvoice.amount,
       invoiceDueDate: selectedInvoice.due_date,
-      invoiceIssuedDate: selectedInvoice.issued_date,
+      invoiceIssuedDate: selectedInvoice.issued_date || 'Non renseignée',
       daysOverdue: getDaysOverdue(selectedInvoice),
     }
   }
@@ -194,9 +195,9 @@ function MiseEnDemeurContent() {
             <p className="text-xs text-gray-400 mt-1 max-w-sm mx-auto">
               La mise en demeure s&apos;applique aux factures dont l&apos;échéance est dépassée. Ajoutez une facture ou vérifiez que les factures ne sont pas déjà marquées &quot;Payée&quot;.
             </p>
-            <a href="/dashboard/invoices/new" className="mt-4 inline-block rounded-lg bg-brand-600 text-white px-4 py-2 text-sm font-medium hover:bg-brand-700 transition-colors">
+            <Link href="/dashboard/invoices/new" className="mt-4 inline-block rounded-lg bg-brand-600 text-white px-4 py-2 text-sm font-medium hover:bg-brand-700 transition-colors">
               Créer une facture
-            </a>
+            </Link>
           </div>
         )}
 

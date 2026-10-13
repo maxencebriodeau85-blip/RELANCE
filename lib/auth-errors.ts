@@ -63,7 +63,8 @@ export function supabaseAuthError(message: string, status?: number): string {
     // "Failed to fetch" côté Supabase = l'API du projet est injoignable.
     // Cause n°1 : projet Supabase gratuit mis en pause (à réactiver depuis le
     // dashboard). Cause n°2 : NEXT_PUBLIC_SUPABASE_URL mal renseignée.
-    return "Le service d'authentification ne répond pas. Réessaie dans un instant. Si le problème persiste et que tu gères le site, vérifie que ton projet Supabase n'est pas en pause (dashboard Supabase → Restore)."
+    // Ne jamais exposer de consigne d'administration à l'utilisateur.
+    return 'Le service de connexion ne répond pas. Réessayez dans un instant.'
   }
 
   // Never expose raw Supabase / English error strings to the user

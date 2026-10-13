@@ -408,7 +408,7 @@ function IntegrationsPageInner() {
               Clés API
             </CardTitle>
             <CardDescription>
-              Créez des clés pour intégrer RelanceFlow dans vos propres scripts ou outils internes.
+              Créez des clés pour intégrer Encair dans vos propres scripts ou outils internes.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

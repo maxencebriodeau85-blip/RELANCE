@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
+import { CTA_LABEL } from '@/lib/plans'
 
 const CONSENT_KEY = 'rf_cookie_consent_v1'
 
@@ -69,7 +70,7 @@ export function StickyMobileCta() {
         href="/auth/register"
         className="flex items-center justify-center gap-2 rounded-xl bg-brand-gradient text-white font-bold py-3.5 text-sm shadow-xl shadow-brand-500/30"
       >
-        Essai gratuit 30 jours — Sans CB
+        {CTA_LABEL}
         <ArrowRight className="h-4 w-4" />
       </Link>
     </div>

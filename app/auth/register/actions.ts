@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAuthError } from '@/lib/auth-errors'
+import { TERMS_VERSION } from '@/lib/legal'
 
 export type RegisterState = {
   error?: string
@@ -19,9 +20,18 @@ export async function registerAction(
   const password = formData.get('password') as string
   const confirmPassword = formData.get('confirmPassword') as string
   const companyName = (formData.get('companyName') as string)?.trim()
+  const acceptTerms = formData.get('acceptTerms') === 'on'
+  const professionalUse = formData.get('professionalUse') === 'on'
 
   if (!email || !password || !companyName) {
     return { error: 'Veuillez remplir tous les champs obligatoires.' }
+  }
+
+  if (!acceptTerms || !professionalUse) {
+    return {
+      error:
+        'Veuillez accepter les conditions générales et confirmer l’usage professionnel pour créer votre compte.',
+    }
   }
 
   if (password.length < 8) {
@@ -45,7 +55,14 @@ export async function registerAction(
     email,
     password,
     options: {
-      data: { company_name: companyName },
+      // Preuve de l'acceptation des CGU/CGV : version et date, conservées
+      // dans les métadonnées du compte (pas de migration nécessaire).
+      data: {
+        company_name: companyName,
+        terms_version: TERMS_VERSION,
+        terms_accepted_at: new Date().toISOString(),
+        professional_use: true,
+      },
       // /auth/confirm is a client page that handles all three token formats:
       // PKCE (?code=), OTP (?token_hash=&type=), and implicit (#access_token=).
       // The implicit format puts tokens in the URL hash which never reaches the
@@ -74,7 +91,7 @@ export async function registerAction(
   if (alreadyRegistered) {
     return {
       error:
-        'Un compte existe déjà avec cet email. Connecte-toi, ou réinitialise ton mot de passe si tu l\'as oublié.',
+        'Un compte existe déjà avec cet email. Connectez-vous, ou réinitialisez votre mot de passe si vous l’avez oublié.',
       email,
     }
   }

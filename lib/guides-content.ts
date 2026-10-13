@@ -6,6 +6,7 @@ export interface GuideContent {
   category: string
   readTime: string
   publishedAt: string
+  updatedAt: string
   intro: string
   sections: { heading: string; paragraphs: string[]; list?: string[] }[]
   conclusion: string
@@ -15,37 +16,40 @@ export const GUIDES: GuideContent[] = [
   {
     slug: 'mise-en-demeure-guide-complet',
     title: 'Mise en demeure : modèle, délais et effets juridiques — guide complet 2026',
-    metaTitle: 'Mise en demeure : modèle légal et délais 2026 | RelanceFlow',
+    metaTitle: 'Mise en demeure : modèle légal et délais 2026',
     metaDescription:
-      "Tout sur la mise en demeure d'un client : forme obligatoire (art. 1344 C.civ.), délai légal, effets juridiques, modèle gratuit conforme et erreurs à éviter.",
+      "Tout sur la mise en demeure d'un client : forme (art. 1344 C. civ.), délai à accorder, effets juridiques réels, structure type et erreurs à éviter.",
     category: 'Procédure',
     readTime: '8 min',
     publishedAt: '2026-05-12',
+    updatedAt: '2026-10-13',
     intro:
-      "La mise en demeure est l'acte juridique qui marque la fin du recouvrement amiable et ouvre la voie aux procédures judiciaires. Contrairement à une relance commerciale, elle déclenche des effets de droit majeurs : intérêts moratoires automatiques, point de départ de la prescription, preuve probante pour le tribunal. Voici comment la rédiger correctement et l'utiliser sans erreur.",
+      "La mise en demeure est l'acte qui marque la fin du recouvrement amiable et prépare, si besoin, une procédure judiciaire. Contrairement à une simple relance, elle produit des effets de droit : elle constitue le débiteur en retard, fait courir les intérêts au taux légal et prouve que vous avez réclamé votre dû. Voici comment la rédiger et ce qu'elle change vraiment.",
     sections: [
       {
         heading: 'Qu\'est-ce qu\'une mise en demeure légalement ?',
         paragraphs: [
           "Depuis la réforme du droit des contrats de 2016, l'article 1344 du Code civil définit la mise en demeure comme une sommation formelle adressée à un débiteur de remplir son obligation. Sa portée dépasse celle d'une simple relance : elle constitue un acte juridique unilatéral qui produit des effets automatiques sans qu'aucune décision de justice ne soit nécessaire.",
-          "Pour être valable, elle doit être adressée par écrit, comporter une demande non équivoque d'exécution, mentionner un délai raisonnable (généralement 8 jours), et faire référence à la créance précise concernée (numéro de facture, montant, date d'échéance).",
+          "En pratique, elle doit être écrite, contenir une demande de paiement sans ambiguïté et identifier précisément la créance (numéro de facture, montant, date d'échéance). La loi n'impose aucun délai, mais accorder un délai de 8 jours est une bonne pratique qui renforce votre position.",
         ],
       },
       {
         heading: 'Les effets juridiques de la mise en demeure',
-        paragraphs: ["Une mise en demeure correctement rédigée produit quatre effets principaux :"],
+        paragraphs: [
+          "Une mise en demeure produit des effets précis, souvent mal compris :",
+        ],
         list: [
-          "Déclenchement des intérêts moratoires : à compter de la date de réception, les intérêts de retard courent automatiquement (taux BCE majoré de 10 points pour les créances B2B selon l'art. L441-10 du Code de commerce).",
-          "Point de départ de la prescription de 5 ans pour les créances civiles et commerciales (art. 2224 C.civ.).",
-          "Preuve probante en cas de procédure judiciaire : le juge constate que le créancier a tenté un règlement amiable avant d'engager une action.",
-          "Indemnité forfaitaire de 40 € de plein droit pour frais de recouvrement (art. D441-5 C.com.) sur les créances entre professionnels.",
+          "Elle fait courir les intérêts moratoires au taux légal (art. 1344-1 C. civ.). C'est surtout utile face à un client particulier.",
+          "Entre professionnels, elle n'est pas nécessaire pour les pénalités de retard ni pour l'indemnité de 40 € : elles sont dues de plein droit dès le lendemain de l'échéance (art. L441-10 C. com.).",
+          "Elle ne fait pas courir la prescription et ne l'interrompt pas : le délai de 5 ans court depuis l'échéance de la facture (art. 2224 C. civ.).",
+          "Elle prouve devant le juge que vous avez réclamé votre dû avant d'agir, et elle est souvent le préalable d'une clause résolutoire.",
         ],
       },
       {
         heading: 'Forme et envoi : email ou lettre recommandée ?',
         paragraphs: [
-          "La loi n'impose aucune forme particulière. Un email avec accusé de réception suffit juridiquement, mais la lettre recommandée avec accusé de réception (LRAR) reste la preuve la plus robuste devant un tribunal. Dans la pratique : envoyez d'abord par email pour la rapidité, puis doublez par LRAR si la créance dépasse quelques milliers d'euros.",
-          "Notre conseil : si vous utilisez RelanceFlow, l'email de mise en demeure est généré automatiquement avec toutes les mentions légales requises et envoyé via Resend (preuve d'envoi horodatée). Vous pouvez ensuite télécharger le PDF pour l'envoyer en recommandé si nécessaire.",
+          "La loi n'impose aucune forme particulière. Un email peut suffire, mais la lettre recommandée avec accusé de réception (papier ou électronique) reste la preuve la plus solide devant un tribunal. Dans la pratique : envoyez d'abord par email pour la rapidité, puis doublez par recommandé si la créance dépasse quelques milliers d'euros.",
+          "Vous trouverez un modèle à adapter dans nos modèles de relance (page Modèles), à envoyer de préférence en recommandé.",
         ],
       },
       {
@@ -67,23 +71,24 @@ export const GUIDES: GuideContent[] = [
       {
         heading: 'Erreurs fréquentes à éviter',
         paragraphs: [
-          "La principale erreur consiste à confondre relance et mise en demeure : un email cordial du type « pouvez-vous régulariser ? » ne constitue pas une mise en demeure et ne produit aucun effet juridique. Autre piège classique : ne pas mentionner explicitement le délai accordé (8 jours est standard) — sans délai, le débiteur peut contester la régularité de la sommation.",
-          "Enfin, n'oubliez jamais de conserver une preuve de réception : sans cela, vous ne pourrez pas démontrer que la mise en demeure a bien été reçue, ce qui rendra inopposables les intérêts moratoires.",
+          "La principale erreur consiste à confondre relance et mise en demeure : un email cordial du type « pouvez-vous régulariser ? » n'interpelle pas suffisamment le débiteur. Écrivez « mise en demeure » en objet et formulez une demande claire, avec un délai précis.",
+          "Conservez toujours une preuve d'envoi et de réception : c'est elle qui vous permettra de démontrer la date à partir de laquelle les intérêts au taux légal ont couru.",
         ],
       },
     ],
     conclusion:
-      "La mise en demeure n'est pas un dernier recours symbolique : c'est un outil juridique puissant qui déclenche des intérêts et ouvre la porte à l'injonction de payer. Bien rédigée et bien envoyée, elle débloque la plupart des situations sans qu'il soit nécessaire d'aller en justice.",
+      "La mise en demeure n'est pas un dernier recours symbolique : c'est l'acte qui formalise votre demande et prépare l'injonction de payer. Bien rédigée et envoyée en recommandé, elle débloque souvent la situation sans aller en justice.",
   },
   {
     slug: 'recouvrement-amiable-vs-contentieux',
     title: 'Recouvrement amiable vs contentieux : quand passer le cap ?',
-    metaTitle: 'Recouvrement amiable ou contentieux : quand agir ? | RelanceFlow',
+    metaTitle: 'Recouvrement amiable ou contentieux : quand agir ?',
     metaDescription:
       "Quand passer du recouvrement amiable à la procédure judiciaire ? Injonction de payer, référé-provision, procédure participative : comparaison des options.",
     category: 'Procédure',
     readTime: '9 min',
     publishedAt: '2026-04-22',
+    updatedAt: '2026-10-13',
     intro:
       "Vos relances sont ignorées. La mise en demeure n'a rien donné. Vient le moment de la décision la plus difficile : poursuivre en justice ou abandonner ? Voici un cadre clair pour décider quand basculer et quelle procédure choisir selon le montant et le profil du débiteur.",
     sections: [
@@ -97,7 +102,7 @@ export const GUIDES: GuideContent[] = [
       {
         heading: "L'injonction de payer : la voie rapide",
         paragraphs: [
-          "L'injonction de payer (art. 1405 et suivants du Code de procédure civile) est la procédure la plus utilisée. Elle est rapide (4 à 8 semaines), peu coûteuse (35 € de frais de greffe au tribunal de commerce), et ne nécessite pas d'avocat sous 10 000 €.",
+          "L'injonction de payer (art. 1405 et suivants du Code de procédure civile) est la procédure la plus utilisée. Elle est rapide (souvent quelques semaines), peu coûteuse (une trentaine d'euros de frais de greffe au tribunal de commerce, aucun au tribunal judiciaire) et la requête se dépose sans avocat, quel que soit le montant.",
           "Limites : elle suppose une créance certaine, liquide et exigible (impossible si le débiteur conteste). Si le débiteur fait opposition dans le mois, l'affaire bascule en procédure classique au fond.",
         ],
       },
@@ -105,38 +110,39 @@ export const GUIDES: GuideContent[] = [
         heading: 'Le référé-provision : quand c\'est urgent et incontestable',
         paragraphs: [
           "Le référé-provision permet d'obtenir le paiement d'une partie ou de la totalité de la créance en urgence (audience sous 4 à 6 semaines), à condition que la créance ne soit pas sérieusement contestable. Avantage : la décision est exécutoire immédiatement, sans attendre un jugement au fond.",
-          "Coût : variable selon l'avocat (compter 800 à 1 500 € HT pour les créances jusqu'à 20 000 €).",
+          "Coût : des honoraires d'avocat, variables selon le dossier ; l'avocat est obligatoire au-delà de 10 000 €.",
         ],
       },
       {
         heading: "La procédure participative : la voie négociée",
         paragraphs: [
-          "Moins connue, la procédure participative (loi 2010-1609) permet aux parties de tenter un règlement amiable assisté par leurs avocats, avec valeur juridictionnelle. Si elle aboutit, l'accord a force exécutoire. Si elle échoue, la procédure judiciaire qui s'ensuit est accélérée.",
+          "Moins connue, la procédure participative (loi 2010-1609) permet aux parties de négocier un règlement assistées de leurs avocats. Si elle aboutit, l'accord peut être homologué par le juge ou, contresigné par les avocats, revêtu de la formule exécutoire par le greffe. Si elle échoue, l'affaire peut être portée plus rapidement devant le juge.",
           "Recommandée quand le débiteur est de bonne foi mais en difficulté de trésorerie ponctuelle : permet d'aboutir à un échéancier sans rupture commerciale.",
         ],
       },
       {
         heading: 'Faut-il faire appel à une société de recouvrement ?',
         paragraphs: [
-          "Les sociétés de recouvrement amiable prélèvent typiquement 10 à 30 % des sommes récupérées. Économiquement, c'est rentable au-delà de 5 000 € de créance. En dessous, le coût mange une grande partie de la créance.",
-          "Pour les indépendants avec un volume modeste de factures impayées, un outil automatisé comme RelanceFlow (qui gère relances, mise en demeure et lien de paiement à un coût fixe mensuel) est généralement plus avantageux.",
+          "Les sociétés de recouvrement amiable se rémunèrent le plus souvent par une commission sur les sommes récupérées. Sur les petites créances, ce coût pèse lourd : comparez-le au montant en jeu.",
+          "Pour une petite entreprise qui suit elle-même ses impayés, un outil de suivi comme Encair (suivi des impayés et relances email, 16 € HT/mois au tarif fondateur) permet de structurer la phase amiable à coût fixe ; la mise en demeure et la procédure restent à votre main.",
         ],
       },
     ],
     conclusion:
-      "Le recouvrement contentieux n'est pas une fatalité : bien préparé en amont avec un dossier solide (relances tracées, mise en demeure conforme, preuve de réception), il aboutit dans 80 % des cas à un règlement avant audience. La clé est la rigueur du process amiable.",
+      "Le recouvrement contentieux n'est pas une fatalité : un dossier solide (relances tracées, mise en demeure, preuve de réception) pousse souvent le débiteur à régler avant l'audience. La clé est la rigueur de la phase amiable.",
   },
   {
     slug: 'dso-tresorerie-comment-reduire',
     title: 'DSO : pourquoi 45 jours tuent votre trésorerie et comment le réduire',
-    metaTitle: 'Réduire son DSO : 8 leviers concrets en 2026 | RelanceFlow',
+    metaTitle: 'Réduire son DSO : 8 leviers concrets en 2026',
     metaDescription:
-      "DSO trop élevé ? 45 jours, c'est 12,5 % de votre CA annuel immobilisé. 8 leviers concrets pour passer sous 30 jours en moins de 6 mois.",
+      "DSO trop élevé ? 45 jours, c'est environ 12 % de votre CA annuel immobilisé. 8 leviers concrets pour encaisser plus vite.",
     category: 'Trésorerie',
     readTime: '7 min',
     publishedAt: '2026-03-14',
+    updatedAt: '2026-10-13',
     intro:
-      "Le DSO (Days Sales Outstanding) mesure le délai moyen entre l'émission d'une facture et son encaissement. Un DSO à 45 jours sur 100 000 € de CA mensuel représente 150 000 € immobilisés en permanence dans le besoin en fonds de roulement. La bonne nouvelle : il existe huit leviers actionnables qui font baisser le DSO de 15 à 25 jours en quelques mois.",
+      "Le DSO (Days Sales Outstanding) mesure le délai moyen entre l'émission d'une facture et son encaissement. Un DSO à 45 jours sur 100 000 € de CA mensuel représente 150 000 € immobilisés en permanence dans le besoin en fonds de roulement. La bonne nouvelle : il existe huit leviers concrets pour le faire baisser.",
     sections: [
       {
         heading: 'Calculer son DSO correctement',
@@ -146,51 +152,51 @@ export const GUIDES: GuideContent[] = [
         ],
       },
       {
-        heading: 'Lever 1 — Facturer le jour de la livraison',
+        heading: 'Levier 1 — Facturer le jour de la livraison',
         paragraphs: [
-          "Chaque jour qui sépare la livraison de la facturation s'ajoute mécaniquement au DSO. Les indépendants qui facturent en fin de mois en groupe perdent en moyenne 12 jours de trésorerie. Facturez à chaque jalon atteint, pas en batch.",
+          "Chaque jour qui sépare la livraison de la facturation s'ajoute mécaniquement au délai d'encaissement. Facturer en fin de mois, en groupe, peut vous coûter jusqu'à plusieurs semaines. Facturez à chaque jalon atteint.",
         ],
       },
       {
-        heading: 'Lever 2 — Inclure un lien de paiement en ligne',
+        heading: 'Levier 2 — Inclure un lien de paiement en ligne',
         paragraphs: [
-          "Une étude européenne de 2024 a montré que les factures incluant un lien de paiement direct (Stripe, PayPal) sont payées en moyenne 9 jours plus vite que celles sans. Le coût Stripe de 1,4 % + 0,25 € est largement compensé par le gain de trésorerie.",
+          "Un lien de paiement en ligne sur la facture (proposé par la plupart des logiciels de facturation) supprime une étape au client : plus besoin de saisir un virement. Comparez ses frais au gain de trésorerie attendu.",
         ],
       },
       {
-        heading: 'Lever 3 — Automatiser les relances',
+        heading: 'Levier 3 — Automatiser les relances',
         paragraphs: [
-          "70 % des factures impayées sont oubliées par négligence du client (pas par mauvaise foi). Une relance automatique à J+7, J+15 et J+30 récupère typiquement 80 % des impayés sans intervention humaine. C'est l'automatisme qui paye, pas l'agressivité.",
+          "Beaucoup de retards viennent d'un oubli ou d'un circuit de validation, pas de la mauvaise foi. Des relances régulières, à J+7, J+15 et J+30, règlent une bonne partie des cas. C'est la régularité qui paye, pas l'agressivité.",
         ],
       },
       {
-        heading: 'Lever 4 — Mentionner les pénalités sur la facture',
+        heading: 'Levier 4 — Mentionner les pénalités sur la facture',
         paragraphs: [
-          "L'article L441-9 du Code de commerce impose de mentionner les pénalités de retard sur toute facture B2B. Ce simple rappel a un effet dissuasif mesurable : les factures avec mention explicite sont payées 4 à 7 jours plus vite en moyenne.",
+          "L'article L441-9 du Code de commerce impose de mentionner les pénalités de retard et l'indemnité de 40 € sur toute facture entre professionnels. Cette mention rappelle au client que le retard a un coût.",
         ],
       },
       {
-        heading: "Lever 5 — Raccourcir les délais contractuels",
+        heading: "Levier 5 — Raccourcir les délais contractuels",
         paragraphs: [
-          "Le délai légal maximum est de 60 jours après émission ou 45 jours fin de mois. Mais rien ne vous oblige à proposer le maximum : un délai contractuel de 15 ou 30 jours est tout à fait légal et standard pour beaucoup d'indépendants. Modifiez vos CGV.",
+          "Sans clause, le délai de paiement est de 30 jours après la réception des marchandises ou l'exécution de la prestation. Le délai convenu ne peut pas dépasser 60 jours après l'émission de la facture, ou 45 jours fin de mois s'il est expressément prévu au contrat (art. L441-10 C. com.). Rien ne vous oblige à proposer le maximum : 15 ou 30 jours, c'est légal. Modifiez vos CGV.",
         ],
       },
       {
-        heading: "Lever 6 — Demander un acompte de 30 %",
+        heading: "Levier 6 — Demander un acompte de 30 %",
         paragraphs: [
-          "Sur les missions de plus de 3 000 €, un acompte à la commande de 30 % réduit le DSO d'environ 9 jours et filtre les clients à risque. Les mauvais payeurs refusent les acomptes : c'est un signal d'alerte précieux dès le départ.",
+          "Sur les missions importantes, un acompte à la commande réduit l'encours et filtre les clients à risque. Un client qui refuse tout acompte vous donne un signal d'alerte dès le départ.",
         ],
       },
       {
-        heading: 'Lever 7 — Segmenter les clients par risque',
+        heading: 'Levier 7 — Segmenter les clients par risque',
         paragraphs: [
-          "Tous les clients ne se valent pas. Identifiez les 20 % qui génèrent 80 % de votre retard et appliquez-leur un traitement spécifique : escompte pour paiement comptant, demande de provision, refus de nouvelle commande tant que les anciennes sont impayées.",
+          "Tous les clients ne se valent pas. Identifiez les quelques clients qui concentrent l'essentiel de vos retards et appliquez-leur un traitement spécifique : escompte pour paiement comptant, demande de provision, refus de nouvelle commande tant que les anciennes sont impayées.",
         ],
       },
       {
-        heading: "Lever 8 — Mesurer et publier le DSO en interne",
+        heading: "Levier 8 — Mesurer et publier le DSO en interne",
         paragraphs: [
-          "On n'améliore que ce que l'on mesure. Un tableau de bord montrant l'évolution mensuelle du DSO (RelanceFlow le calcule automatiquement dans la page Statistiques) permet de détecter les dérives et de réagir avant qu'elles ne deviennent critiques.",
+          "On n'améliore que ce que l'on mesure. Un tableau de bord montrant l'évolution mensuelle du DSO (à calculer à partir de votre comptabilité complète) permet de détecter les dérives et de réagir avant qu'elles ne deviennent critiques.",
         ],
       },
     ],
@@ -200,14 +206,15 @@ export const GUIDES: GuideContent[] = [
   {
     slug: 'indemnite-forfaitaire-40-euros',
     title: "L'indemnité forfaitaire de 40 € : comment l'appliquer sans casser la relation client",
-    metaTitle: "Indemnité forfaitaire 40 € : comment l'appliquer | RelanceFlow",
+    metaTitle: "Indemnité forfaitaire 40 € : comment l'appliquer",
     metaDescription:
-      "Depuis 2012, toute facture B2B impayée ouvre droit à 40 € d'indemnité forfaitaire de recouvrement. Comment la réclamer, comment la formuler, comment ne pas fâcher.",
+      "Depuis 2013, toute facture impayée entre professionnels ouvre droit à 40 € d'indemnité forfaitaire de recouvrement. Comment la réclamer, comment la formuler, comment ne pas fâcher.",
     category: 'Droit commercial',
     readTime: '5 min',
     publishedAt: '2026-04-08',
+    updatedAt: '2026-10-13',
     intro:
-      "Le décret du 2 octobre 2012 a instauré l'indemnité forfaitaire de recouvrement de 40 € (art. D441-5 du Code de commerce). Cette somme est due de plein droit sur toute facture B2B impayée à l'échéance, en plus des pénalités de retard. Presque personne ne la réclame — par méconnaissance ou par peur d'abîmer la relation. Voici comment le faire proprement.",
+      "Créée par la loi du 22 mars 2012, l'indemnité forfaitaire de recouvrement a été fixée à 40 € par le décret du 2 octobre 2012 (art. D441-5 du Code de commerce). Cette somme est due de plein droit sur toute facture B2B impayée à l'échéance, en plus des pénalités de retard. Presque personne ne la réclame — par méconnaissance ou par peur d'abîmer la relation. Voici comment le faire proprement.",
     sections: [
       {
         heading: "Qui doit, qui reçoit, quand",
@@ -225,22 +232,22 @@ export const GUIDES: GuideContent[] = [
         list: [
           "Formulation type : « Tout retard de paiement entraîne l'application de pénalités de retard au taux de la BCE majoré de 10 points, ainsi qu'une indemnité forfaitaire de recouvrement de 40 € (art. L441-10 et D441-5 du Code de commerce). »",
           "À placer dans les mentions légales de la facture, généralement en pied de page.",
-          "RelanceFlow ajoute automatiquement cette mention à chaque PDF de facture généré.",
+          "Ajoutez cette mention dans les paramètres de votre logiciel de facturation : elle apparaîtra sur toutes vos factures.",
         ],
       },
       {
         heading: "Comment la réclamer sans casser la relation",
         paragraphs: [
           "La règle : ne jamais la mentionner dans la première relance cordiale (J+7). C'est une escalade. Réservez-la à la deuxième ou troisième relance, quand le silence du client devient un signal.",
-          "Formulation qui marche : « Conformément à l'article L441-10 du Code de commerce, une indemnité forfaitaire de 40 € par facture est due dès le premier jour de retard. Nous ne l'avons pas encore appliquée par égard pour notre relation, mais elle deviendra automatique si le règlement n'intervient pas sous 8 jours. »",
-          "Effet observé : dans la majorité des cas, la simple mention de la loi débloque le paiement — vos clients ne veulent pas payer 40 € de plus pour rien.",
+          "Formulation possible : « Conformément à l'article L441-10 du Code de commerce, une indemnité forfaitaire de 40 € par facture est due de plein droit depuis le [date]. Nous y renoncerons si le règlement intervient sous 8 jours. »",
+          "Rappeler la règle suffit souvent à faire avancer le paiement : vos clients n'ont pas envie de payer 40 € de plus.",
         ],
       },
       {
         heading: "Cas particuliers",
         paragraphs: [
-          "Le débiteur est en procédure collective (redressement, liquidation) : l'indemnité de 40 € est due mais devient une créance chirographaire — vous la déclarez au mandataire mais son recouvrement effectif est incertain.",
-          "Frais réels supérieurs à 40 € : l'article D441-5 permet de réclamer, en plus des 40 €, les frais de recouvrement réellement engagés (huissier, avocat, société de recouvrement) sur présentation de justificatifs.",
+          "Le débiteur est en procédure collective (sauvegarde, redressement, liquidation) : l'indemnité n'est pas due lorsque l'ouverture de la procédure interdit le paiement de la créance à son échéance (art. L441-10 II C. com.).",
+          "Frais réels supérieurs à 40 € : l'article L441-10 II permet de demander une indemnisation complémentaire (commissaire de justice, avocat, société de recouvrement), sur justificatifs.",
         ],
       },
     ],
@@ -250,35 +257,36 @@ export const GUIDES: GuideContent[] = [
   {
     slug: 'penalites-retard-calcul',
     title: 'Pénalités de retard légales : calcul, taux BCE et mise en œuvre en 2026',
-    metaTitle: 'Pénalités de retard : calcul taux BCE +10 points | RelanceFlow',
+    metaTitle: 'Pénalités de retard : calcul taux BCE +10 points',
     metaDescription:
-      "Calcul exact des pénalités de retard B2B en France : taux BCE + 10 points (art. L441-10 C.com.), méthode, exemples chiffrés, comment les réclamer sans procédure judiciaire.",
+      "Calcul des pénalités de retard entre professionnels : taux BCE + 10 points (art. L441-10 C. com.), taux 2026, méthode, exemples chiffrés et comment les réclamer.",
     category: 'Droit commercial',
     readTime: '7 min',
     publishedAt: '2026-04-15',
+    updatedAt: '2026-10-13',
     intro:
-      "Les pénalités de retard sont dues automatiquement dès qu'une facture B2B est impayée à l'échéance. Le taux légal n'est pas anodin : taux BCE majoré de 10 points, soit environ 14,5 % annuel en 2026. Sur une facture de 5 000 € impayée 60 jours, ça fait 119 €. Voici comment les calculer proprement et les faire payer.",
+      "Les pénalités de retard sont dues automatiquement dès qu'une facture entre professionnels est impayée à l'échéance. Le taux par défaut n'est pas anodin : taux BCE majoré de 10 points, soit 12,40 % par an au second semestre 2026. Sur une facture de 5 000 € impayée 60 jours, cela représente environ 102 €. Voici comment les calculer et les réclamer.",
     sections: [
       {
         heading: 'Le taux applicable en 2026',
         paragraphs: [
-          "Le taux par défaut (art. L441-10 C.com.) est le taux de refinancement de la BCE au 1er janvier de l'année, majoré de 10 points de pourcentage.",
-          "Au 1er janvier 2026 : taux BCE ≈ 4,5 % → taux légal des pénalités = 14,5 % annuel.",
-          "Vos CGV peuvent prévoir un taux différent (souvent 3 × le taux d'intérêt légal, soit ≈ 12 % en 2026) mais jamais inférieur à 3 × le taux d'intérêt légal, plancher fixé par la loi.",
+          "Le taux par défaut (art. L441-10 II C. com.) est le taux de l'opération principale de refinancement de la BCE, majoré de 10 points. Le taux de référence est celui en vigueur au 1er janvier pour le premier semestre, et au 1er juillet pour le second.",
+          "1er semestre 2026 : taux BCE de 2,15 % au 1er janvier → pénalités à 12,15 % par an. 2nd semestre 2026 : taux BCE de 2,40 % au 1er juillet → pénalités à 12,40 % par an. Vérifiez le taux du semestre sur le site de la BCE.",
+          "Vos CGV peuvent prévoir un autre taux, mais il ne peut pas être inférieur à 3 fois le taux d'intérêt légal, publié chaque semestre par arrêté.",
         ],
       },
       {
         heading: "La formule de calcul",
         paragraphs: [
           "Pénalités = Montant TTC × Taux annuel × (Nombre de jours de retard / 365)",
-          "Exemple : facture de 5 000 € TTC, 60 jours de retard, taux 14,5 % → 5 000 × 0,145 × (60 / 365) = 119,18 €",
-          "Le calcul se fait sur le montant TTC, pas HT. Et sur le nombre de jours réels, pas ouvrés. RelanceFlow inclut un calculateur public gratuit qui automatise tout ça.",
+          "Exemple : facture de 5 000 € TTC, 60 jours de retard au second semestre 2026, taux 12,40 % → 5 000 × 0,124 × (60 / 365) = 101,92 €",
+          "Le calcul se fait sur le montant TTC et sur le nombre de jours calendaires. Notre calculateur de pénalités gratuit (page Calculateur) fait le calcul pour vous.",
         ],
       },
       {
         heading: 'Point de départ des pénalités',
         paragraphs: [
-          "Contrairement à ce que beaucoup croient, les pénalités courent dès le premier jour de retard, sans mise en demeure préalable. Le débiteur est en défaut par la seule échéance du terme (art. L441-10 al. 1).",
+          "Contrairement à ce que beaucoup croient, les pénalités courent dès le premier jour de retard, sans mise en demeure préalable. Le débiteur est en défaut par la seule échéance du terme (art. L441-10 II C. com.).",
           "Pas besoin d'attendre 8 jours, 30 jours, ou d'envoyer un courrier recommandé pour que le compteur démarre. Il tourne dès J+1.",
         ],
       },
@@ -291,43 +299,45 @@ export const GUIDES: GuideContent[] = [
           "« Pénalités de retard applicables en cas de non-paiement à l'échéance : taux d'intérêt appliqué par la BCE à son opération de refinancement la plus récente majoré de 10 points de pourcentage. »",
           "« Indemnité forfaitaire pour frais de recouvrement : 40 € (art. D441-5 C.com.). »",
           "Bonus : citer l'article L441-10 directement — ça donne un poids juridique immédiat quand vous relancez.",
+          "Facturation électronique : la réception des factures électroniques est obligatoire pour toutes les entreprises depuis le 1er septembre 2026, et l'émission le sera pour les TPE et PME au 1er septembre 2027. Ces mentions restent obligatoires sur les factures électroniques.",
         ],
       },
       {
         heading: 'Comment les réclamer',
         paragraphs: [
-          "Les pénalités ne se réclament efficacement qu'à partir de la deuxième relance. Dans un email cordial, ça passe pour un accroc gratuit. Dans une relance ferme ou une mise en demeure, elles font partie du calcul du dû total.",
-          "Format qui marche : présenter le détail — « Facture 1200 € + pénalités depuis le 15 mars (43 jours × 14,5 % / 365) = 20,49 € + indemnité forfaitaire 40 € = TOTAL 1260,49 € ».",
-          "Le débiteur voit un calcul, pas une somme arbitraire. C'est incontestable et ça déclenche souvent le paiement immédiat de la facture principale (les 60 € de rab restent souvent négligés — mais c'est votre choix commercial).",
+          "Les pénalités se réclament plutôt à partir de la deuxième relance : dans un premier rappel cordial, elles crispent inutilement. Dans une relance ferme ou une mise en demeure, elles font partie du calcul du total dû.",
+          "Présentez le détail : « Facture 1 200 € + pénalités depuis le 15 septembre (43 jours × 12,40 % / 365) = 17,53 € + indemnité forfaitaire 40 € = total 1 257,53 € ».",
+          "Le débiteur voit un calcul, pas une somme arbitraire. Cela déclenche souvent le paiement de la facture principale ; renoncer ensuite aux pénalités reste votre choix commercial.",
         ],
       },
     ],
     conclusion:
-      "Réclamer les pénalités de retard, ce n'est pas être procédurier — c'est appliquer la loi. Le taux est punitif volontairement (14,5 %), pour dissuader le retard. Un client qui reçoit une facture avec « + 60 € de pénalités » calculées comprend très vite qu'il a intérêt à payer.",
+      "Réclamer les pénalités de retard, ce n'est pas être procédurier, c'est appliquer la loi. Le taux est volontairement élevé pour dissuader le retard. Attention : ces pénalités et l'indemnité de 40 € ne s'appliquent qu'à un client professionnel. Face à un particulier, seuls des intérêts au taux légal courent, à partir de la mise en demeure (art. 1344-1 C. civ.).",
   },
   {
     slug: 'conditions-generales-vente-recouvrement',
-    title: 'CGV et recouvrement : les 5 clauses obligatoires qui vous protègent',
-    metaTitle: 'CGV recouvrement : 5 clauses obligatoires 2026 | RelanceFlow',
+    title: 'CGV et recouvrement : les 5 clauses essentielles qui vous protègent',
+    metaTitle: 'CGV recouvrement : 5 clauses essentielles 2026',
     metaDescription:
-      "5 clauses essentielles à faire figurer dans vos CGV pour recouvrer plus vite et plus sereinement : pénalités, réserve de propriété, résiliation, compétence, protection données.",
+      "5 clauses essentielles à faire figurer dans vos CGV pour recouvrer plus vite et plus sereinement : pénalités, réserve de propriété, résiliation, compétence, protection des données.",
     category: 'Droit commercial',
     readTime: '6 min',
     publishedAt: '2026-03-28',
+    updatedAt: '2026-10-13',
     intro:
-      "Des CGV bien rédigées sont votre première ligne de défense en cas d'impayé. Elles définissent les règles du jeu et donnent une base juridique solide à vos relances. Sans elles, vous êtes réduit à invoquer le droit commun — plus faible, plus lent, plus contestable. Voici les 5 clauses non négociables.",
+      "Des CGV bien rédigées sont votre première ligne de défense en cas d'impayé. Elles définissent les règles du jeu et donnent une base juridique solide à vos relances. Sans elles, vous êtes réduit à invoquer le droit commun — plus faible, plus lent, plus contestable. Seule la première est obligatoire ; les quatre autres sont fortement recommandées.",
     sections: [
       {
         heading: '1. Pénalités de retard et indemnité forfaitaire',
         paragraphs: [
           "Contenu type : « Tout retard de paiement entraîne, de plein droit et sans mise en demeure préalable, l'application de pénalités de retard au taux de la BCE majoré de 10 points de pourcentage, ainsi qu'une indemnité forfaitaire de recouvrement de 40 € (art. L441-10 et D441-5 du Code de commerce). »",
-          "Sans cette mention explicite, vos relances perdent 50 % de leur poids juridique. Elle doit figurer dans vos CGV ET sur chaque facture émise.",
+          "Cette mention est obligatoire dans vos CGV (art. L441-1 C. com.) et sur chaque facture (art. L441-9 C. com.).",
         ],
       },
       {
         heading: '2. Clause résolutoire',
         paragraphs: [
-          "Elle vous permet de suspendre ou annuler unilatéralement la prestation en cas d'impayé, sans attendre une décision de justice.",
+          "Elle vous permet de mettre fin au contrat en cas d'impayé, après une mise en demeure restée sans effet, sans attendre une décision de justice (art. 1225 C. civ.). Suspendre votre prestation en attendant le paiement relève, elle, de l'exception d'inexécution (art. 1219 et 1220 C. civ.).",
           "Contenu type : « En cas de non-paiement à l'échéance et 8 jours après une mise en demeure restée infructueuse, la présente convention pourra être résolue de plein droit, sans intervention judiciaire, à la seule initiative du prestataire. »",
           "Effet dissuasif majeur : le client sait qu'il perd son accès (à un logiciel, une prestation en cours, un abonnement) sans procédure. Ça accélère nettement les paiements.",
         ],
@@ -336,8 +346,8 @@ export const GUIDES: GuideContent[] = [
         heading: '3. Clause de réserve de propriété (pour les ventes de biens)',
         paragraphs: [
           "Si vous vendez des biens matériels (marchandises, matériel, matériaux), cette clause vous permet d'en rester propriétaire jusqu'au paiement intégral, même si le bien est déjà chez le client.",
-          "Contenu type : « Les biens livrés demeurent la propriété exclusive du vendeur jusqu'au paiement intégral de leur prix par le client (art. L624-16 C.com.). »",
-          "En cas de dépôt de bilan du client, vous pouvez revendiquer votre bien avant qu'il ne soit inclus dans la liquidation. Sans cette clause : vous devenez un créancier ordinaire, rang très bas.",
+          "Contenu type : « Les biens livrés demeurent la propriété exclusive du vendeur jusqu'au paiement intégral de leur prix (art. 2367 C. civ.). »",
+          "Si le client fait l'objet d'une procédure collective, vous pouvez revendiquer les biens qui existent encore en nature, dans les 3 mois suivant la publication du jugement d'ouverture (art. L624-9 et L624-16 C. com.). Sans cette clause, vous êtes un créancier ordinaire.",
         ],
       },
       {
@@ -345,14 +355,14 @@ export const GUIDES: GuideContent[] = [
         paragraphs: [
           "Fixez à l'avance le tribunal compétent en cas de litige. Sans clause, la loi désigne le tribunal du siège du défendeur — souvent loin de chez vous, avec des coûts et délais aggravés.",
           "Contenu type : « En cas de litige, compétence exclusive est attribuée au Tribunal de commerce de [votre ville de rattachement]. »",
-          "Attention : cette clause n'est valable qu'entre commerçants (B2B). Elle est nulle contre un consommateur.",
+          "Attention : elle n'est valable que si les deux parties ont contracté en qualité de commerçant (art. 48 CPC). Elle ne vaut donc pas contre un professionnel libéral ou un artisan non commerçant, ni contre un consommateur, et elle ne joue jamais en injonction de payer, toujours portée devant le juge du domicile du débiteur.",
         ],
       },
       {
         heading: '5. Protection des données (RGPD)',
         paragraphs: [
           "Depuis 2018, vos CGV doivent mentionner comment vous traitez les données personnelles de vos clients (contacts, coordonnées, historique) — même en B2B, dès qu'il y a des personnes physiques.",
-          "Contenu type : « Le prestataire collecte et traite les données du client conformément au RGPD. Les données sont conservées pour la durée de la relation contractuelle + 5 ans (obligations comptables). Droits d'accès, rectification et opposition exercés à [email]. »",
+          "Contenu type : « Le prestataire collecte et traite les données du client conformément au RGPD. Les données sont conservées pendant la relation contractuelle, puis les pièces comptables pendant 10 ans (art. L123-22 C. com.). Droits d'accès, rectification et opposition exercés à [email]. »",
           "L'absence de mention peut déclencher une plainte CNIL — beaucoup plus coûteux que 5 minutes de rédaction.",
         ],
       },
@@ -363,14 +373,15 @@ export const GUIDES: GuideContent[] = [
   {
     slug: 'injonction-payer-mode-emploi',
     title: "Injonction de payer : mode d'emploi complet (Cerfa, délais, coûts) — 2026",
-    metaTitle: "Injonction de payer 2026 : Cerfa, délais, coûts | RelanceFlow",
+    metaTitle: "Injonction de payer 2026 : Cerfa, délais, coûts",
     metaDescription:
-      "Guide pas à pas pour obtenir une injonction de payer sans avocat : compétence tribunal, formulaire Cerfa 12946, délais réels, coûts, exécution du titre.",
+      "Guide pas à pas pour obtenir une injonction de payer sans avocat : tribunal compétent, formulaire Cerfa, délais, coûts, exécution du titre.",
     category: 'Procédure',
     readTime: '10 min',
     publishedAt: '2026-04-02',
+    updatedAt: '2026-10-13',
     intro:
-      "L'injonction de payer est la procédure de recouvrement la plus rapide et la moins coûteuse du droit français. Elle permet d'obtenir un titre exécutoire (l'équivalent d'un jugement) en 4 à 8 semaines, sans avocat sous 10 000 €, pour 35 € de frais. Voici comment la déclencher pas à pas.",
+      "L'injonction de payer est la procédure de recouvrement la plus rapide et la moins coûteuse du droit français. Elle permet d'obtenir un titre exécutoire (l'équivalent d'un jugement) en quelques semaines, sans avocat, pour quelques dizaines d'euros de frais. Voici comment la déclencher pas à pas.",
     sections: [
       {
         heading: "Quand utiliser l'injonction de payer",
@@ -382,15 +393,15 @@ export const GUIDES: GuideContent[] = [
       {
         heading: 'Compétence : où déposer',
         paragraphs: [
-          "Pour une créance B2B (commerçant → commerçant) : Tribunal de commerce du lieu de résidence du débiteur, ou du lieu d'exécution du contrat si votre CGV le prévoit.",
-          "Pour une créance civile ou mixte : Tribunal judiciaire (anciennement TI/TGI) du lieu de résidence du débiteur.",
-          "Une erreur de compétence = requête rejetée et à refaire. Vérifiez d'abord sur le site du greffe.",
+          "Créance entre commerçants : tribunal de commerce du lieu où demeure le débiteur. Autres créances : tribunal judiciaire du lieu où demeure le débiteur.",
+          "Cette règle est d'ordre public : une clause de vos CGV désignant un autre tribunal est réputée non écrite (art. 1406 CPC).",
+          "Une erreur de compétence fait rejeter la requête. Vérifiez sur le site du greffe avant de déposer.",
         ],
       },
       {
         heading: 'Le formulaire Cerfa',
         paragraphs: [
-          "Formulaire n° 12946*02 (« Requête aux fins d'injonction de payer ») téléchargeable gratuitement sur service-public.fr.",
+          "Le formulaire Cerfa de requête en injonction de payer est disponible gratuitement sur service-public.fr : il existe un modèle pour le tribunal de commerce et un autre pour le tribunal judiciaire. Vous pouvez aussi déposer la requête en ligne sur le site du greffe du tribunal de commerce.",
         ],
         list: [
           "Identité complète du créancier (vous) : nom, SIREN, adresse, forme juridique",
@@ -409,23 +420,23 @@ export const GUIDES: GuideContent[] = [
           "Copie de la facture impayée (avec mention des pénalités de retard)",
           "Preuve de livraison ou d'exécution (bon de livraison signé, PV de recette, mail de validation)",
           "CGV signées ou acceptées par le client (bon de commande accepté, email de confirmation)",
-          "Copie des relances envoyées (les emails horodatés RelanceFlow font parfaitement l'affaire)",
+          "Copie des relances envoyées (emails datés)",
           "Mise en demeure et accusé de réception (recommandé conseillé pour renforcer)",
         ],
       },
       {
         heading: 'Délais réels et coûts',
         paragraphs: [
-          "Coût : 35,21 € de frais de greffe au Tribunal de commerce (gratuit au Tribunal judiciaire pour les particuliers).",
-          "Délai typique jusqu'à obtention de l'ordonnance : 4 à 8 semaines selon l'engorgement du tribunal.",
-          "Si le juge accepte, vous recevez une « ordonnance portant injonction de payer ». Vous avez alors 6 mois pour la faire signifier au débiteur par huissier (compter 50-150 €).",
+          "Coût : une trentaine d'euros de frais de greffe au tribunal de commerce (tarif affiché sur Infogreffe) ; aucuns frais de greffe au tribunal judiciaire.",
+          "Délai jusqu'à l'ordonnance : quelques semaines, selon l'encombrement du tribunal.",
+          "Si le juge accepte, vous recevez une « ordonnance portant injonction de payer ». Vous avez alors 6 mois pour la faire signifier au débiteur par un commissaire de justice ; à défaut, elle est non avenue (art. 1411 CPC).",
         ],
       },
       {
         heading: "Après la signification : opposition ou exécution",
         paragraphs: [
           "À compter de la signification, le débiteur a 1 mois pour former opposition. S'il oppose : l'affaire est renvoyée en procédure ordinaire au fond, plus longue, où il pourra contester.",
-          "S'il n'oppose pas dans le délai : vous demandez au greffe l'apposition de la formule exécutoire. L'ordonnance devient alors un titre exécutoire — équivalent à un jugement — que vous pouvez faire exécuter par huissier (saisie sur compte bancaire, saisie de biens, etc.).",
+          "S'il ne forme pas opposition : demandez au greffe l'apposition de la formule exécutoire dans le mois qui suit la fin du délai d'opposition, sinon l'ordonnance devient non avenue (art. 1423 CPC). Elle devient alors un titre exécutoire, que vous faites exécuter par un commissaire de justice (saisie sur compte bancaire, saisie de biens, etc.).",
         ],
       },
     ],
@@ -435,12 +446,13 @@ export const GUIDES: GuideContent[] = [
   {
     slug: 'prescription-creances-commerciales',
     title: 'Prescription des créances commerciales : les délais à ne surtout pas rater',
-    metaTitle: 'Prescription créances commerciales : 2, 5, 10 ans | RelanceFlow',
+    metaTitle: 'Prescription créances commerciales : 2, 5, 10 ans',
     metaDescription:
       "Délais de prescription des créances : 5 ans commerciales, 2 ans consommateurs, cas particuliers. Comment interrompre la prescription pour ne rien perdre.",
     category: 'Droit commercial',
     readTime: '5 min',
     publishedAt: '2026-03-20',
+    updatedAt: '2026-10-13',
     intro:
       "Une créance non recouvrée n'est pas éternellement récupérable : elle s'éteint par prescription. Passer à côté du délai, c'est perdre définitivement le droit d'exiger le paiement — même si la dette est incontestable. Voici les délais à connaître et comment stopper le compteur avant qu'il ne soit trop tard.",
     sections: [
@@ -455,7 +467,7 @@ export const GUIDES: GuideContent[] = [
         heading: 'Le délai raccourci : 2 ans en B2C',
         paragraphs: [
           "L'article L218-2 du Code de la consommation raccourcit le délai à 2 ans pour les biens ou services fournis à un consommateur.",
-          "Concrètement : si votre client est un particulier (pas une entreprise), vous n'avez que 2 ans à partir de l'échéance pour agir. Passé ce délai, la créance est éteinte, même si le client reconnaît la devoir.",
+          "Concrètement : si votre client est un particulier, vous n'avez que 2 ans pour agir en justice, en général à compter de la livraison ou de l'achèvement de la prestation. Passé ce délai, vous ne pouvez plus obtenir le paiement en justice.",
           "Ce délai concerne : coaching, formation, prestations de service, ventes en ligne, abonnements, etc. dès que le destinataire est un particulier.",
         ],
       },
@@ -465,11 +477,9 @@ export const GUIDES: GuideContent[] = [
           "Certaines créances ont des délais spécifiques encore plus courts. Vérifiez toujours si votre secteur en fait partie.",
         ],
         list: [
-          "Honoraires d'avocats : 5 ans (art. 2225 C.civ.)",
-          "Factures d'énergie (électricité/gaz) : 2 ans pour les particuliers",
-          "Factures de télécommunications : 1 an (L34-2 CPCE)",
-          "Créances hôtelières / restauration : 6 mois",
-          "Salaires impayés : 3 ans",
+          "Factures d'énergie (électricité, gaz) : 2 ans pour les particuliers",
+          "Factures de communications électroniques : 1 an (art. L34-2 du Code des postes et des communications électroniques)",
+          "Salaires impayés : 3 ans (art. L3245-1 C. trav.)",
         ],
       },
       {
@@ -479,39 +489,40 @@ export const GUIDES: GuideContent[] = [
         ],
         list: [
           "Reconnaissance de dette écrite du débiteur (email, courrier, aveu)",
-          "Assignation en justice ou requête en injonction de payer",
-          "Commandement de payer par huissier",
-          "Demande en justice, même incomplète ou devant un tribunal incompétent",
-          "Attention : une simple relance ou mise en demeure n'interrompt PAS la prescription en droit commun. Elle la SUSPEND parfois, mais ne la remet pas à zéro.",
+          "Paiement partiel, qui vaut reconnaissance de la dette",
+          "Demande en justice, y compris une requête en injonction de payer, même devant un tribunal incompétent (art. 2241 C. civ.)",
+          "Acte d'exécution forcée, comme un commandement de payer délivré par un commissaire de justice (art. 2244 C. civ.)",
+          "Attention : une relance ou une mise en demeure n'interrompt pas la prescription et ne la suspend pas.",
         ],
       },
       {
         heading: 'La suspension de prescription',
         paragraphs: [
           "Différent de l'interruption : la suspension arrête le compteur, sans repartir de zéro. Elle joue notamment pendant une médiation conventionnelle ou une procédure participative.",
-          "Cas fréquent : un client vous demande un délai de paiement par écrit. Ce n'est pas une reconnaissance de dette au sens strict, mais ça peut être qualifié de suspension si les termes sont clairs (« je m'engage à payer avant le [date] »).",
+          "Cas fréquent : un client vous demande un délai de paiement par écrit (« je m'engage à payer avant le [date] »). C'est une reconnaissance de votre droit, qui interrompt la prescription (art. 2240 C. civ.) : conservez précieusement ce message.",
         ],
       },
     ],
     conclusion:
-      "Ne laissez jamais une créance atteindre 4 ans et 11 mois. Si vous approchez du délai de prescription et que le client ne paie pas : déclenchez immédiatement une injonction de payer, même minimaliste — le seul dépôt de la requête interrompt la prescription et vous donne 5 ans de plus.",
+      "Ne laissez jamais une créance approcher la fin du délai. Si le client ne paie pas, déposez une requête en injonction de payer : elle interrompt la prescription, à condition de faire signifier l'ordonnance dans les 6 mois (art. 1411 CPC). Le titre exécutoire obtenu peut ensuite être exécuté pendant 10 ans (art. L111-4 du Code des procédures civiles d'exécution).",
   },
   {
     slug: 'relance-clients-ton-progressif',
     title: "Comment relancer sans abîmer la relation : le protocole en 4 étapes",
-    metaTitle: 'Relance client : protocole 4 étapes efficace | RelanceFlow',
+    metaTitle: 'Relance client : protocole 4 étapes efficace',
     metaDescription:
       "Le protocole de relance progressive qui récupère vos créances sans détruire vos relations commerciales : cordial → ferme → pré-contentieux → mise en demeure.",
     category: 'Pratique',
     readTime: '5 min',
     publishedAt: '2026-03-10',
+    updatedAt: '2026-10-13',
     intro:
       "Trop doux, vous passez pour le banquier gratuit du client. Trop agressif, vous perdez le contrat pour 800 € de retard. Le protocole progressif — utilisé par les credit managers depuis des décennies — trouve le point d'équilibre : fermeté croissante, pied de porte permanent, chaque étape justifiée par l'échec de la précédente. Voici les 4 palettes.",
     sections: [
       {
         heading: 'Étape 1 — Rappel cordial (J+7 après échéance)',
         paragraphs: [
-          "Objectif : réveiller un oubli, pas confronter. 70 % des impayés sont récupérés à ce stade.",
+          "Objectif : réveiller un oubli, pas confronter. Beaucoup de retards se règlent à ce stade.",
           "Ton : « Je pars du principe que c'est un oubli ». Aucune mention de pénalités. Le client garde la face.",
           "Formulation qui marche : « Bonjour [X], petit rappel amiable pour la facture [N°] de [montant], échue le [date]. Il est possible que le règlement soit déjà en cours — si c'est le cas, ignorez ce message. Sinon, un coup de fil ou un email me rassure. Cordialement. »",
         ],
@@ -535,7 +546,7 @@ export const GUIDES: GuideContent[] = [
       {
         heading: 'Étape 4 — Mise en demeure formelle (J+45+)',
         paragraphs: [
-          "Objectif : acte juridique qui déclenche les effets légaux (intérêts moratoires officiels, preuve devant tribunal).",
+          "Objectif : formaliser votre demande. La mise en demeure fait courir les intérêts au taux légal (art. 1344-1 C. civ.) et prouve devant le juge que vous avez réclamé votre dû.",
           "Forme : email + doublage par lettre recommandée avec accusé de réception (LRAR). Le recommandé n'est pas obligatoire mais renforce considérablement votre dossier.",
           "Contenu : citer explicitement « MISE EN DEMEURE » et l'article 1344 du Code civil. Voir le guide dédié pour le modèle exact.",
           "À ce stade, si le client ne répond pas ou refuse, le passage au contentieux est justifié et documenté.",
@@ -544,24 +555,25 @@ export const GUIDES: GuideContent[] = [
       {
         heading: 'Les 3 erreurs à ne surtout pas commettre',
         paragraphs: [
-          "1. Sauter des étapes. Une mise en demeure envoyée directement sans les relances préalables perd une partie de sa force probante devant le tribunal.",
+          "1. Sauter des étapes. Les relances antérieures renforcent votre dossier, même si elles ne conditionnent pas la validité de la mise en demeure.",
           "2. Menacer sans exécuter. Si vous annoncez une procédure judiciaire à J+30 et que vous n'agissez pas, le client apprend que vos menaces sont creuses. Vos prochaines relances perdent tout poids.",
           "3. Personnaliser au négatif. Jamais d'attaque personnelle, jamais de reproche sur la personne. Toujours factuel : « la facture n'est pas réglée », pas « vous êtes mauvais payeur ».",
         ],
       },
     ],
     conclusion:
-      "Le protocole en 4 étapes marche parce qu'il combine la patience commerciale et la rigueur juridique. Chaque relance est indépendante ET s'appuie sur la précédente. RelanceFlow automatise tout ce protocole avec des templates ajustables — vous conservez le contrôle du ton, la mécanique tourne toute seule.",
+      "Le protocole en 4 étapes marche parce qu'il combine la patience commerciale et la rigueur juridique. Chaque relance est indépendante ET s'appuie sur la précédente. Encair vous aide à préparer et programmer les relances email des étapes 1 à 3, avec vos propres modèles ; vous confirmez les soldes avant chaque envoi.",
   },
   {
     slug: 'rapport-banquier-poste-client',
     title: "Comment présenter votre poste client à votre banquier pour décrocher une ligne de trésorerie",
-    metaTitle: 'Poste client & banquier : le rapport qui décroche un prêt | RelanceFlow',
+    metaTitle: 'Poste client & banquier : le rapport qui décroche un prêt',
     metaDescription:
       "Une balance âgée saine et un DSO maîtrisé sont vos meilleurs arguments pour négocier une ligne de trésorerie. Comment structurer le rapport que votre banquier veut voir.",
     category: 'Trésorerie',
     readTime: '7 min',
     publishedAt: '2026-04-20',
+    updatedAt: '2026-10-13',
     intro:
       "Votre banquier ne prête pas sur la promesse d'un CA futur — il prête sur la qualité de vos encours actuels. Un poste client bien géré, avec un DSO maîtrisé et une balance âgée propre, vaut plus qu'un business plan à 3 ans. Voici comment présenter cette donnée pour transformer une demande hésitante en accord signé.",
     sections: [
@@ -581,7 +593,7 @@ export const GUIDES: GuideContent[] = [
         paragraphs: [
           "La balance âgée décompose votre encours client par tranches d'ancienneté : à échoir, 0-30 jours, 30-60, 60-90, +90.",
           "Format attendu par le banquier : un tableau montrant pour chaque tranche le montant total, le nombre de factures, et idéalement les top 3 clients concernés.",
-          "RelanceFlow calcule automatiquement cette balance dans la page Statistiques → Aging buckets. Exportable en un clic pour la joindre à votre dossier.",
+          "Exportez vos factures en CSV (depuis votre logiciel de facturation ou depuis Encair) et construisez la balance âgée dans un tableur.",
         ],
       },
       {
@@ -598,7 +610,7 @@ export const GUIDES: GuideContent[] = [
       {
         heading: "Chiffres qui déclenchent un accord",
         paragraphs: [
-          "Le banquier veut vérifier que vous ne bricolez pas. Les fourchettes rassurantes en 2026 pour un indépendant / TPE :",
+          "Le banquier veut vérifier que vous ne bricolez pas. À titre indicatif, voici des repères souvent jugés rassurants pour une TPE :",
         ],
         list: [
           "DSO < 40 jours",
