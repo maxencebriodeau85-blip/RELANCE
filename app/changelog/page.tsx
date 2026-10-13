@@ -5,9 +5,9 @@ import { SiteFooter } from '@/components/landing/footer'
 import { Logo } from '@/components/brand/logo'
 
 export const metadata: Metadata = {
-  title: 'Changelog — Nouveautés RelanceFlow',
+  title: 'Changelog — Nouveautés Encair',
   description:
-    "Toutes les nouveautés, améliorations et correctifs de RelanceFlow, par ordre chronologique.",
+    "Toutes les nouveautés, améliorations et correctifs de Encair, par ordre chronologique.",
   alternates: { canonical: '/changelog' },
 }
 

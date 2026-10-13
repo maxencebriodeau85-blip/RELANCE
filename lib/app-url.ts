@@ -11,10 +11,10 @@
 // that hasn't been purchased yet.
 export function getAppUrl(): string {
   const fromEnv = process.env.NEXT_PUBLIC_APP_URL
-  if (fromEnv) return stripTrailingSlash(fromEnv)
+  if (fromEnv && !/^https?:\/\/(www\.)?relanceflow\.fr([/:]|$)/i.test(fromEnv)) return stripTrailingSlash(fromEnv)
 
   const prodUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
-  if (prodUrl) return `https://${stripTrailingSlash(prodUrl)}`
+  if (prodUrl && !/^(www\.)?relanceflow\.fr([/:]|$)/i.test(prodUrl)) return `https://${stripTrailingSlash(prodUrl)}`
 
   const deploymentUrl = process.env.VERCEL_URL
   if (deploymentUrl) return `https://${stripTrailingSlash(deploymentUrl)}`

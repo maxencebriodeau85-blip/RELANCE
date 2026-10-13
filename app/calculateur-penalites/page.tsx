@@ -181,7 +181,7 @@ export default function CalculateurPenalitesPage() {
             Réclamez ces pénalités automatiquement
           </h3>
           <p className="text-gray-600 text-sm mb-6 max-w-md mx-auto">
-            RelanceFlow génère vos mises en demeure avec calcul automatique des pénalités
+            Encair génère vos mises en demeure avec calcul automatique des pénalités
             et envoi par email + lien de paiement Stripe.
           </p>
           <Link

@@ -1,95 +1,53 @@
-# RelanceFlow
+# Encair
 
-> Logiciel français de relance automatique des factures impayées, conçu pour les indépendants, consultants et TPE.
+Encair suit les factures déjà émises : import CSV, soldes restant dus, relances email, promesses de paiement et litiges. L'identité Encair est provisoire ; marque et domaine restent à vérifier avant lancement.
 
-[![Site](https://img.shields.io/badge/site-relanceflow.fr-4F46E5)](https://relanceflow.fr) [![Stack](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org) [![Stack](https://img.shields.io/badge/Supabase-Postgres-3ECF8E)](https://supabase.com) [![Stack](https://img.shields.io/badge/Stripe-Checkout-635BFF)](https://stripe.com)
+## Offre
 
-## Ce que ça fait
+- Fondateur : **16 € HT/mois**, 100 nouvelles factures par mois calendaire UTC.
+- Essai : 30 jours, sans carte bancaire, 10 nouvelles factures par mois.
+- Actualiser une référence existante ne consomme pas de nouvelle place.
+- Tarif public envisagé : 29 € HT/mois, pas un ancien prix barré.
+- Les anciens abonnements Stripe restent inchangés tant que le client ne demande pas explicitement un changement. Le code `starter` est conservé pour compatibilité.
 
-- **Pipeline CRM** kanban 5 étapes (prospect → signé → payé) avec drag-and-drop
-- **Factures** créées en 2 clics, conformes aux mentions légales françaises (TVA art. 293B CGI, désignation prestation), exportables en PDF
-- **Relances email automatiques** à J+7 / J+15 / J+30 avec bouton de paiement Stripe intégré (taux de paiement +9 j plus vite vs sans)
-- **Templates personnalisables** par utilisateur — variables `{{client_name}}`, `{{amount}}`, etc., preview live dans l'éditeur
-- **Mise en demeure légale** conforme art. 1344 C.civ. et L441-10 C.com., avec calcul automatique des pénalités (taux BCE + 10 points + indemnité forfaitaire 40 €)
-- **Tracking d'engagement** Resend (delivered / opened / clicked / bounced) affiché dans la timeline de chaque facture
-- **Calculateur de pénalités** public (outil SEO + lead magnet)
-- **Multi-plans** Stripe (Starter 19 € / Pro 49 € / Business 99 €) avec essai 30 j sans CB
+## Développement
 
-## Stack technique
-
-- **Framework** : Next.js 14 (app router, Server Components, Edge runtime pour OG image)
-- **DB** : Supabase Postgres + Row Level Security + 10 migrations versionnées
-- **Auth** : Supabase Auth (email/password + magic link), middleware sync (zero round-trip)
-- **Email** : Resend (SDK v3.2) + Idempotency-Key + webhook Svix-verified
-- **Paiement** : Stripe Checkout + webhooks signature-verified
-- **PDF** : `@react-pdf/renderer` en runtime Node (route `/api/invoices/[id]/pdf`)
-- **Style** : Tailwind CSS + shadcn/ui + identité brand custom (palette indigo, Plus Jakarta Sans)
-- **Hosting** : Vercel (région CDG1, hébergement Europe)
-
-## Démarrage local
+Node.js 22 ou supérieur.
 
 ```bash
-# Pré-requis : Node 18.17+, compte Supabase, compte Stripe (mode test)
-cp .env.example .env.local   # remplir les clés
-
-npm install
-npm run dev                  # http://localhost:3000
+npm ci
+cp .env.example .env.local
+npm run dev
 ```
 
-### Variables d'environnement essentielles
-
-| Variable | Usage |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | URL projet Supabase |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clé anonyme Supabase (client) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Clé admin Supabase (server, webhooks) |
-| `NEXT_PUBLIC_APP_URL` | URL de l'app pour les liens dans emails |
-| `STRIPE_SECRET_KEY` / `STRIPE_*_PRICE_ID` | Stripe Checkout + plans |
-| `RESEND_API_KEY` | Envoi des emails |
-| `RESEND_WEBHOOK_SECRET` | Vérification signature webhook Resend (Svix) |
-| `CRON_SECRET` | Auth des cron jobs (relances quotidiennes) |
-
-## Scripts utiles
+Renseigner Supabase pour l'authentification. Ne jamais exposer la clé service dans une variable `NEXT_PUBLIC_*`. Stripe est nécessaire pour les routes d'abonnement ; Resend pour les envois réels.
 
 ```bash
-npm run dev          # serveur de développement
-npm run build        # production build
-npm run typecheck    # tsc --noEmit
-npm run lint         # next lint
-npm run setup:stripe # crée les prix Stripe (idempotent)
+npm run typecheck
+npm test
+npm run build
 ```
 
-## Structure
+Les tests de migration utilisent PostgreSQL embarqué via PGlite avec un schéma de test minimal. Ils ne contactent aucun service réel et ne remplacent pas une validation des migrations sur une copie de la base existante.
 
-```
-app/
-  ├── (landing)      page.tsx, about, guides, modeles, calculateur-penalites, contact, changelog
-  ├── auth/          login, register, confirm, reset-password, forgot-password
-  ├── dashboard/     page.tsx, invoices, pipeline, contacts, scenarios, templates, stats, settings…
-  ├── api/           invoices, contacts, profile, webhooks, stripe, cron, health
-  └── pay/[token]/   page publique de paiement client (lien dans les emails)
+## Fonctionnement
 
-components/
-  ├── brand/         Logo (SVG signature)
-  ├── landing/       SiteNav, SiteFooter, PricingSection, TestimonialsSection, ResultsSection, ProductTour, ComparisonSection, FAQSection, TrustStrip
-  ├── dashboard/     Sidebar, CommandPalette (⌘K), Header, OnboardingWizard, LineChart…
-  └── ui/            shadcn/ui primitives
+- Une nouvelle facture est importée **en pause**. Le solde doit être confirmé avant activation.
+- L'import reconnaît la référence de facture de l'utilisateur. Il actualise le solde si la colonne est fournie, conserve l'historique et refuse un montant initial ou un email contradictoire.
+- Une date d'émission inconnue reste vide ; elle n'est pas inventée à la date d'import.
+- Les paiements partiels diminuent le montant relancé. Un règlement complet ou un litige suspend les relances.
+- Les promesses suspendent jusqu'au jour promis inclus, selon le calendrier Europe/Paris.
+- Toute relance exige un solde vérifié depuis moins de sept jours, un compte actif et une facture échue.
+- Scénarios : standard J+7/15/30, doux J+7/21, ferme J+3/10/20. Une ancienne facture commence par la première étape manquante.
+- Les envois manuels et automatiques partagent le même service. Une réservation SQL empêche deux envois simultanés sur la même facture. Une étape délivrée reste réservée ; temporisation minimale de 24 heures entre étapes.
+- Une réponse ambiguë du fournisseur laisse l'envoi en attente pour vérification, plutôt que de risquer un doublon. Voir DEPLOYMENT.md.
 
-lib/
-  ├── supabase/      client.ts (browser), server.ts (server + admin)
-  ├── email-templates.ts   4 templates de relance + interpolation custom
-  ├── invoice-pdf.tsx      composant PDF @react-pdf/renderer
-  ├── validation.ts        isValidEmail, isValidDate, escapeHtml, sanitizeHeaderValue
-  ├── metrics.ts           calculateDashboardMetrics, calculateDSO, PLAN_LIMITS, formatEuro
-  └── stripe.ts            STRIPE_PLANS (source of truth)
+## Périmètre
 
-supabase/migrations/   10 migrations SQL idempotentes
-```
+La navigation principale porte sur les impayés, les clients, les modèles, les scénarios et les statistiques de soldes. Les anciens modules CRM/intégrations restent dans le dépôt pour préserver les données historiques, sans être mis en avant dans la nouvelle offre.
 
-## Licence
+Les liens publics d'encaissement Stripe sont désactivés : l'ancienne implémentation créditait le compte plateforme sans routage vers le fournisseur. Les paiements historiques correspondants nécessitent une réconciliation manuelle. L'abonnement au logiciel reste payable via Stripe.
 
-Propriétaire — tous droits réservés. Voir [mentions légales](https://relanceflow.fr/mentions-legales) et [CGU](https://relanceflow.fr/cgu).
+Les fiches PDF sont des documents de suivi, pas un remplacement de la facture originale. Les tableaux reposent sur des montants renseignés/importés, sans synchronisation bancaire. Aucun DSO n'est présenté dans les nouvelles statistiques.
 
----
-
-Made in France.
+Voir [DEPLOYMENT.md](DEPLOYMENT.md) pour la migration, la configuration des prestataires et les vérifications avant mise en service.

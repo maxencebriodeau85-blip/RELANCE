@@ -82,7 +82,7 @@ export default function NotFound() {
 
       <footer className="border-t bg-white/60 backdrop-blur-sm py-6">
         <div className="container mx-auto px-4 text-center text-sm text-gray-500">
-          © 2026 RelanceFlow · <Link href="/support" className="hover:text-gray-900">Support</Link>
+          © 2026 Encair · <Link href="/support" className="hover:text-gray-900">Support</Link>
         </div>
       </footer>
     </div>

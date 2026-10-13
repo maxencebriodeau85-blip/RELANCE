@@ -52,7 +52,7 @@ async function revertToFreeTrial(
     } as never)
     .eq('stripe_customer_id', customerId)
 
-  if (error) console.error(`${logLabel} error:`, error)
+  if (error) throw error
 }
 
 export async function POST(request: Request) {
@@ -86,11 +86,8 @@ export async function POST(request: Request) {
         // ── Case A: debtor paying an invoice directly ──────────────────────
         const invoiceId = session.metadata?.invoice_id
         if (invoiceId && session.mode === 'payment') {
-          const { error } = await supabase
-            .from('invoices')
-            .update({ status: 'paid' } as never)
-            .eq('id', invoiceId)
-          if (error) console.error('invoice payment update error:', error)
+          // Legacy payments reached the platform, not the creditor. Reconcile manually.
+          console.warn('Legacy invoice payment requires manual reconciliation:', session.id)
           break
         }
 
@@ -107,6 +104,7 @@ export async function POST(request: Request) {
           break
         }
 
+        if (!['active', 'trialing'].includes(subscription.status)) break
         const priceId = subscription.items.data[0]?.price.id
         const plan = getPlanFromPriceId(priceId)
 
@@ -135,12 +133,13 @@ export async function POST(request: Request) {
           } as never)
           .eq('id', userId)
 
-        if (error) console.error('checkout.session.completed update error:', error)
+        if (error) throw error
         break
       }
 
       case 'customer.subscription.updated': {
-        const subscription = event.data.object as Stripe.Subscription
+        const eventSubscription = event.data.object as Stripe.Subscription
+        const subscription = await stripe.subscriptions.retrieve(eventSubscription.id)
         const customerId = subscription.customer as string
 
         // Stripe doesn't guarantee event order: cancelling a subscription
@@ -160,6 +159,7 @@ export async function POST(request: Request) {
           break
         }
 
+        if (!['active', 'trialing'].includes(subscription.status)) break
         const priceId = subscription.items.data[0]?.price.id
         const plan = getPlanFromPriceId(priceId)
 
@@ -180,12 +180,13 @@ export async function POST(request: Request) {
           } as never)
           .eq('stripe_customer_id', customerId)
 
-        if (error) console.error('subscription.updated error:', error)
+        if (error) throw error
         break
       }
 
       case 'customer.subscription.deleted': {
-        const subscription = event.data.object as Stripe.Subscription
+        const eventSubscription = event.data.object as Stripe.Subscription
+        const subscription = await stripe.subscriptions.retrieve(eventSubscription.id)
         const customerId = subscription.customer as string
 
         await revertToFreeTrial(supabase, customerId, subscription.id, 'subscription.deleted')

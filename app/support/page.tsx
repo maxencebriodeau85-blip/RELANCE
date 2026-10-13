@@ -13,17 +13,17 @@ const faqs = [
   {
     question: 'Comment importer mes factures ?',
     answer:
-      'Rendez-vous dans le dashboard → Factures → Importer CSV. Vous pouvez exporter votre fichier depuis n\'importe quel logiciel de facturation (Pennylane, Sage, QuickBooks…). RelanceFlow détecte automatiquement les colonnes.',
+      'Rendez-vous dans le dashboard → Factures → Importer CSV. Vous pouvez exporter votre fichier depuis n\'importe quel logiciel de facturation (Pennylane, Sage, QuickBooks…). Encair détecte automatiquement les colonnes.',
   },
   {
     question: 'Les relances sont-elles envoyées automatiquement ?',
     answer:
-      'Oui. Une fois votre scénario configuré, RelanceFlow envoie les relances selon le calendrier défini (J+15, J+30, J+45…) sans aucune action de votre part. Vous recevez une notification à chaque envoi.',
+      'Oui. Une fois votre scénario configuré, Encair envoie les relances selon le calendrier défini (J+15, J+30, J+45…) sans aucune action de votre part. Vous recevez une notification à chaque envoi.',
   },
   {
     question: 'La mise en demeure est-elle juridiquement valable ?',
     answer:
-      'La mise en demeure générée par RelanceFlow est conforme à l\'article L441-10 du Code de commerce français. Elle inclut le calcul automatique des pénalités de retard légales. Nous vous recommandons de l\'envoyer en recommandé avec AR pour lui donner une valeur probante maximale.',
+      'La mise en demeure générée par Encair est conforme à l\'article L441-10 du Code de commerce français. Elle inclut le calcul automatique des pénalités de retard légales. Nous vous recommandons de l\'envoyer en recommandé avec AR pour lui donner une valeur probante maximale.',
   },
   {
     question: 'Puis-je annuler mon abonnement à tout moment ?',
@@ -63,7 +63,7 @@ export default function SupportPage() {
       if (!res.ok) throw new Error('Erreur serveur')
       setSubmitted(true)
     } catch {
-      setSendError('Une erreur est survenue. Écrivez-nous directement à hello@relanceflow.fr')
+      setSendError('Une erreur est survenue. Écrivez-nous directement à notre formulaire de contact')
     } finally {
       setSending(false)
     }
@@ -105,10 +105,10 @@ export default function SupportPage() {
                 <h3 className="font-semibold text-gray-900">Email</h3>
                 <p className="text-sm text-gray-500">Réponse sous 24h ouvrées</p>
                 <a
-                  href="mailto:hello@relanceflow.fr"
+                  href="/contact"
                   className="text-blue-600 text-sm font-medium hover:underline"
                 >
-                  hello@relanceflow.fr
+                  notre formulaire de contact
                 </a>
               </CardContent>
             </Card>
@@ -131,7 +131,7 @@ export default function SupportPage() {
                 </div>
                 <h3 className="font-semibold text-gray-900">Guides pratiques</h3>
                 <p className="text-sm text-gray-500">Tutoriels et bonnes pratiques</p>
-                <a href="/guides" className="text-sm text-blue-600 font-medium hover:underline">Consulter les guides</a>
+                <Link href="/guides" className="text-sm text-blue-600 font-medium hover:underline">Consulter les guides</Link>
               </CardContent>
             </Card>
           </div>
@@ -248,7 +248,7 @@ export default function SupportPage() {
 
       <footer className="border-t bg-gray-50 py-8 mt-8">
         <div className="container mx-auto px-4 text-center text-sm text-gray-500">
-          <p>© {new Date().getFullYear()} RelanceFlow. Tous droits réservés.</p>
+          <p>© {new Date().getFullYear()} Encair. Tous droits réservés.</p>
           <div className="mt-2 flex justify-center gap-4">
             <Link href="/cgu" className="hover:text-gray-900">CGU</Link>
             <Link href="/privacy" className="hover:text-gray-900">Confidentialité</Link>

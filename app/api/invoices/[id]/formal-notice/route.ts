@@ -7,7 +7,7 @@ import type { Invoice, Profile } from '@/lib/database.types'
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient()
@@ -22,7 +22,7 @@ export async function GET(
     const { data: invoice, error: invError } = await supabase
       .from('invoices')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .eq('user_id', user.id)
       .single()
 
@@ -58,7 +58,7 @@ export async function GET(
       invoiceNumber: inv.invoice_number,
       invoiceAmount: inv.amount,
       invoiceDueDate: inv.due_date,
-      invoiceIssuedDate: inv.issued_date,
+      invoiceIssuedDate: inv.issued_date || 'Non renseignée',
       daysOverdue,
     }
 

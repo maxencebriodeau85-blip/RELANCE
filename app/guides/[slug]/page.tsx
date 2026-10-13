@@ -9,8 +9,9 @@ export async function generateStaticParams() {
   return GUIDES.map((g) => ({ slug: g.slug }))
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const guide = GUIDES.find((g) => g.slug === params.slug)
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const {slug}=await params
+  const guide = GUIDES.find((g) => g.slug === slug)
   if (!guide) return { title: 'Guide introuvable' }
   return {
     title: guide.metaTitle,
@@ -25,8 +26,9 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
 }
 
-export default function GuideArticlePage({ params }: { params: { slug: string } }) {
-  const guide = GUIDES.find((g) => g.slug === params.slug)
+export default async function GuideArticlePage({ params }: { params: Promise<{ slug: string }> }) {
+  const {slug}=await params
+  const guide = GUIDES.find((g) => g.slug === slug)
   if (!guide) notFound()
 
   // Related guides — other entries in the same category (or any other guide
@@ -46,10 +48,10 @@ export default function GuideArticlePage({ params }: { params: { slug: string } 
     headline: guide.title,
     description: guide.metaDescription,
     datePublished: guide.publishedAt,
-    author: { '@type': 'Organization', name: 'RelanceFlow' },
+    author: { '@type': 'Organization', name: 'Encair' },
     publisher: {
       '@type': 'Organization',
-      name: 'RelanceFlow',
+      name: 'Encair',
       logo: { '@type': 'ImageObject', url: '/icon.png' },
     },
   }
@@ -169,7 +171,7 @@ export default function GuideArticlePage({ params }: { params: { slug: string } 
           <div className="relative">
             <h3 className="text-xl font-bold mb-2">Automatisez tout ce que vous venez de lire</h3>
             <p className="text-white/80 text-sm mb-5">
-              RelanceFlow gère relances, mise en demeure et paiement en ligne — sans intervention manuelle.
+              Encair gère relances, mise en demeure et paiement en ligne — sans intervention manuelle.
             </p>
             <Link
               href="/auth/register"

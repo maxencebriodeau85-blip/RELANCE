@@ -55,6 +55,7 @@ const REQUIRED_FIELDS: (keyof ColumnMapping)[] = [
 ]
 
 const FIELD_LABELS: Record<keyof ColumnMapping, string> = {
+  remaining_amount: 'Reste à payer (actualise les règlements)',
   client_name: 'Nom du client *',
   client_email: 'Email du client *',
   invoice_number: 'N° de facture *',
@@ -146,12 +147,10 @@ export default function ImportPage() {
         return
       }
 
-      setImportedCount(data.imported || validInvoices.length)
+      setImportedCount((data.imported ?? 0) + (data.updated ?? 0))
       setStep('success')
     } catch {
-      // Even if API fails, show success for demo
-      setImportedCount(validInvoices.length)
-      setStep('success')
+      toast({title:'Import non confirmé',description:'La connexion a été interrompue. Vérifiez vos factures avant de réessayer.',variant:'destructive'})
     } finally {
       setImporting(false)
     }
@@ -163,7 +162,7 @@ export default function ImportPage() {
     <div>
       <Header
         title="Importer des factures"
-        description="Importez vos factures depuis un fichier CSV"
+        description="Importez vos factures et actualisez les soldes. Les nouvelles factures restent en pause jusqu’à votre validation."
         actions={
           <Button variant="outline" size="sm" asChild>
             <Link href="/dashboard/invoices">

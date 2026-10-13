@@ -21,7 +21,7 @@ function welcomeEmailHtml(name: string, appUrl: string): string {
     <div style="text-align:center;margin-bottom:24px;">
       <div style="display:inline-flex;align-items:center;gap:8px;">
         <div style="height:32px;width:32px;background:linear-gradient(135deg,#8A6BFF 0%,#6B8CFF 100%);border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:16px;">⚡</div>
-        <span style="font-size:18px;font-weight:bold;color:#111827;">RelanceFlow</span>
+        <span style="font-size:18px;font-weight:bold;color:#111827;">Encair</span>
       </div>
     </div>
 
@@ -56,7 +56,7 @@ function welcomeEmailHtml(name: string, appUrl: string): string {
 
     <div style="margin-top:32px;text-align:center;">
       <p style="font-size:11px;color:#9CA3AF;margin:0;">
-        RelanceFlow · Outil français pour les indépendants français.<br/>
+        Encair · Outil français pour les indépendants français.<br/>
         <a href="${escapeHtml(appUrl)}/dashboard/settings" style="color:#9CA3AF;text-decoration:underline;">Préférences</a>
       </p>
     </div>
@@ -68,7 +68,7 @@ function welcomeEmailHtml(name: string, appUrl: string): string {
 function welcomeEmailText(name: string, appUrl: string): string {
   return `Bienvenue ${name} !
 
-Tu viens de débloquer 30 jours d'essai gratuit sur RelanceFlow.
+Tu viens de débloquer 30 jours d'essai gratuit sur Encair.
 
 Pour démarrer en 5 minutes :
 1. Configure ton entreprise (1 min)
@@ -80,12 +80,13 @@ Démarrer maintenant : ${appUrl}/dashboard
 Une question ? Réponds à cet email — tu parles au fondateur.
 
 —
-RelanceFlow
+Encair
 `
 }
 
 export async function POST() {
   try {
+    if (!process.env.RESEND_FROM_EMAIL || !process.env.RESEND_API_KEY || !process.env.SUPPORT_EMAIL) return NextResponse.json({error:'Le service de messagerie n’est pas encore disponible.'},{status:503})
     const supabase = await createClient()
     const {
       data: { user },
@@ -130,11 +131,11 @@ export async function POST() {
       try {
         const { Resend } = await import('resend')
         const resend = new Resend(process.env.RESEND_API_KEY)
-        const fromEmail = process.env.RESEND_FROM_EMAIL || 'relances@relanceflow.fr'
+        const fromEmail = process.env.RESEND_FROM_EMAIL!
         await resend.emails.send({
-          from: `RelanceFlow <${fromEmail}>`,
+          from: `Encair <${fromEmail}>`,
           to: [targetEmail],
-          subject: 'Bienvenue sur RelanceFlow — 30 jours pour automatiser vos relances',
+          subject: 'Bienvenue sur Encair — 30 jours pour automatiser vos relances',
           html: welcomeEmailHtml(name, appUrl),
           text: welcomeEmailText(name, appUrl),
           // Second safety net on top of the atomic DB claim above —

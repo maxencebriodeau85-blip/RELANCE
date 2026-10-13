@@ -1,25 +1,25 @@
 import { LegalLayout } from '@/components/legal/legal-layout'
 
 export const metadata = {
-  title: 'Conditions Générales d\'Utilisation | RelanceFlow',
-  description: 'Conditions générales d\'utilisation de RelanceFlow.',
+  title: 'Conditions Générales d\'Utilisation | Encair',
+  description: 'Conditions générales d\'utilisation de Encair.',
 }
 
 export default function CGUPage() {
   return (
-    <LegalLayout title="Conditions Générales d'Utilisation" lastUpdated="29 avril 2026">
+    <LegalLayout title="Conditions Générales d'Utilisation" lastUpdated="13 octobre 2026">
       <p>
         Les présentes Conditions Générales d&apos;Utilisation (ci-après « CGU ») régissent
-        l&apos;accès et l&apos;utilisation du service RelanceFlow, édité par la société RelanceFlow
-        SAS (ci-après « l&apos;Éditeur »).
+        l&apos;accès et l&apos;utilisation du service Encair, dont les coordonnées de l’éditeur figurent dans les mentions légales (ci-après « l&apos;Éditeur »).
       </p>
 
       <h2>1. Objet</h2>
       <p>
-        RelanceFlow est une plateforme SaaS de gestion commerciale et de facturation destinée aux
-        consultants, coaches et prestataires de services indépendants. Elle permet de piloter un
-        pipeline de prospects, d&apos;automatiser les relances commerciales et les relances de
-        factures impayées, et de gérer la facturation depuis un tableau de bord centralisé.
+        Encair est un logiciel de suivi des factures impayées pour les professionnels.
+        Le service permet d’importer des factures existantes, d’actualiser leurs soldes,
+        de suivre les promesses de paiement et les litiges, et de préparer des relances email.
+        L’utilisateur confirme les soldes et active les envois. Le service ne garantit pas le règlement des factures.
+
       </p>
 
       <h2>2. Acceptation des CGU</h2>
@@ -50,14 +50,12 @@ export default function CGUPage() {
 
       <h2>5. Tarifs et facturation</h2>
       <p>
-        Les tarifs en vigueur sont consultables sur la page d&apos;accueil du Service. Trois
-        formules sont proposées :
+        L’offre fondateur est proposée à 16 € HT par mois pour un utilisateur et
+        100 nouvelles factures par mois. L’actualisation des factures existantes ne consomme
+        pas ce quota. L’essai gratuit est limité à 10 factures. Le tarif public prévu est de 29 € HT/mois.
       </p>
-      <ul>
-        <li><strong>Solo</strong> : 15 € HT/mois</li>
-        <li><strong>Pro</strong> : 29 € HT/mois</li>
-        <li><strong>Business</strong> : 49 € HT/mois</li>
-      </ul>
+      <p>Le tarif fondateur reste applicable tant que l’abonnement souscrit reste actif.
+      Les abonnements antérieurs conservent leur tarif jusqu’à une modification explicitement demandée.</p>
       <p>
         Le paiement s&apos;effectue mensuellement par carte bancaire via notre prestataire Stripe.
         Une facture est générée automatiquement à chaque échéance et adressée par email.
@@ -73,8 +71,7 @@ export default function CGUPage() {
       <h2>7. Disponibilité du Service</h2>
       <p>
         L&apos;Éditeur s&apos;engage à fournir un Service accessible 24h/24 et 7j/7, hors périodes
-        de maintenance planifiée. Les utilisateurs Business bénéficient d&apos;un SLA garantissant
-        99,9 % de disponibilité.
+        de maintenance planifiée. Aucun niveau chiffré de disponibilité n’est garanti dans l’offre fondateur.
       </p>
 
       <h2>8. Responsabilités</h2>
@@ -120,7 +117,7 @@ export default function CGUPage() {
       <h2>13. Contact</h2>
       <p>
         Pour toute question relative aux présentes CGU, vous pouvez nous contacter à{' '}
-        <a href="mailto:hello@relanceflow.fr">hello@relanceflow.fr</a>.
+        <a href="/contact">notre formulaire de contact</a>.
       </p>
     </LegalLayout>
   )

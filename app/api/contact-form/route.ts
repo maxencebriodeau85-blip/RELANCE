@@ -4,6 +4,7 @@ import { rateLimit, getIp } from '@/lib/rate-limit'
 
 export async function POST(request: Request) {
   try {
+    if (!process.env.RESEND_FROM_EMAIL || !process.env.RESEND_API_KEY || !process.env.SUPPORT_EMAIL) return NextResponse.json({error:'Le service de messagerie n’est pas encore disponible.'},{status:503})
     const rl = rateLimit(getIp(request), {
       key: 'contact-form',
       limit: 5,
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
     const apiKey = process.env.RESEND_API_KEY
     if (!apiKey || apiKey.includes('placeholder')) {
       console.log('[Contact form - DRY RUN]', { name, email, subject })
-      return NextResponse.json({ ok: true })
+      return NextResponse.json({error:'Messagerie indisponible.'},{status:503})
     }
 
     const { Resend } = await import('resend')
@@ -51,8 +52,8 @@ export async function POST(request: Request) {
     const safeSubject = subject.replace(/[\r\n]/g, ' ')
 
     const { error } = await resend.emails.send({
-      from: `RelanceFlow Support <noreply@relanceflow.fr>`,
-      to: ['hello@relanceflow.fr'],
+      from: `Encair Support <${process.env.RESEND_FROM_EMAIL}>`,
+      to: [process.env.SUPPORT_EMAIL!],
       reply_to: email,
       subject: `[Support] ${safeSubject}`,
       text: `Nouveau message de support\n\nNom : ${name}\nEmail : ${email}\n\n${message}`,

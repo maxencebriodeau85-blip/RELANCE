@@ -1,4 +1,5 @@
 import Stripe from 'stripe'
+import { OFFER } from './plans'
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-04-10',
@@ -12,19 +13,11 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 //   - lib/metrics.ts PLAN_LIMITS
 export const STRIPE_PLANS = {
   starter: {
-    priceId: process.env.STRIPE_STARTER_PRICE_ID!,
-    name: 'Starter',
-    price: 19,
-    invoiceLimit: 30,
-    features: [
-      "Jusqu'à 30 factures/mois",
-      'Pipeline kanban (contacts illimités)',
-      "Journal d'activité (appels, emails, notes)",
-      'Relances factures automatiques (J+7/15/30)',
-      'Paiement en ligne Stripe intégré',
-      'Dashboard commercial & encaissements',
-      'Support par email',
-    ],
+    priceId: process.env.STRIPE_FOUNDER_PRICE_ID!,
+    name: OFFER.name,
+    price: OFFER.price,
+    invoiceLimit: OFFER.invoiceLimit,
+    features: OFFER.features,
   },
   pro: {
     priceId: process.env.STRIPE_PRO_PRICE_ID!,
@@ -138,6 +131,8 @@ export async function createBillingPortalSession({
 }
 
 export function getPlanFromPriceId(priceId: string): PlanKey | null {
+  if (!priceId) return null
+  if (priceId === process.env.STRIPE_STARTER_PRICE_ID) return 'starter'
   for (const [key, plan] of Object.entries(STRIPE_PLANS)) {
     if (plan.priceId === priceId) {
       return key as PlanKey

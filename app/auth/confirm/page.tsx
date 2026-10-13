@@ -170,7 +170,7 @@ export default function ConfirmPage() {
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500">
           <Zap className="h-5 w-5 text-white" />
         </div>
-        <span className="text-2xl font-bold text-white tracking-tight">RelanceFlow</span>
+        <span className="text-2xl font-bold text-white tracking-tight">Encair</span>
       </div>
 
       <Suspense

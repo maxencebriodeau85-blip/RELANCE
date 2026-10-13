@@ -215,10 +215,10 @@ export default function ContactPage() {
                 <h3 className="text-sm font-bold text-gray-900">Email direct</h3>
               </div>
               <a
-                href="mailto:hello@relanceflow.fr"
+                href="/contact"
                 className="text-sm text-blue-600 hover:underline break-all"
               >
-                hello@relanceflow.fr
+                notre formulaire de contact
               </a>
               <p className="text-xs text-gray-500 mt-2">Réponse sous 24 h ouvrées.</p>
             </div>

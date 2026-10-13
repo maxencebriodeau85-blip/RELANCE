@@ -18,7 +18,7 @@ export function LegalLayout({
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
               <Zap className="h-5 w-5 text-white" />
             </div>
-            <span className="text-lg font-bold text-gray-900">RelanceFlow</span>
+            <span className="text-lg font-bold text-gray-900">Encair</span>
           </Link>
           <nav className="flex items-center gap-6 text-sm font-medium text-gray-600">
             <Link href="/" className="hover:text-gray-900 transition-colors">
@@ -43,7 +43,7 @@ export function LegalLayout({
 
       <footer className="border-t bg-gray-50 py-8 mt-16">
         <div className="container mx-auto px-4 text-center text-sm text-gray-500">
-          <p>© 2024 RelanceFlow. Tous droits réservés.</p>
+          <p>© 2024 Encair. Tous droits réservés.</p>
           <div className="mt-2 flex justify-center gap-4">
             <Link href="/cgu" className="hover:text-gray-900">CGU</Link>
             <Link href="/privacy" className="hover:text-gray-900">Confidentialité</Link>

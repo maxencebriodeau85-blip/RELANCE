@@ -240,7 +240,8 @@ function formatEuro(amount: number): string {
   }).format(amount)
 }
 
-function formatDate(s: string): string {
+function formatDate(s: string | null): string {
+  if (!s) return 'Non renseignée'
   return new Intl.DateTimeFormat('fr-FR', {
     day: '2-digit',
     month: 'long',
@@ -261,7 +262,7 @@ export function InvoicePDF({ invoice, profile, paymentUrl }: InvoicePDFProps) {
   return (
     <Document
       title={`Facture ${invoice.invoice_number}`}
-      author={profile.company_name || 'RelanceFlow'}
+      author={profile.company_name || 'Encair'}
     >
       <Page size="A4" style={styles.page}>
         {/* Header */}
@@ -278,7 +279,7 @@ export function InvoicePDF({ invoice, profile, paymentUrl }: InvoicePDFProps) {
             {profile.email && <Text style={styles.brandSubtitle}>{profile.email}</Text>}
           </View>
           <View style={styles.invoiceTitle}>
-            <Text style={styles.invoiceLabel}>FACTURE</Text>
+            <Text style={styles.invoiceLabel}>FICHE DE SUIVI</Text>
             <Text style={styles.invoiceNumber}>N° {invoice.invoice_number}</Text>
           </View>
         </View>
@@ -378,7 +379,7 @@ export function InvoicePDF({ invoice, profile, paymentUrl }: InvoicePDFProps) {
             (art. L441-10 C.com.) et indemnité forfaitaire de recouvrement de 40 € (art. D441-5 C.com.).
           </Text>
           <Text style={styles.legalText}>
-            Aucun escompte pour paiement anticipé. Facture éditée le {formatDate(invoice.issued_date)}.
+            Document de suivi uniquement. Consultez la facture originale pour les modalités de règlement.
           </Text>
         </View>
       </Page>

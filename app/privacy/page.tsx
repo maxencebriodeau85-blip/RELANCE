@@ -1,15 +1,15 @@
 import { LegalLayout } from '@/components/legal/legal-layout'
 
 export const metadata = {
-  title: 'Politique de confidentialité | RelanceFlow',
-  description: 'Politique de confidentialité et protection des données de RelanceFlow.',
+  title: 'Politique de confidentialité | Encair',
+  description: 'Politique de confidentialité et protection des données de Encair.',
 }
 
 export default function PrivacyPage() {
   return (
     <LegalLayout title="Politique de confidentialité" lastUpdated="29 avril 2026">
       <p>
-        RelanceFlow attache une importance primordiale à la protection de vos données personnelles.
+        Encair attache une importance primordiale à la protection de vos données personnelles.
         Cette politique vous explique quelles données nous collectons, pourquoi, et comment nous les
         utilisons, conformément au Règlement Général sur la Protection des Données (RGPD —
         Règlement UE 2016/679).
@@ -17,8 +17,8 @@ export default function PrivacyPage() {
 
       <h2>1. Responsable du traitement</h2>
       <p>
-        Le responsable du traitement des données est la société <strong>RelanceFlow SAS</strong>,
-        joignable à <a href="mailto:hello@relanceflow.fr">hello@relanceflow.fr</a>.
+        Le responsable du traitement des données est la société <strong>l’éditeur d’Encair (voir les mentions légales)</strong>,
+        joignable à <a href="/contact">notre formulaire de contact</a>.
       </p>
 
       <h2>2. Données collectées</h2>
@@ -50,7 +50,7 @@ export default function PrivacyPage() {
 
       <h2>3. Finalités du traitement</h2>
       <ul>
-        <li>Fournir le service RelanceFlow (base légale : exécution du contrat)</li>
+        <li>Fournir le service Encair (base légale : exécution du contrat)</li>
         <li>Envoyer les relances pour votre compte (base légale : exécution du contrat)</li>
         <li>Gérer la facturation et les abonnements (base légale : obligation légale)</li>
         <li>Améliorer le service via des analyses agrégées (base légale : intérêt légitime)</li>
@@ -89,7 +89,7 @@ export default function PrivacyPage() {
       </ul>
       <p>
         Pour exercer ces droits, contactez-nous à{' '}
-        <a href="mailto:privacy@relanceflow.fr">privacy@relanceflow.fr</a>. Nous répondons sous 30
+        <a href="/contact">notre formulaire de contact</a>. Nous répondons sous 30
         jours. Vous pouvez également introduire une réclamation auprès de la{' '}
         <a href="https://www.cnil.fr" target="_blank" rel="noopener noreferrer">CNIL</a>.
       </p>
@@ -111,7 +111,7 @@ export default function PrivacyPage() {
       <h2>9. Contact DPO</h2>
       <p>
         Pour toute question relative à la protection de vos données :{' '}
-        <a href="mailto:privacy@relanceflow.fr">privacy@relanceflow.fr</a>
+        <a href="/contact">notre formulaire de contact</a>
       </p>
     </LegalLayout>
   )

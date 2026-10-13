@@ -15,7 +15,7 @@ export const GUIDES: GuideContent[] = [
   {
     slug: 'mise-en-demeure-guide-complet',
     title: 'Mise en demeure : modèle, délais et effets juridiques — guide complet 2026',
-    metaTitle: 'Mise en demeure : modèle légal et délais 2026 | RelanceFlow',
+    metaTitle: 'Mise en demeure : modèle légal et délais 2026 | Encair',
     metaDescription:
       "Tout sur la mise en demeure d'un client : forme obligatoire (art. 1344 C.civ.), délai légal, effets juridiques, modèle gratuit conforme et erreurs à éviter.",
     category: 'Procédure',
@@ -45,7 +45,7 @@ export const GUIDES: GuideContent[] = [
         heading: 'Forme et envoi : email ou lettre recommandée ?',
         paragraphs: [
           "La loi n'impose aucune forme particulière. Un email avec accusé de réception suffit juridiquement, mais la lettre recommandée avec accusé de réception (LRAR) reste la preuve la plus robuste devant un tribunal. Dans la pratique : envoyez d'abord par email pour la rapidité, puis doublez par LRAR si la créance dépasse quelques milliers d'euros.",
-          "Notre conseil : si vous utilisez RelanceFlow, l'email de mise en demeure est généré automatiquement avec toutes les mentions légales requises et envoyé via Resend (preuve d'envoi horodatée). Vous pouvez ensuite télécharger le PDF pour l'envoyer en recommandé si nécessaire.",
+          "Notre conseil : si vous utilisez Encair, l'email de mise en demeure est généré automatiquement avec toutes les mentions légales requises et envoyé via Resend (preuve d'envoi horodatée). Vous pouvez ensuite télécharger le PDF pour l'envoyer en recommandé si nécessaire.",
         ],
       },
       {
@@ -78,7 +78,7 @@ export const GUIDES: GuideContent[] = [
   {
     slug: 'recouvrement-amiable-vs-contentieux',
     title: 'Recouvrement amiable vs contentieux : quand passer le cap ?',
-    metaTitle: 'Recouvrement amiable ou contentieux : quand agir ? | RelanceFlow',
+    metaTitle: 'Recouvrement amiable ou contentieux : quand agir ? | Encair',
     metaDescription:
       "Quand passer du recouvrement amiable à la procédure judiciaire ? Injonction de payer, référé-provision, procédure participative : comparaison des options.",
     category: 'Procédure',
@@ -119,7 +119,7 @@ export const GUIDES: GuideContent[] = [
         heading: 'Faut-il faire appel à une société de recouvrement ?',
         paragraphs: [
           "Les sociétés de recouvrement amiable prélèvent typiquement 10 à 30 % des sommes récupérées. Économiquement, c'est rentable au-delà de 5 000 € de créance. En dessous, le coût mange une grande partie de la créance.",
-          "Pour les indépendants avec un volume modeste de factures impayées, un outil automatisé comme RelanceFlow (qui gère relances, mise en demeure et lien de paiement à un coût fixe mensuel) est généralement plus avantageux.",
+          "Pour les indépendants avec un volume modeste de factures impayées, un outil automatisé comme Encair (qui gère relances, mise en demeure et lien de paiement à un coût fixe mensuel) est généralement plus avantageux.",
         ],
       },
     ],
@@ -129,7 +129,7 @@ export const GUIDES: GuideContent[] = [
   {
     slug: 'dso-tresorerie-comment-reduire',
     title: 'DSO : pourquoi 45 jours tuent votre trésorerie et comment le réduire',
-    metaTitle: 'Réduire son DSO : 8 leviers concrets en 2026 | RelanceFlow',
+    metaTitle: 'Réduire son DSO : 8 leviers concrets en 2026 | Encair',
     metaDescription:
       "DSO trop élevé ? 45 jours, c'est 12,5 % de votre CA annuel immobilisé. 8 leviers concrets pour passer sous 30 jours en moins de 6 mois.",
     category: 'Trésorerie',
@@ -190,7 +190,7 @@ export const GUIDES: GuideContent[] = [
       {
         heading: "Lever 8 — Mesurer et publier le DSO en interne",
         paragraphs: [
-          "On n'améliore que ce que l'on mesure. Un tableau de bord montrant l'évolution mensuelle du DSO (RelanceFlow le calcule automatiquement dans la page Statistiques) permet de détecter les dérives et de réagir avant qu'elles ne deviennent critiques.",
+          "On n'améliore que ce que l'on mesure. Un tableau de bord montrant l'évolution mensuelle du DSO (à calculer à partir de votre comptabilité complète) permet de détecter les dérives et de réagir avant qu'elles ne deviennent critiques.",
         ],
       },
     ],
@@ -200,7 +200,7 @@ export const GUIDES: GuideContent[] = [
   {
     slug: 'indemnite-forfaitaire-40-euros',
     title: "L'indemnité forfaitaire de 40 € : comment l'appliquer sans casser la relation client",
-    metaTitle: "Indemnité forfaitaire 40 € : comment l'appliquer | RelanceFlow",
+    metaTitle: "Indemnité forfaitaire 40 € : comment l'appliquer | Encair",
     metaDescription:
       "Depuis 2012, toute facture B2B impayée ouvre droit à 40 € d'indemnité forfaitaire de recouvrement. Comment la réclamer, comment la formuler, comment ne pas fâcher.",
     category: 'Droit commercial',
@@ -225,7 +225,7 @@ export const GUIDES: GuideContent[] = [
         list: [
           "Formulation type : « Tout retard de paiement entraîne l'application de pénalités de retard au taux de la BCE majoré de 10 points, ainsi qu'une indemnité forfaitaire de recouvrement de 40 € (art. L441-10 et D441-5 du Code de commerce). »",
           "À placer dans les mentions légales de la facture, généralement en pied de page.",
-          "RelanceFlow ajoute automatiquement cette mention à chaque PDF de facture généré.",
+          "Encair ajoute automatiquement cette mention à chaque PDF de facture généré.",
         ],
       },
       {
@@ -250,7 +250,7 @@ export const GUIDES: GuideContent[] = [
   {
     slug: 'penalites-retard-calcul',
     title: 'Pénalités de retard légales : calcul, taux BCE et mise en œuvre en 2026',
-    metaTitle: 'Pénalités de retard : calcul taux BCE +10 points | RelanceFlow',
+    metaTitle: 'Pénalités de retard : calcul taux BCE +10 points | Encair',
     metaDescription:
       "Calcul exact des pénalités de retard B2B en France : taux BCE + 10 points (art. L441-10 C.com.), méthode, exemples chiffrés, comment les réclamer sans procédure judiciaire.",
     category: 'Droit commercial',
@@ -272,7 +272,7 @@ export const GUIDES: GuideContent[] = [
         paragraphs: [
           "Pénalités = Montant TTC × Taux annuel × (Nombre de jours de retard / 365)",
           "Exemple : facture de 5 000 € TTC, 60 jours de retard, taux 14,5 % → 5 000 × 0,145 × (60 / 365) = 119,18 €",
-          "Le calcul se fait sur le montant TTC, pas HT. Et sur le nombre de jours réels, pas ouvrés. RelanceFlow inclut un calculateur public gratuit qui automatise tout ça.",
+          "Le calcul se fait sur le montant TTC, pas HT. Et sur le nombre de jours réels, pas ouvrés. Encair inclut un calculateur public gratuit qui automatise tout ça.",
         ],
       },
       {
@@ -308,7 +308,7 @@ export const GUIDES: GuideContent[] = [
   {
     slug: 'conditions-generales-vente-recouvrement',
     title: 'CGV et recouvrement : les 5 clauses obligatoires qui vous protègent',
-    metaTitle: 'CGV recouvrement : 5 clauses obligatoires 2026 | RelanceFlow',
+    metaTitle: 'CGV recouvrement : 5 clauses obligatoires 2026 | Encair',
     metaDescription:
       "5 clauses essentielles à faire figurer dans vos CGV pour recouvrer plus vite et plus sereinement : pénalités, réserve de propriété, résiliation, compétence, protection données.",
     category: 'Droit commercial',
@@ -363,7 +363,7 @@ export const GUIDES: GuideContent[] = [
   {
     slug: 'injonction-payer-mode-emploi',
     title: "Injonction de payer : mode d'emploi complet (Cerfa, délais, coûts) — 2026",
-    metaTitle: "Injonction de payer 2026 : Cerfa, délais, coûts | RelanceFlow",
+    metaTitle: "Injonction de payer 2026 : Cerfa, délais, coûts | Encair",
     metaDescription:
       "Guide pas à pas pour obtenir une injonction de payer sans avocat : compétence tribunal, formulaire Cerfa 12946, délais réels, coûts, exécution du titre.",
     category: 'Procédure',
@@ -409,7 +409,7 @@ export const GUIDES: GuideContent[] = [
           "Copie de la facture impayée (avec mention des pénalités de retard)",
           "Preuve de livraison ou d'exécution (bon de livraison signé, PV de recette, mail de validation)",
           "CGV signées ou acceptées par le client (bon de commande accepté, email de confirmation)",
-          "Copie des relances envoyées (les emails horodatés RelanceFlow font parfaitement l'affaire)",
+          "Copie des relances envoyées (les emails horodatés Encair font parfaitement l'affaire)",
           "Mise en demeure et accusé de réception (recommandé conseillé pour renforcer)",
         ],
       },
@@ -435,7 +435,7 @@ export const GUIDES: GuideContent[] = [
   {
     slug: 'prescription-creances-commerciales',
     title: 'Prescription des créances commerciales : les délais à ne surtout pas rater',
-    metaTitle: 'Prescription créances commerciales : 2, 5, 10 ans | RelanceFlow',
+    metaTitle: 'Prescription créances commerciales : 2, 5, 10 ans | Encair',
     metaDescription:
       "Délais de prescription des créances : 5 ans commerciales, 2 ans consommateurs, cas particuliers. Comment interrompre la prescription pour ne rien perdre.",
     category: 'Droit commercial',
@@ -499,7 +499,7 @@ export const GUIDES: GuideContent[] = [
   {
     slug: 'relance-clients-ton-progressif',
     title: "Comment relancer sans abîmer la relation : le protocole en 4 étapes",
-    metaTitle: 'Relance client : protocole 4 étapes efficace | RelanceFlow',
+    metaTitle: 'Relance client : protocole 4 étapes efficace | Encair',
     metaDescription:
       "Le protocole de relance progressive qui récupère vos créances sans détruire vos relations commerciales : cordial → ferme → pré-contentieux → mise en demeure.",
     category: 'Pratique',
@@ -551,12 +551,12 @@ export const GUIDES: GuideContent[] = [
       },
     ],
     conclusion:
-      "Le protocole en 4 étapes marche parce qu'il combine la patience commerciale et la rigueur juridique. Chaque relance est indépendante ET s'appuie sur la précédente. RelanceFlow automatise tout ce protocole avec des templates ajustables — vous conservez le contrôle du ton, la mécanique tourne toute seule.",
+      "Le protocole en 4 étapes marche parce qu'il combine la patience commerciale et la rigueur juridique. Chaque relance est indépendante ET s'appuie sur la précédente. Encair automatise tout ce protocole avec des templates ajustables — vous conservez le contrôle du ton, la mécanique tourne toute seule.",
   },
   {
     slug: 'rapport-banquier-poste-client',
     title: "Comment présenter votre poste client à votre banquier pour décrocher une ligne de trésorerie",
-    metaTitle: 'Poste client & banquier : le rapport qui décroche un prêt | RelanceFlow',
+    metaTitle: 'Poste client & banquier : le rapport qui décroche un prêt | Encair',
     metaDescription:
       "Une balance âgée saine et un DSO maîtrisé sont vos meilleurs arguments pour négocier une ligne de trésorerie. Comment structurer le rapport que votre banquier veut voir.",
     category: 'Trésorerie',
@@ -581,7 +581,7 @@ export const GUIDES: GuideContent[] = [
         paragraphs: [
           "La balance âgée décompose votre encours client par tranches d'ancienneté : à échoir, 0-30 jours, 30-60, 60-90, +90.",
           "Format attendu par le banquier : un tableau montrant pour chaque tranche le montant total, le nombre de factures, et idéalement les top 3 clients concernés.",
-          "RelanceFlow calcule automatiquement cette balance dans la page Statistiques → Aging buckets. Exportable en un clic pour la joindre à votre dossier.",
+          "Encair calcule automatiquement cette balance dans la page Statistiques → Aging buckets. Exportable en un clic pour la joindre à votre dossier.",
         ],
       },
       {

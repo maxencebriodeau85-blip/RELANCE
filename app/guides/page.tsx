@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     "10 guides gratuits sur le recouvrement amiable, la mise en demeure, les pénalités de retard, la prescription des créances et la trésorerie pour indépendants français.",
   alternates: { canonical: '/guides' },
   openGraph: {
-    title: 'Guides recouvrement & droit commercial | RelanceFlow',
+    title: 'Guides recouvrement & droit commercial | Encair',
     description:
       "10 guides gratuits sur le recouvrement, la mise en demeure et le droit commercial pour indépendants français.",
     type: 'website',
@@ -223,7 +223,7 @@ export default function GuidesPage() {
             Vous avez lu les guides. Passez à l&apos;action.
           </h3>
           <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">
-            RelanceFlow automatise tout ce que vous venez d&apos;apprendre — relances, pénalités de retard,
+            Encair automatise tout ce que vous venez d&apos;apprendre — relances, pénalités de retard,
             mise en demeure — en quelques minutes.
           </p>
           <Link
