@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { syncCheckout } from '@/lib/billing-sync'
 import { stripe, getPlanFromPriceId } from '@/lib/stripe'
 import { createAdminClient } from '@/lib/supabase/server'
 import type Stripe from 'stripe'
@@ -51,11 +52,13 @@ async function revertToFreeTrial(
       trial_ends_at: new Date(Date.now() - 1000).toISOString(),
     } as never)
     .eq('stripe_customer_id', customerId)
+    .eq('stripe_subscription_id', subscriptionId)
 
   if (error) throw error
 }
 
 export async function POST(request: Request) {
+  if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET || !process.env.SUPABASE_SERVICE_ROLE_KEY) return NextResponse.json({ error: 'Webhook unavailable' }, { status: 503 })
   const body = await request.text()
   const signature = request.headers.get('stripe-signature')
 
@@ -91,49 +94,7 @@ export async function POST(request: Request) {
           break
         }
 
-        // ── Case B: user subscribing to a plan ────────────────────────────
-        const userId = session.metadata?.userId
-        const customerId = session.customer as string
-        const subscriptionId = session.subscription as string
-
-        if (!userId || !subscriptionId) break
-
-        const subscription = await stripe.subscriptions.retrieve(subscriptionId)
-        if (subscription.customer !== customerId) {
-          console.error('Stripe customer mismatch in webhook')
-          break
-        }
-
-        if (!['active', 'trialing'].includes(subscription.status)) break
-        const priceId = subscription.items.data[0]?.price.id
-        const plan = getPlanFromPriceId(priceId)
-
-        // NEVER silently default an unrecognized price to 'starter': that
-        // would downgrade a paying Business/Pro customer to the cheapest
-        // tier's limits the moment STRIPE_*_PRICE_ID drifts from what's
-        // actually configured in Stripe (a typo, a live/test mode mismatch,
-        // a price ID rotated in the dashboard) — the exact kind of mistake a
-        // human copy-pasting IDs into Vercel is likely to make. Record the
-        // subscription regardless (so the checkout isn't silently lost), but
-        // only touch `plan` when we're certain which one was purchased.
-        if (!plan) {
-          console.error(
-            `Stripe webhook: unrecognized price ID "${priceId}" for user ${userId} — ` +
-              'plan left unchanged. Check STRIPE_STARTER_PRICE_ID / STRIPE_PRO_PRICE_ID / ' +
-              'STRIPE_BUSINESS_PRICE_ID against the Stripe dashboard.'
-          )
-        }
-
-        const { error } = await supabase
-          .from('profiles')
-          .update({
-            stripe_customer_id: customerId,
-            stripe_subscription_id: subscriptionId,
-            ...(plan ? { plan } : {}),
-          } as never)
-          .eq('id', userId)
-
-        if (error) throw error
+        await syncCheckout(session)
         break
       }
 
@@ -169,6 +130,7 @@ export async function POST(request: Request) {
               `${customerId} — plan left unchanged. Check STRIPE_STARTER_PRICE_ID / ` +
               'STRIPE_PRO_PRICE_ID / STRIPE_BUSINESS_PRICE_ID against the Stripe dashboard.'
           )
+          throw new Error('Unrecognized subscription price')
         }
 
         // Single UPDATE by stripe_customer_id — no N+1 loop

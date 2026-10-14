@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createClient } from '@/lib/supabase/client'
 import { Logo } from '@/components/brand/logo'
+import { consumeAuthLink } from '@/lib/auth-link'
 import { supabaseAuthError } from '@/lib/auth-errors'
 import { Eye, EyeOff, AlertCircle } from 'lucide-react'
 
@@ -21,33 +22,24 @@ export default function ResetPasswordPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  // Keep a stable reference — createClient() is a singleton on the browser
-  const supabase = useRef(createClient()).current
-
+  const ran = useRef(false)
   useEffect(() => {
-    // Fast path: user already has a valid session (came via /auth/callback PKCE)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setMode('form')
-    })
-
-    // Slow path: Supabase reads the URL hash (#access_token=…&type=recovery)
-    // and fires PASSWORD_RECOVERY — this is the implicit / magic-link flow.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
-        setMode('form')
-      }
-    })
-
-    // If neither path resolves in 6 s, the link is expired / invalid.
-    const timer = setTimeout(() => {
-      setMode((prev) => (prev === 'loading' ? 'error' : prev))
-    }, 6000)
-
-    return () => {
-      subscription.unsubscribe()
-      clearTimeout(timer)
+    if (ran.current) return
+    ran.current = true
+    async function prepare() {
+      try {
+        const supabase = createClient()
+        const url = new URL(window.location.href)
+        if (url.search || url.hash) {
+          await consumeAuthLink(supabase, url)
+          window.history.replaceState(null, '', '/auth/reset-password')
+        }
+        const { data: { user }, error } = await supabase.auth.getUser()
+        setMode(user && !error ? 'form' : 'error')
+      } catch { setMode('error') }
     }
-  }, [supabase])
+    void prepare()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -64,13 +56,13 @@ export default function ResetPasswordPage() {
     }
 
     setLoading(true)
-    const { error: updateError } = await supabase.auth.updateUser({ password })
-    if (updateError) {
-      setError(supabaseAuthError(updateError.message, updateError.status))
-      setLoading(false)
-    } else {
-      window.location.href = '/dashboard'
-    }
+    try {
+      const { error: updateError } = await createClient().auth.updateUser({ password })
+      if (updateError) throw new Error(supabaseAuthError(updateError.message, updateError.status))
+      window.location.replace('/dashboard')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'La modification a échoué. Réessayez.')
+    } finally { setLoading(false) }
   }
 
   if (mode === 'loading') {
@@ -96,7 +88,7 @@ export default function ResetPasswordPage() {
               <div>
                 <h2 className="text-xl font-semibold">Lien expiré ou invalide</h2>
                 <p className="text-gray-500 mt-2 text-sm">
-                  Ce lien de réinitialisation n&apos;est plus valide. Les liens expirent après 1 heure.
+                  Ce lien de réinitialisation n&apos;est plus valide. Demandez un nouveau lien pour continuer.
                 </p>
               </div>
               <Button asChild className="w-full">
@@ -142,6 +134,8 @@ export default function ResetPasswordPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    minLength={8}
+                    maxLength={128}
                     autoComplete="new-password"
                     className="pr-10"
                   />

@@ -1,5 +1,6 @@
 'use client'
 
+import { CheckoutButton } from '@/components/auth/checkout-button'
 import { OFFER } from '@/lib/plans'
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
@@ -51,6 +52,7 @@ function SettingsPageInner() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [userEmail, setUserEmail] = useState('')
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [saving, setSaving] = useState(false)
   const [savingNotif, setSavingNotif] = useState(false)
 
@@ -71,10 +73,11 @@ function SettingsPageInner() {
       try {
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
+        if (!user) { window.location.assign('/auth/login?redirectedFrom=/dashboard/settings'); return }
         setUserEmail(user.email || '')
 
-        const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+        const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+        if (error || !data) throw new Error('Profil indisponible')
         if (data) {
           const p = data as Profile
           setProfile(p)
@@ -89,7 +92,7 @@ function SettingsPageInner() {
           setAutoReminders(p.auto_reminders ?? true)
         }
       } catch {
-        // silent
+        setLoadError(true)
       } finally {
         setLoading(false)
       }
@@ -103,8 +106,8 @@ function SettingsPageInner() {
 
     if (checkout === 'success') {
       toast({
-        title: 'Abonnement mis à jour',
-        description: 'Votre paiement a bien été pris en compte. Merci de votre confiance !',
+        title: 'Vérification de l’abonnement',
+        description: 'Le statut affiché dans votre compte fait foi.',
       })
     } else if (checkout === 'cancelled') {
       toast({
@@ -118,7 +121,7 @@ function SettingsPageInner() {
   }, [searchParams])
 
   const handleSaveProfile = async () => {
-    if (form.siren && form.siren.replace(/\s/g, '').length !== 9) {
+    if (form.siren && !/^\d{9}$/.test(form.siren.replace(/\s/g, ''))) {
       toast({ title: 'SIREN invalide', description: 'Le SIREN doit contenir exactement 9 chiffres.', variant: 'destructive' })
       return
     }
@@ -186,10 +189,11 @@ function SettingsPageInner() {
       const res = await fetch('/api/stripe/portal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customerId: profile.stripe_customer_id, returnUrl: window.location.href }),
+        body: JSON.stringify({ returnUrl: '/dashboard/settings' }),
       })
       const data = await res.json()
-      if (data.url) window.location.href = data.url
+      if (!res.ok || !data.url) throw new Error(data.error || 'Portail indisponible')
+      window.location.href = data.url
     } catch {
       toast({ title: 'Erreur', description: "Impossible d'accéder au portail.", variant: 'destructive' })
     }
@@ -202,6 +206,8 @@ function SettingsPageInner() {
       </div>
     )
   }
+
+  if (loadError) return <div className="p-6 space-y-4"><p role="alert">Impossible de charger votre profil pour le moment.</p><Button onClick={() => window.location.reload()}>Réessayer</Button></div>
 
   const currentPlan = profile?.plan || 'free_trial'
   const trialEndsAt = profile?.trial_ends_at
@@ -242,7 +248,7 @@ function SettingsPageInner() {
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Plan cards */}
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3">
               {PLANS.map((plan) => {
                 const Icon = plan.icon
                 const isCurrent = currentPlan === plan.id
@@ -263,7 +269,7 @@ function SettingsPageInner() {
                     )}
                     <Icon className={`h-5 w-5 mb-2 ${plan.color}`} />
                     <div className="font-bold text-gray-900">{plan.name}</div>
-                    <div className={`text-xl font-bold mt-1 ${plan.color}`}>{plan.price} €<span className="text-xs text-gray-400 font-normal">/mois</span></div>
+                    <div className={`text-xl font-bold mt-1 ${plan.color}`}>{plan.price} €<span className="text-xs text-gray-400 font-normal"> HT/mois</span></div>
                     <div className="text-xs text-gray-500 mt-1 mb-3">{plan.limit}</div>
                     <ul className="space-y-1">
                       {plan.features.map((f) => (
@@ -274,15 +280,7 @@ function SettingsPageInner() {
                       ))}
                     </ul>
                     {!isCurrent && (
-                      <a
-                        href={`/api/stripe/checkout?plan=${plan.id}`}
-                        className={`mt-3 block w-full text-center rounded-lg py-1.5 text-xs font-semibold text-white transition-colors ${
-
-                          'bg-brand-600 hover:bg-brand-700'
-                        }`}
-                      >
-                        Passer au {plan.name}
-                      </a>
+                      <div className="mt-4"><CheckoutButton /></div>
                     )}
                   </div>
                 )

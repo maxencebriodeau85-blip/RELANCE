@@ -1,10 +1,16 @@
 import Stripe from 'stripe'
 import { OFFER } from './plans'
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-04-10',
-  typescript: true,
-})
+let instance: Stripe | undefined
+export function getStripe(): Stripe {
+  if (!process.env.STRIPE_SECRET_KEY) throw new Error('Stripe n’est pas configuré.')
+  return instance ??= new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2024-04-10', typescript: true, timeout: 15000, maxNetworkRetries: 1 })
+}
+// Lazy access keeps public pages and free accounts independent of Stripe setup.
+export const stripe = new Proxy({} as Stripe, { get: (_target, property) => Reflect.get(getStripe(), property) })
+export function billingConfigured() {
+  return Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_FOUNDER_PRICE_ID && process.env.STRIPE_WEBHOOK_SECRET && process.env.SUPABASE_SERVICE_ROLE_KEY)
+}
 
 // Source of truth for plans — must stay in sync with:
 //   - components/landing/pricing-section.tsx (landing display)
@@ -59,12 +65,14 @@ export async function createCheckoutSession({
   successUrl,
   cancelUrl,
   userId,
+  idempotencyKey,
 }: {
   customerId?: string
   priceId: string
   successUrl: string
   cancelUrl: string
   userId: string
+  idempotencyKey?: string
 }) {
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
     mode: 'subscription',
@@ -88,7 +96,7 @@ export async function createCheckoutSession({
     sessionParams.customer = customerId
   }
 
-  return stripe.checkout.sessions.create(sessionParams)
+  return stripe.checkout.sessions.create(sessionParams, idempotencyKey ? { idempotencyKey } : undefined)
 }
 
 // Changes the price on an EXISTING subscription (upgrade/downgrade) instead

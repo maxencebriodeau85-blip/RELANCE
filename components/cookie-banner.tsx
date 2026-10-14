@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { Cookie, X } from 'lucide-react'
 
@@ -32,12 +33,20 @@ function writeConsent(v: Exclude<Consent, null>): void {
 }
 
 export function CookieBanner() {
+  const pathname = usePathname()
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
     if (readConsent() === null) setOpen(true)
   }, [])
 
+  // Informational notice stays in the document flow on account forms so it
+  // cannot cover the submit button or a recovery link on small screens.
+  if (pathname.startsWith('/auth/')) return <aside className="border-t bg-white px-6 py-4 text-center text-xs text-gray-500">
+    Un cookie de session est nécessaire à votre connexion.{' '}
+    <Link href="/privacy" className="underline">Confidentialité</Link>{' · '}
+    <Link href="/mentions-legales" className="underline">Mentions légales</Link>
+  </aside>
   if (!open) return null
 
   const accept = () => {

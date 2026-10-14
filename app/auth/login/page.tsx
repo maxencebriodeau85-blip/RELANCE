@@ -10,17 +10,13 @@ import { Eye, EyeOff, AlertCircle, Loader2, CheckCircle } from 'lucide-react'
 import { Logo } from '@/components/brand/logo'
 import { AuthConfigNotice } from '@/components/auth/config-notice'
 import { AuthSidePanel } from '@/components/auth/auth-side-panel'
-import { createClient } from '@/lib/supabase/client'
-import { supabaseAuthError } from '@/lib/auth-errors'
+import { safeRedirect } from '@/lib/auth-navigation'
 import { CTA_LABEL } from '@/lib/plans'
 
 function LoginForm() {
   const searchParams = useSearchParams()
   const rawRedirect = searchParams.get('redirectedFrom') ?? ''
-  // Only same-origin absolute paths. Reject protocol-relative (//evil.com)
-  // AND backslash tricks (/\evil.com, which some browsers normalise to //).
-  const redirectTo =
-    /^\/[^/\\]/.test(rawRedirect) ? rawRedirect : '/dashboard'
+  const redirectTo = safeRedirect(rawRedirect)
 
   const [error, setError] = useState<string | null>(searchParams.get('error'))
   const [loading, setLoading] = useState(false)
@@ -36,27 +32,15 @@ function LoginForm() {
     const password = form.get('password') as string
 
     try {
-      const supabase = createClient()
-      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
-
-      if (signInError) {
-        setError(supabaseAuthError(signInError.message, signInError.status))
-        setLoading(false)
-        return
-      }
-
-      window.location.href = redirectTo
+      const response = await fetch('/api/auth/login', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, redirectTo }),
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'La connexion a échoué.')
+      window.location.assign(safeRedirect(result.redirectTo))
     } catch (err) {
-      // Distinguish the real cause instead of a useless catch-all. The #1
-      // reason a fresh deploy "can't log in" is missing Supabase env vars.
-      const msg = err instanceof Error ? err.message : ''
-      // Message neutre pour l'utilisateur ; le détail technique reste dans la console.
-      console.error('[login]', msg)
-      if (/failed to fetch|networkerror|network request failed/i.test(msg)) {
-        setError('Le service de connexion ne répond pas. Vérifiez votre connexion internet et réessayez dans un instant.')
-      } else {
-        setError('Une erreur est survenue. Veuillez réessayer.')
-      }
+      setError(err instanceof Error ? err.message : 'La connexion est indisponible. Réessayez.')
       setLoading(false)
     }
   }
@@ -82,7 +66,7 @@ function LoginForm() {
 
           <AuthConfigNotice />
 
-          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+          <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <Alert variant="destructive" className="py-3">
                 <AlertCircle className="h-4 w-4" />
@@ -132,7 +116,7 @@ function LoginForm() {
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  tabIndex={-1}
+                  aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -155,6 +139,7 @@ function LoginForm() {
             </button>
           </form>
 
+          <p className="mt-4 text-center text-xs"><Link href="/auth/resend" className="text-brand-700 underline">Email de confirmation non reçu ?</Link></p>
           <p className="mt-6 text-center text-sm text-gray-500">
             Pas encore de compte ?{' '}
             <Link href="/auth/register" className="font-semibold text-blue-600 hover:underline">

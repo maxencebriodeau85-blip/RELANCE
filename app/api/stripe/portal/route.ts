@@ -1,10 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { createBillingPortalSession } from '@/lib/stripe'
+import { safeRedirect } from '@/lib/auth-navigation'
+import { createBillingPortalSession, billingConfigured } from '@/lib/stripe'
 import { getAppUrl } from '@/lib/app-url'
 import type { Profile } from '@/lib/database.types'
 
 export async function POST(request: Request) {
+  if (!billingConfigured()) return NextResponse.json({ error: 'La gestion des abonnements est momentanément indisponible.' }, { status: 503 })
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -29,10 +31,7 @@ export async function POST(request: Request) {
 
     const body = await request.json().catch(() => ({}))
     const appUrl = getAppUrl()
-    const returnUrl =
-      typeof body.returnUrl === 'string' && body.returnUrl.startsWith('/')
-        ? `${appUrl}${body.returnUrl}`
-        : `${appUrl}/dashboard/settings`
+    const returnUrl = `${appUrl}${safeRedirect(body.returnUrl, '/subscription')}`
 
     const session = await createBillingPortalSession({ customerId, returnUrl })
 

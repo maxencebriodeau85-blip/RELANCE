@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { CheckoutButton } from '@/components/auth/checkout-button'
@@ -10,21 +11,25 @@ const PLANS: { key: 'starter'; popular: boolean; desc: string }[] = [
  { key: 'starter', popular: false, desc: 'Le suivi de vos impayés, simplement.' },
 ]
 
-export default async function SubscriptionPage() {
+export default async function SubscriptionPage({ searchParams }: { searchParams: Promise<{ checkout?: string }> }) {
+  const { checkout } = await searchParams
   const supabase = await createClient()
   const {
-    data: { user },
+    data: { user }, error: authError,
   } = await supabase.auth.getUser()
 
   // See app/auth/clear-session/route.ts — an invalid session must be cleared
   // via a Route Handler, not a redirect straight out of this Server Component.
+  if (authError && (!authError.status || authError.status >= 500)) throw new Error('La connexion est momentanément indisponible. Réessayez.')
   if (!user) redirect('/auth/clear-session')
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('plan, trial_ends_at, company_name')
     .eq('id', user.id)
     .single()
+
+  if (profileError || !profile) throw new Error('Votre profil ne peut pas être chargé. Réessayez dans un instant.')
 
   // Active paid subscriber — nothing to do here
   if (profile && profile.plan !== 'free_trial') {
@@ -73,6 +78,8 @@ export default async function SubscriptionPage() {
         </p>
       </div>
 
+      {checkout === 'cancelled' && <p role="status" className="mb-6 max-w-md rounded-lg bg-white/10 p-4 text-sm text-white">Vous avez quitté le paiement. Vous pouvez reprendre votre essai s’il est encore actif.</p>}
+      {!isExpired && <Link className="mb-6 text-white underline" href="/dashboard">Continuer mon essai gratuit →</Link>}
       {/* Pricing cards */}
       <div className="grid grid-cols-1 gap-5 w-full max-w-md mb-10">
         {PLANS.map(({ key, popular, desc }) => {

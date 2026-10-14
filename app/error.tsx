@@ -29,7 +29,7 @@ export default function GlobalError({
 
       <h2 className="text-2xl font-bold text-white mb-2">Erreur inattendue</h2>
       <p className="text-blue-200/70 mb-1 max-w-sm text-sm">
-        Quelque chose s&apos;est mal passé. Notre équipe a été notifiée.
+        Votre espace est momentanément indisponible. Réessayez dans un instant.
       </p>
       {error.digest && (
         <p className="text-xs text-blue-400/50 font-mono mb-6">Réf : {error.digest}</p>

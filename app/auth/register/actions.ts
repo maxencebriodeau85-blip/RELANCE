@@ -1,7 +1,8 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { headers } from 'next/headers'
+import { getAppUrl } from '@/lib/app-url'
+import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAuthError } from '@/lib/auth-errors'
 import { TERMS_VERSION } from '@/lib/legal'
@@ -16,10 +17,11 @@ export async function registerAction(
   prevState: RegisterState,
   formData: FormData
 ): Promise<RegisterState> {
-  const email = (formData.get('email') as string)?.trim()
-  const password = formData.get('password') as string
-  const confirmPassword = formData.get('confirmPassword') as string
-  const companyName = (formData.get('companyName') as string)?.trim()
+  const field = (name: string) => typeof formData.get(name) === 'string' ? String(formData.get(name)) : ''
+  const email = field('email').trim()
+  const password = field('password')
+  const confirmPassword = field('confirmPassword')
+  const companyName = field('companyName').trim()
   const acceptTerms = formData.get('acceptTerms') === 'on'
   const professionalUse = formData.get('professionalUse') === 'on'
 
@@ -42,37 +44,38 @@ export async function registerAction(
     return { error: 'Les mots de passe ne correspondent pas.' }
   }
 
-  // Build the callback URL from the actual request host, not a hardcoded env var.
-  // This works both in dev (localhost) and in any production deployment.
-  const headersList = await headers()
-  const host = headersList.get('host') ?? 'localhost:3000'
-  const proto = headersList.get('x-forwarded-proto') ?? 'http'
-  const appUrl = `${proto}://${host}`
+  if (!z.string().email().max(254).safeParse(email).success || companyName.length > 200 || password.length > 128) {
+    return { error: 'Vérifiez votre adresse email et la longueur des champs.' }
+  }
+  const appUrl = getAppUrl()
 
-  const supabase = await createClient()
+  let data
+  try {
+    const supabase = await createClient()
 
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      // Preuve de l'acceptation des CGU/CGV : version et date, conservées
-      // dans les métadonnées du compte (pas de migration nécessaire).
-      data: {
-        company_name: companyName,
-        terms_version: TERMS_VERSION,
-        terms_accepted_at: new Date().toISOString(),
-        professional_use: true,
+    const result = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        // Registration snapshot is copied by migration 016 into protected columns.
+        data: {
+          company_name: companyName,
+          terms_version: TERMS_VERSION,
+          terms_accepted_at: new Date().toISOString(),
+          professional_use: true,
+        },
+        // /auth/confirm is a client page that handles all three token formats:
+        // PKCE (?code=), OTP (?token_hash=&type=), and implicit (#access_token=).
+        // The implicit format puts tokens in the URL hash which never reaches the
+        // server — only a client page can read window.location.hash.
+        emailRedirectTo: `${appUrl}/auth/confirm`,
       },
-      // /auth/confirm is a client page that handles all three token formats:
-      // PKCE (?code=), OTP (?token_hash=&type=), and implicit (#access_token=).
-      // The implicit format puts tokens in the URL hash which never reaches the
-      // server — only a client page can read window.location.hash.
-      emailRedirectTo: `${appUrl}/auth/confirm`,
-    },
-  })
+    })
 
-  if (error) {
-    return { error: supabaseAuthError(error.message, error.status) }
+    if (result.error) return { error: supabaseAuthError(result.error.message, result.error.status) }
+    data = result.data
+  } catch {
+    return { error: 'Le service d’inscription ne répond pas. Réessayez dans un instant.' }
   }
 
   // When Supabase has email confirmation disabled, signUp returns a session

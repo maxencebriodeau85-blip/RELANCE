@@ -11,6 +11,7 @@ import { Eye, EyeOff, AlertCircle, CheckCircle, Loader2 } from 'lucide-react'
 import { Logo } from '@/components/brand/logo'
 import { AuthConfigNotice } from '@/components/auth/config-notice'
 import { AuthSidePanel } from '@/components/auth/auth-side-panel'
+import { ResendForm } from '@/components/auth/resend-form'
 import { OFFER } from '@/lib/plans'
 
 function SubmitButton() {
@@ -84,6 +85,7 @@ export default function RegisterPage() {
                 Pensez à vérifier vos spams s’il n’arrive pas dans les 2 minutes.
               </p>
             </div>
+            <ResendForm email={state.email} />
             <Link
               href="/auth/login"
               className="inline-block w-full h-11 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-colors leading-[44px]"
@@ -165,6 +167,8 @@ export default function RegisterPage() {
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Minimum 8 caractères"
                   required
+                  minLength={8}
+                  maxLength={128}
                   autoComplete="new-password"
                   className="h-11 pr-10"
                   value={password}
@@ -174,7 +178,7 @@ export default function RegisterPage() {
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  tabIndex={-1}
+                  aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>

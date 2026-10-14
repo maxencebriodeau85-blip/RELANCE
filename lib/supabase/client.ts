@@ -37,6 +37,6 @@ export function createClient(): SupabaseClient {
     )
   }
 
-  _instance = createBrowserClient(url, key)
+  _instance = createBrowserClient(url, key, { auth: { detectSessionInUrl: false } })
   return _instance
 }

@@ -1,3 +1,4 @@
+import { GettingStarted } from '@/components/dashboard/getting-started'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
@@ -18,6 +19,8 @@ export default async function DashboardPage() {
     data: { user },
   } = await db.auth.getUser()
   if (!user) redirect('/auth/clear-session')
+  const { data: profile, error: profileError } = await db.from('profiles').select('company_name, plan, trial_ends_at').eq('id', user.id).single()
+  if (profileError || !profile) throw new Error('Votre profil ne peut pas être chargé.')
   const { data, error } = await db
     .from('invoices')
     .select('*')
@@ -64,6 +67,7 @@ export default async function DashboardPage() {
           Importer / actualiser
         </Link>
       </div>
+      <GettingStarted companyReady={Boolean(profile.company_name)} imported={invoices.length > 0} verified={invoices.some(invoice => Boolean(invoice.balance_checked_at) && invoice.reminders_paused === false)} trialEndsAt={profile.plan === 'free_trial' ? profile.trial_ends_at : null} />
       <div className="mb-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
           {
