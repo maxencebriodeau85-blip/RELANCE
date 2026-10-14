@@ -3,13 +3,26 @@ import { OFFER } from './plans'
 
 let instance: Stripe | undefined
 export function getStripe(): Stripe {
-  if (!process.env.STRIPE_SECRET_KEY) throw new Error('Stripe n’est pas configuré.')
-  return instance ??= new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2024-04-10', typescript: true, timeout: 15000, maxNetworkRetries: 1 })
+  if (!process.env.STRIPE_SECRET_KEY)
+    throw new Error('Stripe n’est pas configuré.')
+  return (instance ??= new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2026-09-30.endive',
+    typescript: true,
+    timeout: 15000,
+    maxNetworkRetries: 1,
+  }))
 }
 // Lazy access keeps public pages and free accounts independent of Stripe setup.
-export const stripe = new Proxy({} as Stripe, { get: (_target, property) => Reflect.get(getStripe(), property) })
+export const stripe = new Proxy({} as Stripe, {
+  get: (_target, property) => Reflect.get(getStripe(), property),
+})
 export function billingConfigured() {
-  return Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_FOUNDER_PRICE_ID && process.env.STRIPE_WEBHOOK_SECRET && process.env.SUPABASE_SERVICE_ROLE_KEY)
+  return Boolean(
+    process.env.STRIPE_SECRET_KEY &&
+    process.env.STRIPE_FOUNDER_PRICE_ID &&
+    process.env.STRIPE_WEBHOOK_SECRET &&
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+  )
 }
 
 // Source of truth for plans — must stay in sync with:
@@ -76,7 +89,7 @@ export async function createCheckoutSession({
 }) {
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
     mode: 'subscription',
-    payment_method_types: ['card'],
+    integration_identifier: 'encair_founder_qmvkpzrt',
     line_items: [{ price: priceId, quantity: 1 }],
     success_url: successUrl,
     cancel_url: cancelUrl,
@@ -96,7 +109,10 @@ export async function createCheckoutSession({
     sessionParams.customer = customerId
   }
 
-  return stripe.checkout.sessions.create(sessionParams, idempotencyKey ? { idempotencyKey } : undefined)
+  return stripe.checkout.sessions.create(
+    sessionParams,
+    idempotencyKey ? { idempotencyKey } : undefined,
+  )
 }
 
 // Changes the price on an EXISTING subscription (upgrade/downgrade) instead

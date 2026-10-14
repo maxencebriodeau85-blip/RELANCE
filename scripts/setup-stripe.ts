@@ -5,7 +5,7 @@ async function main() {
   if (!process.env.STRIPE_SECRET_KEY)
     throw new Error('STRIPE_SECRET_KEY requis')
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2024-04-10',
+    apiVersion: '2026-09-30.endive',
   })
   const lookup = 'encair_founder_monthly_16_eur_v1'
   const existing = await stripe.prices.list({

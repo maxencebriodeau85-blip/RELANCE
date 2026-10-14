@@ -35,6 +35,18 @@ beforeAll(async () => {
   await db.exec(
     'grant usage on schema public to authenticated; grant select, update on profiles to authenticated;',
   )
+  await db.exec(
+    readFileSync(
+      'supabase/migrations/20261014161850_harden_collection_import.sql',
+      'utf8',
+    ),
+  )
+  await db.exec(`grant usage on schema auth to authenticated; grant execute on function auth.uid() to authenticated;
+    grant select,insert,update on invoices to authenticated;
+    alter table invoices enable row level security;
+    create policy owner_invoices on invoices to authenticated using (auth.uid()=user_id) with check (auth.uid()=user_id);
+    alter table profiles enable row level security;
+    create policy owner_profiles on profiles to authenticated using (auth.uid()=id) with check (auth.uid()=id);`)
 }, 30000)
 afterAll(async () => {
   await db?.close()
@@ -55,6 +67,27 @@ describe('PostgreSQL collection migration', () => {
       issued_date: null,
       reminders_paused: true,
     })
+  })
+  it('imports as the authenticated owner with RLS, without anonymous execution', async () => {
+    expect(
+      (
+        await db.query<{ allowed: boolean }>(
+          "select has_function_privilege('anon','public.import_collection_invoices(jsonb)','EXECUTE') as allowed",
+        )
+      ).rows[0].allowed,
+    ).toBe(false)
+    await db.exec('begin; set local role authenticated')
+    try {
+      expect(
+        (await importRows([row('RLS-OWN', 80)])).rows[0]
+          .import_collection_invoices,
+      ).toEqual({ imported: 1, updated: 0 })
+      await expect(
+        importRows([{ ...row('BAD-EMAIL'), client_email: 'invalid@example' }]),
+      ).rejects.toThrow()
+    } finally {
+      await db.exec('rollback')
+    }
   })
   it('rejects conflicting references atomically', async () => {
     await expect(

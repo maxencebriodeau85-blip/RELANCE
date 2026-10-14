@@ -1,6 +1,6 @@
 # Déploiement Encair
 
-La refonte prépare le code ; elle ne crée pas de domaine, ne modifie pas les abonnements existants et n'applique pas de migration sur la production.
+Le build ne crée pas de domaine et n’applique pas de migration. Les opérations externes réellement effectuées sont récapitulées ci-dessous ; les abonnements existants restent inchangés.
 
 ## 1. Base de données
 
@@ -67,7 +67,7 @@ Les anciens liens PKCE et implicites restent pris en charge. La vérification au
 
 ### Stripe (configuration nécessaire dans le compte)
 
-- Configurer les clés, le prix fondateur et l’endpoint `/api/stripe/webhook`, événements `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`.
+- Configurer une clé restreinte avec les permissions nécessaires (clients, prix, abonnements, Checkout et portail), le prix fondateur et l’endpoint `/api/stripe/webhook`, API **2026-09-30.endive** et événements `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `customer.subscription.paused`, `customer.subscription.resumed`, `invoice.paid`, `invoice.payment_failed`. Le client et le script utilisent Stripe Node **23.0.0**. Version vérifiée dans la [documentation Stripe](https://docs.stripe.com/api/versioning) le 14 octobre 2026 ; l’API par défaut du compte n’a pas été modifiée.
 - Activer le portail client Stripe : consultation des factures, moyen de paiement et résiliation. Vérifier les règles de fin de période et de relance des paiements échoués dans Stripe.
 - Le checkout exige clés, webhook et prix configurés. Il crée un client Stripe lié au profil, réutilise un paiement ouvert et dirige un abonné existant vers le portail. Deux demandes concurrentes utilisent une même clé d’idempotence. Un retour de paiement vérifie propriétaire, abonnement et prix auprès de Stripe avant d’activer le profil, même si le webhook n’est pas encore arrivé.
 - L’activation dans Supabase doit réussir : une erreur retourne un échec à Stripe pour permettre une nouvelle livraison. Le retour attend puis offre une nouvelle vérification sans inviter à payer à nouveau.
@@ -85,3 +85,38 @@ Utiliser ses propres adresses de test et Stripe test :
 `/api/health` indique seulement la présence des variables, **pas** la validité des clés, la disponibilité de la base, le SMTP ou la livraison des emails. Les tests locaux utilisent des services simulés ; ils ne remplacent pas cette recette sur le vrai projet. Aucune migration ni configuration externe n’est appliquée par `npm run build`.
 
 Références de configuration : [Supabase SMTP](https://supabase.com/docs/guides/auth/auth-smtp), [modèles Auth](https://supabase.com/docs/guides/auth/auth-email-templates), [URLs de redirection](https://supabase.com/docs/guides/auth/redirect-urls), [Resend SMTP](https://resend.com/features/smtp-service).
+
+
+## État vérifié le 14 octobre 2026
+
+### Base RECOUVREMENT (`ernphhgmmkntlhdgnrnn`)
+
+- Le schéma 015 était déjà présent ; il n’a pas été réexécuté.
+- `016_customer_onboarding.sql` appliqué sous la version distante **20261014161733** (`customer_onboarding`).
+- `20261014161850_harden_collection_import.sql` appliqué sous la version distante **20261014161850** : import en contexte utilisateur avec RLS, exécution anonyme révoquée, validation email/champs obligatoires corrigée, chemin SQL du trigger d’attribution fixé.
+- Vérification sur PostgreSQL distant dans une transaction annulée : création du profil/nom/essai de 30 jours, protection du plan et des conditions déclarées, import/réimport avec paiements partiels, isolation entre deux comptes et interdiction anonyme. Les effectifs avant/après sont identiques : 2 comptes, 2 profils, 1 facture et 1 relance.
+- Aucun avertissement de sécurité de schéma restant. L’avertissement Auth `Leaked Password Protection Disabled` reste à traiter dans les paramètres Auth selon le plan disponible ; aucun forfait payant activé.
+- **Ne pas lancer `db push` aveuglément** : les versions historiques locales et distantes diffèrent. Comparer l’historique et le schéma avant réparation ; ne pas réappliquer 015 sur ce projet.
+
+### Stripe — compte de test sélectionné
+
+Compte `acct_1TqGm2ClFPaDnX9x`, mode test uniquement :
+
+| Ressource | Identifiant / état |
+| --- | --- |
+| Produit Encair Fondateur | `prod_VROMi1xzS66spm` |
+| `STRIPE_FOUNDER_PRICE_ID` | `price_1UQVZlClFPaDnX9xbhD44hCf` |
+| Clé de recherche | `encair_founder_monthly_16_eur_v1` |
+| Montant | 1 600 centimes EUR / mois, hors taxes |
+| Portail par défaut actif | `bpc_1UQVa5ClFPaDnX9xrhuiwK9u` |
+| Portail : fonctions | Historique, carte, coordonnées fiscales, résiliation en fin de période |
+| Webhook distant | Aucun endpoint présent ; à créer avec l’URL de préproduction vérifiée |
+
+Les anciens produits/prix ont été conservés. Aucun paiement, client ou abonnement de test n’a été créé. Le prix et le portail ont été relus après création. Ces identifiants ne doivent pas être utilisés avec des clés de production. La configuration HT ne calcule pas la TVA ; renseigner le régime et les inscriptions fiscales avant toute collecte avec Stripe Tax.
+
+### Ce qui empêche encore une recette de bout en bout
+
+- Le connecteur Vercel renvoie **403** pour l’équipe `maxencebriodeau85-blips-projects` / projet `relance`. Les variables Stripe, le secret de webhook et les paramètres d’envoi n’ont donc pas pu être raccordés au site.
+- Les outils Supabase disponibles ne permettent pas d’administrer les paramètres Auth/SMTP. La Site URL, les redirections, les modèles et la réception effective des emails restent à configurer/vérifier dans le tableau de bord.
+- Conserver les secrets dans les variables **Sensitive** de Vercel, jamais dans le dépôt ou les logs. Utiliser des clés distinctes par environnement.
+- Les 110 tests automatisés, typecheck et lint passent. Le test réel navigateur → email → connexion → paiement Stripe → mise à jour Supabase reste nécessaire ; un build réussi ne prouve pas ce parcours.

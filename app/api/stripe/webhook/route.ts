@@ -19,22 +19,26 @@ async function revertToFreeTrial(
   supabase: Awaited<ReturnType<typeof createAdminClient>>,
   customerId: string,
   subscriptionId: string,
-  logLabel: string
+  logLabel: string,
 ) {
-  const { data: profile } = await supabase
+  const { data: profile, error: readError } = await supabase
     .from('profiles')
     .select('stripe_subscription_id')
     .eq('stripe_customer_id', customerId)
-    .single()
+    .maybeSingle()
 
-  const activeSubscriptionId = (profile as { stripe_subscription_id: string | null } | null)
-    ?.stripe_subscription_id
+  if (readError) throw readError
+  if (!profile) return
+
+  const activeSubscriptionId = (
+    profile as { stripe_subscription_id: string | null } | null
+  )?.stripe_subscription_id
 
   if (activeSubscriptionId && activeSubscriptionId !== subscriptionId) {
     console.warn(
       `Stripe webhook (${logLabel}): terminal subscription ${subscriptionId} for customer ` +
         `${customerId} does not match the profile's active subscription ` +
-        `${activeSubscriptionId} — not reverting.`
+        `${activeSubscriptionId} — not reverting.`,
     )
     return
   }
@@ -57,8 +61,85 @@ async function revertToFreeTrial(
   if (error) throw error
 }
 
+async function syncSubscriptionStatus(
+  supabase: Awaited<ReturnType<typeof createAdminClient>>,
+  subscriptionId: string,
+) {
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+  const customerId = subscription.customer as string
+
+  // Stripe doesn't guarantee event order: cancelling a subscription
+  // fires BOTH `customer.subscription.updated` (status -> canceled)
+  // and `customer.subscription.deleted`, and `updated` can be
+  // delivered AFTER `deleted` already reverted the account to
+  // free_trial. Without this guard, that late `updated` event would
+  // silently resurrect paid access by re-matching the stale price ID
+  // and rewriting plan + stripe_subscription_id. Mirror the `deleted`
+  // handler for any terminal status so ordering can't matter.
+  if (
+    subscription.status === 'canceled' ||
+    subscription.status === 'unpaid' ||
+    subscription.status === 'paused' ||
+    subscription.status === 'incomplete_expired'
+  ) {
+    await revertToFreeTrial(
+      supabase,
+      customerId,
+      subscription.id,
+      'subscription.updated (terminal status)',
+    )
+    return
+  }
+
+  if (!['active', 'trialing'].includes(subscription.status)) return
+  const priceId = subscription.items.data[0]?.price.id
+  const plan = getPlanFromPriceId(priceId)
+
+  if (!plan) {
+    console.error(
+      `Stripe webhook: unrecognized price ID "${priceId}" for Stripe customer ` +
+        `${customerId} — plan left unchanged. Check STRIPE_STARTER_PRICE_ID / ` +
+        'STRIPE_FOUNDER_PRICE_ID / STRIPE_PRO_PRICE_ID / STRIPE_BUSINESS_PRICE_ID against the Stripe dashboard.',
+    )
+    throw new Error('Unrecognized subscription price')
+  }
+
+  const { data: profile, error: readError } = await supabase
+    .from('profiles')
+    .select('id, stripe_subscription_id')
+    .eq('stripe_customer_id', customerId)
+    .maybeSingle()
+  if (readError) throw readError
+  if (!profile) return // Event belongs to a customer outside Encair.
+  if (
+    profile.stripe_subscription_id &&
+    profile.stripe_subscription_id !== subscription.id
+  )
+    return
+
+  // Single UPDATE by stripe_customer_id — no N+1 loop
+  let update = supabase
+    .from('profiles')
+    .update({
+      stripe_subscription_id: subscription.id,
+      ...(plan ? { plan } : {}),
+    } as never)
+    .eq('stripe_customer_id', customerId)
+
+  update = profile.stripe_subscription_id
+    ? update.eq('stripe_subscription_id', profile.stripe_subscription_id)
+    : update.is('stripe_subscription_id', null)
+  const { error } = await update
+  if (error) throw error
+}
+
 export async function POST(request: Request) {
-  if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET || !process.env.SUPABASE_SERVICE_ROLE_KEY) return NextResponse.json({ error: 'Webhook unavailable' }, { status: 503 })
+  if (
+    !process.env.STRIPE_SECRET_KEY ||
+    !process.env.STRIPE_WEBHOOK_SECRET ||
+    !process.env.SUPABASE_SERVICE_ROLE_KEY
+  )
+    return NextResponse.json({ error: 'Webhook unavailable' }, { status: 503 })
   const body = await request.text()
   const signature = request.headers.get('stripe-signature')
 
@@ -72,25 +153,32 @@ export async function POST(request: Request) {
     event = stripe.webhooks.constructEvent(
       body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      process.env.STRIPE_WEBHOOK_SECRET!,
     )
   } catch (err) {
     console.error('Webhook signature verification failed:', err)
-    return NextResponse.json({ error: 'Webhook signature invalid' }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Webhook signature invalid' },
+      { status: 400 },
+    )
   }
 
   const supabase = await createAdminClient()
 
   try {
     switch (event.type) {
-      case 'checkout.session.completed': {
+      case 'checkout.session.completed':
+      case 'checkout.session.async_payment_succeeded': {
         const session = event.data.object as Stripe.Checkout.Session
 
         // ── Case A: debtor paying an invoice directly ──────────────────────
         const invoiceId = session.metadata?.invoice_id
         if (invoiceId && session.mode === 'payment') {
           // Legacy payments reached the platform, not the creditor. Reconcile manually.
-          console.warn('Legacy invoice payment requires manual reconciliation:', session.id)
+          console.warn(
+            'Legacy invoice payment requires manual reconciliation:',
+            session.id,
+          )
           break
         }
 
@@ -98,69 +186,33 @@ export async function POST(request: Request) {
         break
       }
 
-      case 'customer.subscription.updated': {
-        const eventSubscription = event.data.object as Stripe.Subscription
-        const subscription = await stripe.subscriptions.retrieve(eventSubscription.id)
-        const customerId = subscription.customer as string
-
-        // Stripe doesn't guarantee event order: cancelling a subscription
-        // fires BOTH `customer.subscription.updated` (status -> canceled)
-        // and `customer.subscription.deleted`, and `updated` can be
-        // delivered AFTER `deleted` already reverted the account to
-        // free_trial. Without this guard, that late `updated` event would
-        // silently resurrect paid access by re-matching the stale price ID
-        // and rewriting plan + stripe_subscription_id. Mirror the `deleted`
-        // handler for any terminal status so ordering can't matter.
-        if (
-          subscription.status === 'canceled' ||
-          subscription.status === 'unpaid' ||
-          subscription.status === 'incomplete_expired'
-        ) {
-          await revertToFreeTrial(supabase, customerId, subscription.id, 'subscription.updated (terminal status)')
-          break
-        }
-
-        if (!['active', 'trialing'].includes(subscription.status)) break
-        const priceId = subscription.items.data[0]?.price.id
-        const plan = getPlanFromPriceId(priceId)
-
-        if (!plan) {
-          console.error(
-            `Stripe webhook: unrecognized price ID "${priceId}" for Stripe customer ` +
-              `${customerId} — plan left unchanged. Check STRIPE_STARTER_PRICE_ID / ` +
-              'STRIPE_PRO_PRICE_ID / STRIPE_BUSINESS_PRICE_ID against the Stripe dashboard.'
-          )
-          throw new Error('Unrecognized subscription price')
-        }
-
-        // Single UPDATE by stripe_customer_id — no N+1 loop
-        const { error } = await supabase
-          .from('profiles')
-          .update({
-            stripe_subscription_id: subscription.id,
-            ...(plan ? { plan } : {}),
-          } as never)
-          .eq('stripe_customer_id', customerId)
-
-        if (error) throw error
-        break
-      }
-
+      case 'customer.subscription.created':
+      case 'customer.subscription.updated':
+      case 'customer.subscription.resumed':
+      case 'customer.subscription.paused':
       case 'customer.subscription.deleted': {
-        const eventSubscription = event.data.object as Stripe.Subscription
-        const subscription = await stripe.subscriptions.retrieve(eventSubscription.id)
-        const customerId = subscription.customer as string
-
-        await revertToFreeTrial(supabase, customerId, subscription.id, 'subscription.deleted')
+        await syncSubscriptionStatus(
+          supabase,
+          (event.data.object as Stripe.Subscription).id,
+        )
         break
       }
 
+      case 'invoice.paid':
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice
-        // Log for now; Stripe retries (dunning) over several days before it
-        // fires subscription.deleted, which is where access is actually cut.
-        // TODO post-launch: set a past_due flag + notify the user.
-        console.warn(`Payment failed for Stripe customer ${invoice.customer}`)
+        // Supports both legacy endpoint payloads and the pinned Endive API.
+        const legacy = invoice as unknown as {
+          subscription?: string | { id: string } | null
+        }
+        const subscription =
+          invoice.parent?.subscription_details?.subscription ??
+          legacy.subscription
+        if (subscription)
+          await syncSubscriptionStatus(
+            supabase,
+            typeof subscription === 'string' ? subscription : subscription.id,
+          )
         break
       }
 
@@ -169,7 +221,10 @@ export async function POST(request: Request) {
     }
   } catch (err) {
     console.error('Webhook handler error:', err)
-    return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Webhook handler failed' },
+      { status: 500 },
+    )
   }
 
   return NextResponse.json({ received: true })
