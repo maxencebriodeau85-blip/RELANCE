@@ -23,6 +23,7 @@ import {
 import Link from 'next/link'
 import type { Invoice } from '@/lib/database.types'
 import { createClient } from '@/lib/supabase/client'
+import { applyInvoiceAction } from '@/lib/invoice-actions'
 import { useToast } from '@/hooks/use-toast'
 
 const PAGE_SIZE = 10
@@ -58,6 +59,7 @@ export default function InvoicesPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [bulkLoading, setBulkLoading] = useState(false)
   const [dateFrom, setDateFrom] = useState('')
@@ -65,15 +67,23 @@ export default function InvoicesPage() {
 
   const loadInvoices = useCallback(async () => {
     setLoading(true)
+    setLoadError('')
     try {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const { data } = await supabase
-        .from('invoices').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
-      setInvoices((data as Invoice[]) ?? [])
+      const collected: Invoice[] = []
+      for (let offset = 0; ; offset += 500) {
+        const { data, error } = await supabase.from('invoices').select('*').eq('user_id', user.id)
+          .order('created_at', { ascending: false }).order('id', { ascending: false }).range(offset, offset + 499)
+        if (error) throw error
+        collected.push(...((data || []) as Invoice[]))
+        if (!data || data.length < 500) break
+      }
+      setInvoices(collected)
+      setSelected(new Set())
     } catch {
-      setInvoices([])
+      setLoadError('Impossible d’actualiser les factures. Les données affichées peuvent être anciennes.')
     } finally {
       setLoading(false)
     }
@@ -100,8 +110,9 @@ export default function InvoicesPage() {
     return matchSearch && matchStatus && matchFrom && matchTo && matchQuick
   })
 
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const visiblePage = Math.min(page, totalPages)
+  const paginated = filtered.slice((visiblePage - 1) * PAGE_SIZE, visiblePage * PAGE_SIZE)
 
   const toggleSelect = (id: string) => {
     setSelected((prev) => {
@@ -134,15 +145,13 @@ export default function InvoicesPage() {
   const bulkMarkPaid = async () => {
     setBulkLoading(true)
     try {
-      const supabase = createClient()
-      const {error}=await supabase.from('invoices').update({ status: 'paid' } as never).in('id', Array.from(selected))
-      if(error)throw error
+      await applyInvoiceAction('paid', invoices.filter(i => selected.has(i.id)))
       await loadInvoices()
       const n = selected.size
       clearSelection()
       toast({ title: `${n} facture${n > 1 ? 's' : ''} marquée${n > 1 ? 's' : ''} payée${n > 1 ? 's' : ''}` })
-    } catch {
-      toast({ title: 'Erreur', variant: 'destructive' })
+    } catch (error) {
+      toast({ title: 'Action interrompue', description: error instanceof Error ? error.message : 'Réessayez.', variant: 'destructive' })
     } finally {
       setBulkLoading(false)
     }
@@ -200,14 +209,12 @@ export default function InvoicesPage() {
     if (!confirm(`Supprimer ${n} facture${n > 1 ? 's' : ''} ? Cette action est irréversible.`)) return
     setBulkLoading(true)
     try {
-      const supabase = createClient()
-      const {error}=await supabase.from('invoices').delete().in('id', Array.from(selected))
-      if(error)throw error
+      await applyInvoiceAction('delete', invoices.filter(i => selected.has(i.id)))
       await loadInvoices()
       clearSelection()
       toast({ title: `${n} facture${n > 1 ? 's' : ''} supprimée${n > 1 ? 's' : ''}` })
-    } catch {
-      toast({ title: 'Erreur', variant: 'destructive' })
+    } catch (error) {
+      toast({ title: 'Action interrompue', description: error instanceof Error ? error.message : 'Réessayez.', variant: 'destructive' })
     } finally {
       setBulkLoading(false)
     }
@@ -217,6 +224,7 @@ export default function InvoicesPage() {
 
   return (
     <div>
+      {loadError && <div role="alert" className="m-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">{loadError}<Button variant="outline" className="ml-3" onClick={loadInvoices}>Réessayer</Button></div>}
       <Header
         title="Factures"
         description={`${filtered.length} facture${filtered.length !== 1 ? 's' : ''} · ${formatEuro(totalAmount)}`}
@@ -476,13 +484,13 @@ export default function InvoicesPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-500">
-              {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} sur {filtered.length}
+              {(visiblePage - 1) * PAGE_SIZE + 1}–{Math.min(visiblePage * PAGE_SIZE, filtered.length)} sur {filtered.length}
             </p>
             <div className="flex gap-1">
-              <Button variant="outline" size="icon" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
+              <Button variant="outline" size="icon" onClick={() => setPage(Math.max(1, visiblePage - 1))} disabled={visiblePage === 1}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="icon" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+              <Button variant="outline" size="icon" onClick={() => setPage(Math.min(totalPages, visiblePage + 1))} disabled={visiblePage === totalPages}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>

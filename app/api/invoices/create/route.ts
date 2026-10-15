@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { assertActiveAccess } from '@/lib/access-control'
+import { parseAmount } from '@/lib/csv-parser'
 import { PLAN_LIMITS } from '@/lib/metrics'
 import { isValidEmail, isValidDate } from '@/lib/validation'
 import type { Profile } from '@/lib/database.types'
@@ -33,8 +35,8 @@ export async function POST(request: Request) {
     if (!invoiceNumber) errors.invoice_number = 'Numéro de facture requis'
     else if (invoiceNumber.length > 50) errors.invoice_number = 'Numéro trop long (50 car. max)'
 
-    const amountRaw = parseFloat(body.amount)
-    if (isNaN(amountRaw) || amountRaw <= 0) errors.amount = 'Montant invalide (doit être > 0)'
+    const amountRaw = typeof body.amount === 'number' || typeof body.amount === 'string' ? parseAmount(String(body.amount)) : null
+    if (amountRaw === null || amountRaw <= 0) errors.amount = 'Montant invalide (doit être > 0)'
     else if (amountRaw > 10_000_000) errors.amount = 'Montant trop élevé'
 
     const dueDate = String(body.due_date || '').trim()
@@ -72,14 +74,8 @@ export async function POST(request: Request) {
 
     const profile = profileData as Pick<Profile, 'plan' | 'trial_ends_at'> | null
 
-    if (profile?.plan === 'free_trial' && profile?.trial_ends_at) {
-      if (new Date(profile.trial_ends_at) < new Date()) {
-        return NextResponse.json(
-          { error: "Période d'essai expirée. Passez à un plan payant." },
-          { status: 403 }
-        )
-      }
-    }
+    const access = assertActiveAccess(profile)
+    if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status })
 
     // Count invoices created this calendar month (exact, never drifts)
     const monthStart = new Date()
@@ -141,6 +137,7 @@ export async function POST(request: Request) {
 
     if (insertError) {
       console.error('Invoice insert error:', insertError)
+      if (insertError.code === '23505') return NextResponse.json({ error: 'Cette référence de facture existe déjà.', fields: { invoice_number: 'Référence déjà utilisée' } }, { status: 409 })
       // 23514 = check_violation raised by enforce_invoice_quota() — the atomic
       // DB-side safety net for concurrent creates racing the quota.
       if ((insertError as { code?: string }).code === '23514') {

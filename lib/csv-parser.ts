@@ -1,5 +1,10 @@
 import { isValidDate } from './validation'
 import Papa from 'papaparse'
+import {
+  MAX_IMPORT_ROWS,
+  MAX_IMPORT_BYTES,
+  validateInvoiceRows,
+} from './invoice-input'
 
 export interface CSVRow {
   [key: string]: string
@@ -48,45 +53,62 @@ export interface MappingResult {
   errors: ValidationError[]
 }
 
-export function parseCSVFile(file: File): Promise<ParseResult> {
-  return new Promise((resolve) => {
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        const headers = results.meta.fields || []
-        const rows = results.data as CSVRow[]
-        resolve({
-          headers,
-          rows,
-          totalRows: rows.length,
-          error: results.errors[0]?.message,
-        })
-      },
-      error: (error) => {
-        resolve({
-          headers: [],
-          rows: [],
-          totalRows: 0,
-          error: error.message,
-        })
-      },
-    })
+export async function parseCSVFile(file: File): Promise<ParseResult> {
+  const fail = (error: string): ParseResult => ({
+    headers: [],
+    rows: [],
+    totalRows: 0,
+    error,
   })
+  if (file.size > MAX_IMPORT_BYTES)
+    return fail('Fichier trop volumineux : 5 Mo maximum.')
+  try {
+    const bytes = new Uint8Array(await file.arrayBuffer())
+    let content: string
+    if (bytes[0] === 0xff && bytes[1] === 0xfe)
+      content = new TextDecoder('utf-16le').decode(bytes)
+    else if (bytes[0] === 0xfe && bytes[1] === 0xff)
+      content = new TextDecoder('utf-16be').decode(bytes)
+    else {
+      try {
+        content = new TextDecoder('utf-8', { fatal: true }).decode(bytes)
+      } catch {
+        content = new TextDecoder('windows-1252').decode(bytes)
+      }
+    }
+    return parseCSVString(content)
+  } catch {
+    return fail(
+      'Impossible de lire ce fichier. Exportez-le en CSV puis réessayez.',
+    )
+  }
 }
 
 export function parseCSVString(csvString: string): ParseResult {
-  const results = Papa.parse<CSVRow>(csvString, {
+  const content = csvString
+    .replace(/^\uFEFF/, '')
+    .replace(/^sep=[;,\t]\r?\n/i, '')
+  const results = Papa.parse<CSVRow>(content, {
     header: true,
-    skipEmptyLines: true,
+    skipEmptyLines: 'greedy',
+    preview: MAX_IMPORT_ROWS + 1,
+    transformHeader: (h) => h.trim(),
   })
-
-  return {
-    headers: results.meta.fields || [],
-    rows: results.data,
-    totalRows: results.data.length,
-    error: results.errors.length > 0 ? results.errors[0].message : undefined,
-  }
+  const headers = results.meta.fields || []
+  const renamed = (
+    results.meta as Papa.ParseMeta & { renamedHeaders?: Record<string, string> }
+  ).renamedHeaders
+  let error: string | undefined
+  if (renamed && Object.keys(renamed).length)
+    error =
+      'Plusieurs colonnes portent le même nom. Renommez les en-têtes avant l’import.'
+  else if (headers.some((h) => !h))
+    error = 'Chaque colonne doit avoir un en-tête.'
+  else if (results.errors.length)
+    error = `CSV mal formé : vérifiez les séparateurs, les guillemets et le nombre de colonnes (ligne ${(results.errors[0].row ?? 0) + 2}).`
+  else if (results.data.length > MAX_IMPORT_ROWS || results.meta.truncated)
+    error = `Import limité à ${MAX_IMPORT_ROWS} lignes. Scindez le fichier avant de continuer.`
+  return { headers, rows: results.data, totalRows: results.data.length, error }
 }
 
 export function parseDate(input: string): string | null {
@@ -111,153 +133,43 @@ export function parseAmount(input: string): number | null {
     : null
 }
 
-function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-}
-
 export function applyColumnMapping(
   rows: CSVRow[],
   mapping: ColumnMapping,
 ): MappingResult {
-  const valid: ParsedInvoice[] = []
-  const errors: ValidationError[] = []
-
-  rows.forEach((row, index) => {
-    const rowNum = index + 2 // 1-indexed, +1 for header
-    const rowErrors: ValidationError[] = []
-
-    // client_name
-    const clientName = mapping.client_name
-      ? row[mapping.client_name]?.trim()
-      : ''
-    if (!clientName) {
-      rowErrors.push({
-        row: rowNum,
-        field: 'client_name',
-        message: 'Nom du client requis',
-        value: clientName,
-      })
+  const columns = Object.values(mapping).filter(Boolean)
+  if (new Set(columns).size !== columns.length)
+    return {
+      valid: [],
+      errors: [
+        {
+          row: 1,
+          field: 'mapping',
+          message: 'Une colonne ne peut être utilisée que pour un seul champ.',
+        },
+      ],
     }
-
-    // client_email
-    const clientEmail = mapping.client_email
-      ? row[mapping.client_email]?.trim()
-      : ''
-    if (!clientEmail) {
-      rowErrors.push({
-        row: rowNum,
-        field: 'client_email',
-        message: 'Email du client requis',
-        value: clientEmail,
-      })
-    } else if (!isValidEmail(clientEmail)) {
-      rowErrors.push({
-        row: rowNum,
-        field: 'client_email',
-        message: 'Email invalide',
-        value: clientEmail,
-      })
-    }
-
-    // invoice_number
-    const invoiceNumber = mapping.invoice_number
-      ? row[mapping.invoice_number]?.trim()
-      : ''
-    if (!invoiceNumber) {
-      rowErrors.push({
-        row: rowNum,
-        field: 'invoice_number',
-        message: 'Numéro de facture requis',
-        value: invoiceNumber,
-      })
-    }
-
-    // amount
-    const amountRaw = mapping.amount ? row[mapping.amount]?.trim() : ''
-    const amount = parseAmount(amountRaw || '')
-    if (amount === null || amount === 0) {
-      rowErrors.push({
-        row: rowNum,
-        field: 'amount',
-        message: 'Montant invalide (doit être un nombre positif)',
-        value: amountRaw,
-      })
-    }
-
-    // due_date
-    const dueDateRaw = mapping.due_date ? row[mapping.due_date]?.trim() : ''
-    const dueDate = parseDate(dueDateRaw || '')
-    if (!dueDate) {
-      rowErrors.push({
-        row: rowNum,
-        field: 'due_date',
-        message:
-          "Date d'échéance invalide (formats acceptés : JJ/MM/AAAA, AAAA-MM-JJ)",
-        value: dueDateRaw,
-      })
-    }
-
-    // Optional fields
-    const issuedDateRaw = mapping.issued_date
-      ? row[mapping.issued_date]?.trim()
-      : ''
-    const issuedDate = issuedDateRaw
-      ? parseDate(issuedDateRaw) || undefined
-      : undefined
-
-    const remainingRaw = mapping.remaining_amount
-      ? row[mapping.remaining_amount]?.trim()
-      : undefined
-    const remaining =
-      remainingRaw === undefined ? undefined : parseAmount(remainingRaw)
-    if (
-      remaining === null ||
-      (remaining !== undefined && amount !== null && remaining > amount)
-    )
-      rowErrors.push({
-        row: rowNum,
-        field: 'remaining_amount',
-        message: 'Solde invalide ou supérieur au montant TTC',
-      })
-    if (issuedDateRaw && !issuedDate)
-      rowErrors.push({
-        row: rowNum,
-        field: 'issued_date',
-        message: 'Date d’émission invalide',
-      })
-    if (issuedDate && dueDate && issuedDate > dueDate)
-      rowErrors.push({
-        row: rowNum,
-        field: 'due_date',
-        message: 'L’échéance précède l’émission',
-      })
-    const clientAddress = mapping.client_address
-      ? row[mapping.client_address]?.trim() || undefined
-      : undefined
-    const clientSiren = mapping.client_siren
-      ? row[mapping.client_siren]?.trim() || undefined
-      : undefined
-
-    if (rowErrors.length > 0) {
-      errors.push(...rowErrors)
-    } else {
-      valid.push({
-        client_name: clientName!,
-        client_email: clientEmail!,
-        invoice_number: invoiceNumber!,
-        amount: amount!,
-        ...(remaining !== undefined && remaining !== null
-          ? { remaining_amount: remaining }
-          : {}),
-        due_date: dueDate!,
-        issued_date: issuedDate,
-        client_address: clientAddress,
-        client_siren: clientSiren,
-      })
-    }
-  })
-
-  return { valid, errors }
+  return validateInvoiceRows(
+    rows.map((row) => {
+      const value = (field: keyof ColumnMapping) =>
+        mapping[field] ? (row[mapping[field]!] ?? '') : ''
+      const issued = value('issued_date').trim()
+      const remaining = value('remaining_amount').trim()
+      return {
+        client_name: value('client_name'),
+        client_email: value('client_email'),
+        invoice_number: value('invoice_number'),
+        amount: parseAmount(value('amount')),
+        due_date: parseDate(value('due_date')) || '',
+        issued_date: issued ? parseDate(issued) || 'invalid' : undefined,
+        remaining_amount: remaining
+          ? (parseAmount(remaining) ?? NaN)
+          : undefined,
+        client_address: value('client_address'),
+        client_siren: value('client_siren'),
+      }
+    }),
+  )
 }
 
 export function suggestColumnMapping(
@@ -320,24 +232,31 @@ export function suggestColumnMapping(
       /cr[eé]ation/i,
     ],
     client_address: [/adresse/i, /address/i, /rue/i, /street/i],
-    client_siren: [/siren/i, /siret/i, /rcs/i, /identifiant/i],
+    client_siren: [/siren/i, /rcs/i, /identifiant/i],
   }
 
-  for (const header of headers) {
-    for (const [field, regexps] of Object.entries(patterns) as [
-      keyof ColumnMapping,
-      RegExp[],
-    ][]) {
-      if (!mapping[field]) {
-        for (const regex of regexps) {
-          if (regex.test(header)) {
-            mapping[field] = header
-            break
-          }
-        }
+  // Specific matches win globally before generic words such as "client".
+  const used = new Set<string>()
+  const normalize = (value: string) =>
+    value.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  const fields = Object.keys(patterns) as (keyof ColumnMapping)[]
+  const rounds = Math.max(...fields.map((field) => patterns[field].length))
+  for (let rank = 0; rank < rounds; rank++) {
+    for (const field of fields) {
+      if (mapping[field] || !patterns[field][rank]) continue
+      const header = headers.find(
+        (h) =>
+          !used.has(h) &&
+          !(field === 'amount' && /rest|solde|remaining/i.test(normalize(h))) &&
+          !(field === 'invoice_number' && /date/i.test(h)) &&
+          !(field === 'client_name' && /mail|adresse|siren|siret/i.test(h)) &&
+          patterns[field][rank].test(normalize(h)),
+      )
+      if (header) {
+        mapping[field] = header
+        used.add(header)
       }
     }
   }
-
   return mapping
 }

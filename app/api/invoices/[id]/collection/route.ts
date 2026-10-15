@@ -32,6 +32,8 @@ export async function PATCH(
     return NextResponse.json({ error: 'Facture introuvable' }, { status: 404 })
   if (
     !body ||
+    typeof body.expected_updated_at !== 'string' ||
+    !Number.isFinite(Date.parse(body.expected_updated_at)) ||
     typeof body.amount_paid !== 'number' ||
     !Number.isFinite(body.amount_paid) ||
     body.amount_paid < 0 ||
@@ -40,13 +42,23 @@ export async function PATCH(
       0.00001 ||
     typeof body.reminders_paused !== 'boolean' ||
     typeof body.disputed !== 'boolean' ||
-    (body.promise_date && !isValidDate(body.promise_date)) ||
+    (body.promise_date !== null &&
+      (typeof body.promise_date !== 'string' ||
+        !isValidDate(body.promise_date))) ||
     typeof body.notes !== 'string' ||
     body.notes.length > 4000
   )
     return NextResponse.json(
       { error: 'Vérifiez les montants, la date et les notes.' },
       { status: 422 },
+    )
+  if (Date.parse(body.expected_updated_at) !== Date.parse(invoice.updated_at))
+    return NextResponse.json(
+      {
+        error:
+          'La facture a changé depuis son ouverture. Rechargez-la avant d’enregistrer.',
+      },
+      { status: 409 },
     )
   const status =
     body.amount_paid === Number(invoice.amount)
@@ -69,7 +81,7 @@ export async function PATCH(
     })
     .eq('id', id)
     .eq('user_id', user.id)
-    .eq('updated_at', invoice.updated_at)
+    .eq('updated_at', body.expected_updated_at)
     .select('id')
     .maybeSingle()
   if (error)

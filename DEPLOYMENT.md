@@ -120,3 +120,20 @@ Les anciens produits/prix ont été conservés. Aucun paiement, client ou abonne
 - Les outils Supabase disponibles ne permettent pas d’administrer les paramètres Auth/SMTP. La Site URL, les redirections, les modèles et la réception effective des emails restent à configurer/vérifier dans le tableau de bord.
 - Conserver les secrets dans les variables **Sensitive** de Vercel, jamais dans le dépôt ou les logs. Utiliser des clés distinctes par environnement.
 - Les 110 tests automatisés, typecheck et lint passent. Le test réel navigateur → email → connexion → paiement Stripe → mise à jour Supabase reste nécessaire ; un build réussi ne prouve pas ce parcours.
+
+
+## Import et gestion des factures — 15 octobre 2026
+
+Migration `20261015060325_invoice_import_and_actions.sql` appliquée à RECOUVREMENT après contrôle de l’absence de références dupliquées. Elle crée un index unique par propriétaire/référence (espaces de bord ignorés), renforce l’import atomique et ajoute les actions groupées `apply_invoice_action`, sous RLS, sans accès anonyme. Aucun nettoyage ni suppression de facture existante.
+
+- Import limité à 500 lignes et 5 Mo, lecture UTF-8/UTF-16/Windows-1252, séparateurs Excel, détection des en-têtes et références répétés. Correspondance unique des colonnes.
+- Validation partagée navigateur/API : dates réelles, montants en centimes, longueurs et SIREN. Un solde vide conserve les règlements existants ; zéro solde signifie facture réglée.
+- Vérification serveur avant confirmation : nouvelles factures, soldes actualisés ou confirmés, références inchangées et conflits montant/email. Les erreurs bloquent l’ensemble du fichier : aucune ligne n’est écartée silencieusement.
+- L’import conserve la version de chaque facture affichée dans l’aperçu. Une modification ou suppression intermédiaire annule l’import complet. Les appels historiques sans version restent compatibles au niveau RPC ; le nouvel écran/API exigent un aperçu.
+- Actions de règlement, litige et suppression désormais transmises à une API avec contrôle du plan, du propriétaire et des versions. Les lots sont limités à 100 factures et entièrement annulés en cas de conflit. La confirmation de suppression reste obligatoire dans l’interface.
+- Le formulaire de suivi transmet la version chargée dans l’onglet et refuse un montant encaissé vide. La création manuelle refuse les montants partiellement numériques et gère les doublons concurrents.
+- La liste charge les factures par pages de 500 pour éviter la troncature implicite aux 1 000 premières lignes. Une panne de lecture est affichée comme une erreur, pas comme une liste vide.
+
+Validation : 130 tests automatisés réussis, typecheck, lint et build de production. Recette SQL sur la base distante, dans une transaction annulée : import avec solde partiel, refus d’un aperçu périmé, règlement et droits anonymes. Les tests PostgreSQL embarqués vérifient aussi l’isolation entre comptes et l’annulation d’un lot en conflit. Le diagnostic Supabase ne signale aucun problème de sécurité SQL ; l’avertissement Auth sur les mots de passe compromis reste inchangé.
+
+Cette version ne fournit pas encore un journal comptable des encaissements ni l’import natif XLSX/PDF. Elle gère un cumul encaissé et des exports CSV. Les limites de configuration emails/Stripe/Vercel décrites plus haut restent à résoudre avant une recette commerciale complète.

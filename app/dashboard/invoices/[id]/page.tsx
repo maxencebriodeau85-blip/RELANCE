@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { StatusBadge } from '@/components/invoices/status-badge'
 import { formatEuro, formatDate, getDaysOverdue } from '@/lib/metrics'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { applyInvoiceAction } from '@/lib/invoice-actions'
 import { useToast } from '@/hooks/use-toast'
 import {
   ArrowLeft,
@@ -166,14 +167,11 @@ export default function InvoiceDetailPage() {
     if (!invoice) return
     setUpdatingStatus(true)
     try {
-      const { createClient } = await import('@/lib/supabase/client')
-      const supabase = createClient()
-      const {error}=await supabase.from('invoices').update({ status: 'paid' } as never).eq('id', invoice.id)
-      if(error)throw error
+      await applyInvoiceAction('paid', [invoice])
       await loadData()
       toast({ title: 'Facture marquée comme payée', description: `${invoice.invoice_number} clôturée.` })
-    } catch {
-      toast({ title: 'Erreur', description: 'Impossible de mettre à jour le statut.', variant: 'destructive' })
+    } catch (error) {
+      toast({ title: 'Erreur', description: error instanceof Error ? error.message : 'Impossible de mettre à jour le statut.', variant: 'destructive' })
     } finally {
       setUpdatingStatus(false)
     }
@@ -183,14 +181,11 @@ export default function InvoiceDetailPage() {
     if (!invoice) return
     setUpdatingStatus(true)
     try {
-      const { createClient } = await import('@/lib/supabase/client')
-      const supabase = createClient()
-      const {error}=await supabase.from('invoices').update({ status: 'disputed' } as never).eq('id', invoice.id)
-      if(error)throw error
+      await applyInvoiceAction('disputed', [invoice])
       await loadData()
       toast({ title: 'Facture marquée comme litigieuse', description: `${invoice.invoice_number} mise en litige.` })
-    } catch {
-      toast({ title: 'Erreur', description: 'Impossible de mettre à jour le statut.', variant: 'destructive' })
+    } catch (error) {
+      toast({ title: 'Erreur', description: error instanceof Error ? error.message : 'Impossible de mettre à jour le statut.', variant: 'destructive' })
     } finally {
       setUpdatingStatus(false)
     }
@@ -201,14 +196,11 @@ export default function InvoiceDetailPage() {
     if (!confirm(`Supprimer définitivement la facture ${invoice.invoice_number} ? Cette action est irréversible.`)) return
     setDeleting(true)
     try {
-      const { createClient } = await import('@/lib/supabase/client')
-      const supabase = createClient()
-      const {error}=await supabase.from('invoices').delete().eq('id', invoice.id)
-      if(error)throw error
+      await applyInvoiceAction('delete', [invoice])
       toast({ title: 'Facture supprimée', description: `${invoice.invoice_number} supprimée.` })
       router.push('/dashboard/invoices')
-    } catch {
-      toast({ title: 'Erreur', description: 'Impossible de supprimer la facture.', variant: 'destructive' })
+    } catch (error) {
+      toast({ title: 'Erreur', description: error instanceof Error ? error.message : 'Impossible de supprimer la facture.', variant: 'destructive' })
       setDeleting(false)
     }
   }

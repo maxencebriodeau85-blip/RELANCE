@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
+import { parseAmount } from '@/lib/csv-parser'
 import { outstanding } from '@/lib/collection'
 import { formatEuro } from '@/lib/metrics'
 import type { Invoice } from '@/lib/database.types'
@@ -23,13 +24,24 @@ export function CollectionControls({
   const [busy, setBusy] = useState(false)
   const { toast } = useToast()
   async function save() {
+    const amountPaid = parseAmount(paid)
+    if (amountPaid === null || amountPaid > Number(invoice.amount)) {
+      toast({
+        title: 'Montant encaissé invalide',
+        description:
+          'Renseignez un montant entre zéro et le total TTC, avec deux décimales maximum.',
+        variant: 'destructive',
+      })
+      return
+    }
     setBusy(true)
     try {
       const response = await fetch(`/api/invoices/${invoice.id}/collection`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          amount_paid: Number(paid.replace(',', '.')),
+          amount_paid: amountPaid,
+          expected_updated_at: invoice.updated_at,
           promise_date: promise || null,
           reminders_paused: paused,
           disputed,

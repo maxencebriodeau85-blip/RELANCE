@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Header } from '@/components/dashboard/header'
 import { Button } from '@/components/ui/button'
@@ -32,6 +32,7 @@ import {
   type ParsedInvoice,
   type ValidationError,
 } from '@/lib/csv-parser'
+import type { InvoiceInput } from '@/lib/invoice-input'
 import { formatEuro, formatDate } from '@/lib/metrics'
 import {
   Upload,
@@ -78,7 +79,10 @@ export default function ImportPage() {
   const [validInvoices, setValidInvoices] = useState<ParsedInvoice[]>([])
   const [errors, setErrors] = useState<ValidationError[]>([])
   const [importing, setImporting] = useState(false)
-  const [importedCount, setImportedCount] = useState(0)
+  const [summary, setSummary] = useState({ imported: 0, updated: 0, unchanged: 0 })
+  const [reviewed, setReviewed] = useState<InvoiceInput[]>([])
+  const [reviewing, setReviewing] = useState(false)
+  const requestLock = useRef(false)
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0]
@@ -115,25 +119,43 @@ export default function ImportPage() {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { 'text/csv': ['.csv'], 'text/plain': ['.txt'] },
+    onDropRejected: () => toast({ title: 'Fichier refusé', description: 'Choisissez un seul fichier CSV ou TXT de 5 Mo maximum.', variant: 'destructive' }),
     maxFiles: 1,
     maxSize: 5 * 1024 * 1024, // 5MB
   })
 
-  const handleApplyMapping = () => {
-    const fullMapping = mapping as ColumnMapping
-    const result = applyColumnMapping(rows, fullMapping)
+  const handleApplyMapping = async () => {
+    if (requestLock.current) return
+    const result = applyColumnMapping(rows, mapping as ColumnMapping)
     setValidInvoices(result.valid)
     setErrors(result.errors)
+    setReviewed([])
     setStep('preview')
+    if (result.errors.length || !result.valid.length) return
+    requestLock.current = true
+    setReviewing(true)
+    try {
+      const response = await fetch('/api/invoices/import', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ invoices: result.valid, preview: true }) })
+      const data = await response.json()
+      if (!response.ok) {
+        setErrors(data.errors || [{ row: 1, field: 'import', message: data.error || 'Vérification impossible.' }])
+        return
+      }
+      setReviewed(data.invoices)
+      setSummary(data.summary)
+    } catch { setErrors([{ row: 1, field: 'import', message: 'Connexion interrompue pendant la vérification. Revenez à la correspondance pour réessayer.' }]) }
+    finally { setReviewing(false); requestLock.current = false }
   }
 
   const handleImport = async () => {
+    if (requestLock.current || !reviewed.length || errors.length) return
+    requestLock.current = true
     setImporting(true)
     try {
       const response = await fetch('/api/invoices/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ invoices: validInvoices }),
+        body: JSON.stringify({ invoices: reviewed }),
       })
 
       const data = await response.json()
@@ -147,11 +169,13 @@ export default function ImportPage() {
         return
       }
 
-      setImportedCount((data.imported ?? 0) + (data.updated ?? 0))
+      setSummary({ imported: data.imported ?? 0, updated: data.updated ?? 0, unchanged: data.unchanged ?? 0 })
+      router.refresh()
       setStep('success')
     } catch {
       toast({title:'Import non confirmé',description:'La connexion a été interrompue. Vérifiez vos factures avant de réessayer.',variant:'destructive'})
     } finally {
+      requestLock.current = false
       setImporting(false)
     }
   }
@@ -215,7 +239,7 @@ export default function ImportPage() {
             <CardHeader>
               <CardTitle>Sélectionner un fichier CSV</CardTitle>
               <CardDescription>
-                Glissez-déposez votre fichier CSV ou cliquez pour le sélectionner. Taille max : 5 Mo.
+                Glissez-déposez votre fichier CSV ou cliquez pour le sélectionner. Taille max : 5 Mo, 500 lignes. Les exports Excel CSV UTF-8 et Windows sont acceptés.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -335,6 +359,13 @@ export default function ImportPage() {
         {/* Step 3: Preview */}
         {step === 'preview' && (
           <div className="space-y-4">
+            <Alert>
+              <AlertTitle>{reviewing ? 'Vérification des factures existantes…' : 'Import complet après validation'}</AlertTitle>
+              <AlertDescription>
+                {reviewed.length > 0 && `${summary.imported} nouvelle(s), ${summary.updated} solde(s) à confirmer ou actualiser, ${summary.unchanged} inchangée(s). `}
+                Toutes les erreurs doivent être corrigées avant l’import. Un solde vide conserve les règlements existants ; zéro signifie intégralement réglé. Les nouvelles factures restent en pause.
+              </AlertDescription>
+            </Alert>
             {/* Summary */}
             <div className="grid grid-cols-2 gap-4">
               <Card>
@@ -433,13 +464,13 @@ export default function ImportPage() {
             )}
 
             <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setStep('mapping')}>
+              <Button variant="outline" disabled={reviewing || importing} onClick={() => setStep('mapping')}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Retour
               </Button>
               <Button
                 onClick={handleImport}
-                disabled={validInvoices.length === 0 || importing}
+                disabled={!reviewed.length || errors.length > 0 || reviewing || importing}
               >
                 {importing ? 'Import en cours...' : `Importer ${validInvoices.length} facture(s)`}
               </Button>
@@ -459,7 +490,7 @@ export default function ImportPage() {
                   Import réussi !
                 </h2>
                 <p className="text-gray-500 mt-1">
-                  {importedCount} facture(s) ont été importées avec succès.
+                  {summary.imported} nouvelle(s) facture(s), {summary.updated} solde(s) actualisé(s), {summary.unchanged} facture(s) inchangée(s).
                 </p>
               </div>
               <div className="flex gap-3 justify-center">
