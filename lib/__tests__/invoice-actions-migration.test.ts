@@ -38,6 +38,7 @@ beforeAll(async () => {
     '015_collection_workspace.sql',
     '20261014161850_harden_collection_import.sql',
     '20261015060325_invoice_import_and_actions.sql',
+    '20261016171736_optional_invoice_email.sql',
   ])
     await db.exec(readFileSync('supabase/migrations/' + file, 'utf8'))
   await db.exec(`grant usage on schema public,auth to authenticated; grant execute on function auth.uid() to authenticated;
@@ -80,7 +81,7 @@ describe('Atomic invoice updates', () => {
       ]),
     ).rejects.toThrow('modifiée')
     expect(
-      (await db.query('select amount_paid from invoices')).rows[0],
+      (await db.query("select amount_paid from invoices where invoice_number='F1'")).rows[0],
     ).toMatchObject({ amount_paid: '20.00' })
   })
   it('rejects duplicates and fractional cents atomically', async () => {
@@ -144,4 +145,14 @@ describe('Atomic invoice updates', () => {
       ).rows[0].allowed,
     ).toBe(false)
   })
+  it('imports absent emails, fills them later and preserves addresses on email-less reimports', async () => {
+    expect((await importRows([{ ...input('NO-EMAIL'), client_email: null }])).rows[0].result.imported).toBe(1)
+    expect((await db.query("select client_email,reminders_paused from invoices where invoice_number='NO-EMAIL'")).rows[0]).toMatchObject({ client_email: null, reminders_paused: true })
+    expect((await importRows([{ ...input('NO-EMAIL'), client_email: 'RECOVERY@EXAMPLE.COM', remaining_amount: undefined }])).rows[0].result.updated).toBe(1)
+    await importRows([{ ...input('NO-EMAIL'), client_email: '', remaining_amount: 60 }])
+    expect((await db.query("select client_email,amount_paid,reminders_paused from invoices where invoice_number='NO-EMAIL'")).rows[0]).toMatchObject({ client_email: 'recovery@example.com', amount_paid: '40.00', reminders_paused: true })
+    await expect(importRows([{ ...input('NO-EMAIL'), client_email: 'other@example.com' }])).rejects.toThrow('autre montant ou email')
+    await expect(importRows([{ ...input('INVALID-EMAIL'), client_email: 'invalid' }])).rejects.toThrow('invalide')
+  })
+
 })

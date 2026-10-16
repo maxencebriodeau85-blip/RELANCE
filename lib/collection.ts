@@ -1,3 +1,4 @@
+import { isValidEmail } from './validation'
 import type { Invoice, ReminderType } from './database.types'
 export function businessDate(now = new Date()): string {
   return new Intl.DateTimeFormat('en-CA', {
@@ -24,6 +25,8 @@ export function reminderBlock(
 ): string | null {
   if (invoice.status === 'paid' || outstanding(invoice) === 0)
     return 'Cette facture est réglée.'
+  if (!invoice.client_email || !isValidEmail(invoice.client_email))
+    return 'Complétez l’adresse email du client avant de relancer.'
   if (invoice.status === 'disputed') return 'Cette facture est en litige.'
   if (invoice.reminders_paused !== false)
     return 'Les relances sont en pause sur cette facture.'

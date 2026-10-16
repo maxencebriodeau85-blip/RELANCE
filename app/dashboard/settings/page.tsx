@@ -65,7 +65,9 @@ function SettingsPageInner() {
     phone: '',
   })
 
-  const [autoReminders, setAutoReminders] = useState(true)
+  const [autoReminders, setAutoReminders] = useState(false)
+  const [savedAutoReminders, setSavedAutoReminders] = useState(false)
+  const [capabilities, setCapabilities] = useState<{ emailAvailable: boolean; automationAvailable: boolean } | null>(null)
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -89,7 +91,11 @@ function SettingsPageInner() {
             city: p.city || '',
             phone: p.phone || '',
           })
-          setAutoReminders(p.auto_reminders ?? true)
+          setAutoReminders(p.auto_reminders ?? false)
+          setSavedAutoReminders(p.auto_reminders ?? false)
+          const settingsResponse = await fetch('/api/profile/reminders', { cache: 'no-store' })
+          const settings = await settingsResponse.json()
+          if (settingsResponse.ok) setCapabilities(settings.capabilities)
         }
       } catch {
         setLoadError(true)
@@ -131,16 +137,17 @@ function SettingsPageInner() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Non authentifié')
 
-      const { error } = await supabase.from('profiles').update({
+      const { data: updated, error } = await supabase.from('profiles').update({
         company_name: form.company_name || null,
-        siren: form.siren || null,
+        siren: form.siren.replace(/\s/g, '') || null,
         address: form.address || null,
         postal_code: form.postal_code || null,
         city: form.city || null,
         phone: form.phone || null,
-      } as never).eq('id', user.id)
+      } as never).eq('id', user.id).select('*').single()
 
-      if (error) throw error
+      if (error || !updated) throw new Error('Enregistrement impossible')
+      setProfile(updated as Profile)
 
       toast({ title: 'Profil sauvegardé', description: 'Vos informations ont été mises à jour.' })
     } catch {
@@ -160,6 +167,8 @@ function SettingsPageInner() {
       const result = await response.json()
       if (!response.ok || !result.settings) throw new Error(result.error || 'Enregistrement impossible.')
       setAutoReminders(result.settings.auto_reminders)
+      setSavedAutoReminders(result.settings.auto_reminders)
+      setCapabilities(result.capabilities)
       toast({
         title: result.settings.auto_reminders ? 'Relances automatiques activées' : 'Relances automatiques désactivées',
         description: result.settings.auto_reminders
@@ -167,6 +176,7 @@ function SettingsPageInner() {
           : 'Les prochaines relances automatiques sont suspendues. Un envoi déjà en cours peut encore aboutir.',
       })
     } catch (error) {
+      setAutoReminders(savedAutoReminders)
       toast({ title: 'Réglages non enregistrés', description: error instanceof Error ? error.message : 'Réessayez.', variant: 'destructive' })
     } finally {
       setSavingNotif(false)
@@ -244,6 +254,7 @@ function SettingsPageInner() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
+            {currentPlan === 'starter' && !profile?.stripe_customer_id && !profile?.stripe_subscription_id && <p className="text-sm text-brand-800 rounded-lg bg-brand-50 p-3">Accès Fondateur accordé à ce compte pour les tests. Aucun prélèvement automatique n’est associé à cet accès.</p>}
             {/* Plan cards */}
             <div className="grid grid-cols-1 gap-3">
               {PLANS.map((plan) => {
@@ -389,6 +400,7 @@ function SettingsPageInner() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {!capabilities?.emailAvailable && <p role="status" className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">{capabilities ? 'Le service email est en cours de configuration. Les envois sont indisponibles ; vous pouvez préparer les modèles et suivre vos règlements.' : 'Disponibilité du service email non vérifiée. Rechargez la page pour réessayer.'}</p>}
             <div className="flex items-center gap-4 rounded-xl border p-4">
               <div
                 className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full transition-colors ${
@@ -403,15 +415,19 @@ function SettingsPageInner() {
               </div>
               <div className="flex-1">
                 <div className="font-medium text-sm text-gray-900">
-                  {autoReminders ? 'Relances automatiques activées' : 'Relances automatiques désactivées'}
+                  {!capabilities?.automationAvailable ? 'Automatisation indisponible' : savedAutoReminders ? 'Relances automatiques activées' : 'Relances automatiques désactivées'}
                 </div>
                 <div className="text-xs text-gray-500 mt-0.5">
-                  {autoReminders
-                    ? 'Envoi quotidien à 8h00 selon votre scénario. Vous restez maître de chaque étape.'
-                    : 'Aucune relance automatique. Déclenchez-les manuellement depuis chaque facture.'}
+                  {capabilities?.automationAvailable && savedAutoReminders
+                    ? 'Envoi quotidien à 8h UTC (10h en été, 9h en hiver en France).'
+                    : 'Préparez votre scénario et complétez les coordonnées de vos clients.'}
                 </div>
               </div>
               <button
+                role="switch"
+                aria-label="Activer les relances automatiques"
+                aria-checked={autoReminders}
+                disabled={savingNotif || (!autoReminders && !capabilities?.automationAvailable)}
                 onClick={() => setAutoReminders(!autoReminders)}
                 className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
                   autoReminders ? 'bg-green-500' : 'bg-gray-200'
@@ -428,12 +444,11 @@ function SettingsPageInner() {
             <div className="rounded-lg border bg-blue-50 p-3 flex items-start gap-2">
               <Shield className="h-4 w-4 text-brand-600 mt-0.5 flex-shrink-0" />
               <p className="text-sm text-brand-700">
-                Les emails sont envoyés via <strong>Resend</strong> depuis le domaine sécurisé
-                <strong> Encair</strong>. Les prestataires techniques sont décrits dans la politique de confidentialité.
+                Les relances utilisent votre nom d’entreprise. Les réponses sont adressées à l’email de votre compte.
               </p>
             </div>
 
-            <Button onClick={handleSaveNotifications} disabled={savingNotif} variant={autoReminders ? 'default' : 'outline'}>
+            <Button onClick={handleSaveNotifications} disabled={savingNotif || autoReminders === savedAutoReminders || (autoReminders && !capabilities?.automationAvailable)} variant={autoReminders ? 'default' : 'outline'}>
               <Save className="mr-2 h-4 w-4" />
               {savingNotif ? 'Sauvegarde…' : 'Sauvegarder les préférences'}
             </Button>
@@ -455,7 +470,7 @@ function SettingsPageInner() {
             <div className="rounded-lg bg-gray-50 border p-3">
               <div className="text-xs text-gray-500 mb-1">Aperçu — ce que voit votre client :</div>
               <div className="font-mono text-sm text-gray-800">
-                De : <strong>{form.company_name || 'Votre Entreprise'}</strong> via le domaine d’envoi configuré
+                De : <strong>{profile?.company_name || 'Votre Entreprise'}</strong> via le domaine d’envoi configuré
               </div>
               <div className="font-mono text-sm text-gray-500">
                 Répondre à : {userEmail || 'votre@email.fr'}

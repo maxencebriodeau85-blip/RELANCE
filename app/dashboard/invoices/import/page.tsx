@@ -49,7 +49,6 @@ type Step = 'upload' | 'mapping' | 'preview' | 'success'
 
 const REQUIRED_FIELDS: (keyof ColumnMapping)[] = [
   'client_name',
-  'client_email',
   'invoice_number',
   'amount',
   'due_date',
@@ -58,7 +57,7 @@ const REQUIRED_FIELDS: (keyof ColumnMapping)[] = [
 const FIELD_LABELS: Record<keyof ColumnMapping, string> = {
   remaining_amount: 'Reste à payer (actualise les règlements)',
   client_name: 'Nom du client *',
-  client_email: 'Email du client *',
+  client_email: 'Email du client (facultatif)',
   invoice_number: 'N° de facture *',
   amount: 'Montant TTC *',
   due_date: "Date d'échéance *",
@@ -142,6 +141,7 @@ export default function ImportPage() {
         return
       }
       setReviewed(data.invoices)
+      setValidInvoices(data.invoices)
       setSummary(data.summary)
     } catch { setErrors([{ row: 1, field: 'import', message: 'Connexion interrompue pendant la vérification. Revenez à la correspondance pour réessayer.' }]) }
     finally { setReviewing(false); requestLock.current = false }
@@ -264,7 +264,7 @@ export default function ImportPage() {
                 <FileText className="h-4 w-4" />
                 <AlertTitle>Format attendu</AlertTitle>
                 <AlertDescription>
-                  Votre CSV doit contenir au minimum : nom du client, email, numéro de facture,
+                  Votre CSV doit contenir au minimum : nom du client, numéro de facture,
                   montant et date d&apos;échéance. La première ligne doit être les en-têtes de colonne.
                 </AlertDescription>
               </Alert>
@@ -357,13 +357,17 @@ export default function ImportPage() {
         )}
 
         {/* Step 3: Preview */}
+        {step === 'preview' && reviewed.some(invoice => !invoice.client_email) && <Alert className="border-amber-200 bg-amber-50">
+          <AlertTriangle className="h-4 w-4" /><AlertTitle>Emails à compléter</AlertTitle>
+          <AlertDescription>{reviewed.filter(invoice => !invoice.client_email).length} facture(s) sans email seront importées. Vous pourrez compléter les adresses dans leur fiche avant de relancer.</AlertDescription>
+        </Alert>}
         {step === 'preview' && (
           <div className="space-y-4">
             <Alert>
               <AlertTitle>{reviewing ? 'Vérification des factures existantes…' : 'Import complet après validation'}</AlertTitle>
               <AlertDescription>
-                {reviewed.length > 0 && `${summary.imported} nouvelle(s), ${summary.updated} solde(s) à confirmer ou actualiser, ${summary.unchanged} inchangée(s). `}
-                Toutes les erreurs doivent être corrigées avant l’import. Un solde vide conserve les règlements existants ; zéro signifie intégralement réglé. Les nouvelles factures restent en pause.
+                {reviewed.length > 0 && `${summary.imported} nouvelle(s), ${summary.updated} facture(s) à actualiser, ${summary.unchanged} inchangée(s). `}
+                Toutes les erreurs doivent être corrigées avant l’import. Un solde vide conserve les règlements existants ; zéro signifie intégralement réglé. Un email vide conserve l’adresse déjà connue. Les nouvelles factures restent en pause.
               </AlertDescription>
             </Alert>
             {/* Summary */}
@@ -438,7 +442,7 @@ export default function ImportPage() {
                         <TableRow key={i}>
                           <TableCell>
                             <div className="text-sm font-medium">{inv.client_name}</div>
-                            <div className="text-xs text-gray-400">{inv.client_email}</div>
+                            <div className="text-xs text-gray-400">{inv.client_email || 'Email à compléter'}</div>
                           </TableCell>
                           <TableCell className="font-mono text-sm">{inv.invoice_number}</TableCell>
                           <TableCell className="text-right font-medium">

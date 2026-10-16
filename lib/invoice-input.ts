@@ -4,7 +4,7 @@ export const MAX_IMPORT_ROWS = 500
 export const MAX_IMPORT_BYTES = 5 * 1024 * 1024
 export interface InvoiceInput {
   client_name: string
-  client_email: string
+  client_email: string | null
   invoice_number: string
   amount: number
   due_date: string
@@ -40,7 +40,7 @@ export function validateInvoiceRows(rows: unknown[]) {
         : {}
     const item: InvoiceInput = {
       client_name: text(row.client_name),
-      client_email: text(row.client_email).toLowerCase(),
+      client_email: text(row.client_email).toLowerCase() || null,
       invoice_number: text(row.invoice_number),
       amount: row.amount as number,
       due_date: text(row.due_date),
@@ -50,7 +50,7 @@ export function validateInvoiceRows(rows: unknown[]) {
     const before = errors.length
     if (!item.client_name || item.client_name.length > 200)
       fail('client_name', 'Nom du client requis, 200 caractères maximum.')
-    if (item.client_email.length > 254 || !isValidEmail(item.client_email))
+    if ((row.client_email != null && typeof row.client_email !== 'string') || (item.client_email && (item.client_email.length > 254 || !isValidEmail(item.client_email))))
       fail('client_email', 'Adresse email invalide.')
     if (!item.invoice_number || item.invoice_number.length > 50)
       fail('invoice_number', 'Référence requise, 50 caractères maximum.')

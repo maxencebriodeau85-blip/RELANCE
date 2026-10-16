@@ -9,6 +9,7 @@ import { applyColumnMapping, parseAmount, parseDate } from '../csv-parser'
 import type { Invoice } from '../database.types'
 const now = new Date('2026-10-13T12:00:00Z')
 const invoice = {
+  client_email: 'client@example.com',
   amount: 100,
   amount_paid: 25,
   status: 'pending',
@@ -26,6 +27,9 @@ describe('collection safeguards', () => {
   it('allows an overdue, verified and unpaused invoice', () =>
     expect(reminderBlock(invoice, now)).toBeNull())
   for (const patch of [
+    { client_email: null },
+    { client_email: '' },
+    { client_email: 'invalide' },
     { status: 'paid' },
     { status: 'disputed' },
     { reminders_paused: true },

@@ -53,3 +53,11 @@ Les liens publics d'encaissement Stripe sont désactivés : l'ancienne implémen
 Les fiches PDF sont des documents de suivi, pas un remplacement de la facture originale. Les tableaux reposent sur des montants renseignés/importés, sans synchronisation bancaire. Aucun DSO n'est présenté dans les nouvelles statistiques.
 
 Voir [DEPLOYMENT.md](DEPLOYMENT.md) pour la migration, la configuration des prestataires et les vérifications avant mise en service.
+
+## Modèles et factures sans email
+
+La personnalisation des trois relances amiables est incluse dans l’essai actif et l’offre Fondateur. L’éditeur, les aperçus et l’envoi utilisent les mêmes modèles par défaut. Sauvegarde, rechargement et réinitialisation exposent les erreurs réelles.
+
+L’email client est facultatif pour l’import CSV et la création manuelle. Une adresse absente est stockée à `null`, sans inventer de destinataire. Le filtre « Sans email » permet de retrouver les fiches à compléter. Une adresse ajoutée ou modifiée remet la facture en pause ; les relances refusent tout destinataire absent ou invalide. Au réimport, une cellule email vide conserve l’adresse connue ; une adresse connue différente reste un conflit à examiner.
+
+Migration additive : `20261016171736_optional_invoice_email.sql`. Sur RECOUVREMENT, elle a été appliquée sous la version `20261016172513`.

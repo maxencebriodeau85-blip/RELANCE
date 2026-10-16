@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import { Header } from '@/components/dashboard/header'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -49,10 +50,10 @@ const SCENARIOS: Scenario[] = [
   },
   {
     id: 'soft',
-    name: 'Soft',
+    name: 'Espacé',
     badge: 'Clients fidèles',
     badgeColor: 'bg-green-100 text-green-700',
-    description: 'Deux rappels doux espacés. Pour les bons payeurs habituels — préserve la relation commerciale.',
+    description: 'Deux rappels à J+7 et J+21 pour laisser plus de temps entre les échanges.',
     steps: [
       { day: 7,  type: 'email_1', subject: 'Petit rappel — Facture {n°}', tone: 'cordial', channel: 'email' },
       { day: 21, type: 'email_2', subject: 'Rappel — Facture {n°} toujours en attente', tone: 'cordial', channel: 'email' },
@@ -60,8 +61,8 @@ const SCENARIOS: Scenario[] = [
   },
   {
     id: 'firm',
-    name: 'Ferme',
-    badge: 'Mauvais payeurs',
+    name: 'Rapproché',
+    badge: 'Suivi rapproché',
     badgeColor: 'bg-orange-100 text-orange-700',
     description: 'Trois rappels rapprochés à J+3, J+10 et J+20, sans mise en demeure automatique.',
     steps: [
@@ -195,6 +196,7 @@ export default function ScenariosPage() {
           </div>
         )}
 
+        <p className="text-sm text-gray-600">Le scénario fixe les dates d’envoi. Le contenu de chaque étape se règle dans <Link href="/dashboard/templates" className="font-medium text-brand-700 underline">vos modèles email</Link>.</p>
         {/* Scenario picker */}
         <div>
           <h2 className="text-sm font-semibold text-gray-700 mb-3">Scénario actif</h2>
@@ -259,7 +261,7 @@ export default function ScenariosPage() {
               <div className="absolute left-4 top-0 bottom-0 w-px bg-gray-100" />
               <div className="space-y-4">
                 {activeScenario.steps.map((step, i) => {
-                  const tone = toneConfig[step.tone]
+                  const tone = toneConfig.cordial
                   return (
                     <div key={i} className="relative flex gap-4">
                       {/* Day bubble */}
@@ -277,14 +279,14 @@ export default function ScenariosPage() {
                             J+{step.day} — {stepTypeLabel[step.type]}
                           </span>
                           <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${tone.color}`}>
-                            {tone.label}
+                            Modèle personnalisable
                           </span>
                           <span className="flex items-center gap-1 text-xs text-gray-400">
                             <Mail className="h-3 w-3" />
                             {step.channel === 'email' ? 'Email' : step.channel === 'sms' ? 'SMS' : 'Courrier LRAR'}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500 italic">{step.subject}</p>
+                        <p className="text-xs text-gray-500 italic">Contenu enregistré dans vos modèles email</p>
                       </div>
                     </div>
                   )

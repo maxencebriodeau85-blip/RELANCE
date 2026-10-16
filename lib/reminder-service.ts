@@ -112,6 +112,7 @@ export async function sendReminder(
     !assertActiveAccess(freshProfile).ok ||
     (source === 'automatic' && !freshProfile?.auto_reminders) ||
     reminderBlock(fresh as Invoice) ||
+    fresh.client_email !== invoice.client_email ||
     outstanding(fresh as Invoice) !== outstanding(invoice)
   ) {
     await db.from('reminders').update({ status: 'failed' }).eq('id', claim.id)

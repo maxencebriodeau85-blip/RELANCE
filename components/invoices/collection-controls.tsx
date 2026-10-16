@@ -16,6 +16,8 @@ export function CollectionControls({
   invoice: Invoice
   onSaved: () => void
 }) {
+  const [email, setEmail] = useState(invoice.client_email || '')
+  const emailChanged = (email.trim().toLowerCase() || null) !== invoice.client_email
   const [paid, setPaid] = useState(String(invoice.amount_paid || 0))
   const [promise, setPromise] = useState(invoice.promise_date || '')
   const [paused, setPaused] = useState(invoice.reminders_paused !== false)
@@ -41,9 +43,10 @@ export function CollectionControls({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           amount_paid: amountPaid,
+          client_email: email.trim() || null,
           expected_updated_at: invoice.updated_at,
           promise_date: promise || null,
-          reminders_paused: paused,
+          reminders_paused: paused || emailChanged || !email.trim(),
           disputed,
           notes,
         }),
@@ -77,6 +80,11 @@ export function CollectionControls({
         </p>
       </CardHeader>
       <CardContent className="space-y-5">
+        <div>
+          <Label htmlFor="client-email">Email du client (facultatif)</Label>
+          <Input id="client-email" type="email" maxLength={254} value={email} onChange={event => setEmail(event.target.value)} placeholder="comptabilite@client.fr" disabled={busy} />
+          <p className="mt-1 text-xs text-gray-500">Nécessaire pour relancer par email. Une adresse ajoutée ou modifiée remet les relances en pause : vous pourrez les réactiver après vérification.</p>
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <Label htmlFor="amount-paid">Montant déjà encaissé (€ TTC)</Label>
@@ -126,7 +134,8 @@ export function CollectionControls({
         <label className="flex items-center gap-3 text-sm">
           <input
             type="checkbox"
-            checked={paused}
+            checked={paused || emailChanged || !email.trim()}
+            disabled={emailChanged || !email.trim()}
             onChange={(e) => setPaused(e.target.checked)}
           />
           Mettre les relances en pause

@@ -91,14 +91,14 @@ export default function InvoicesPage() {
 
   useEffect(() => { loadInvoices() }, [loadInvoices])
 
-  const [quickFilter, setQuickFilter] = useState<'all' | 'overdue' | 'overdue30' | 'unpaid' | 'sent_today'>('all')
+  const [quickFilter, setQuickFilter] = useState<'all' | 'overdue' | 'overdue30' | 'unpaid' | 'missing_email'>('all')
 
   const filtered = invoices.filter((inv) => {
     const q = search.toLowerCase()
     const matchSearch = !search ||
       inv.client_name.toLowerCase().includes(q) ||
       inv.invoice_number.toLowerCase().includes(q) ||
-      inv.client_email.toLowerCase().includes(q)
+      (inv.client_email || '').toLowerCase().includes(q)
     const matchStatus = statusFilter === 'all' || inv.status === statusFilter
     const matchFrom = !dateFrom || inv.due_date >= dateFrom
     const matchTo = !dateTo || inv.due_date <= dateTo
@@ -106,6 +106,7 @@ export default function InvoicesPage() {
     let matchQuick = true
     if (quickFilter === 'overdue') matchQuick = od > 0 && inv.status !== 'paid' && inv.status !== 'disputed'
     else if (quickFilter === 'overdue30') matchQuick = od > 30 && inv.status !== 'paid' && inv.status !== 'disputed'
+    else if (quickFilter === 'missing_email') matchQuick = !inv.client_email
     else if (quickFilter === 'unpaid') matchQuick = inv.status !== 'paid'
     return matchSearch && matchStatus && matchFrom && matchTo && matchQuick
   })
@@ -265,6 +266,7 @@ export default function InvoicesPage() {
           <div className="flex gap-1.5 flex-wrap">
             {[
               { id: 'all', label: 'Toutes', count: invoices.length },
+              { id: 'missing_email', label: 'Sans email', count: invoices.filter(i => !i.client_email).length },
               { id: 'unpaid', label: 'Non payées', count: invoices.filter(i => i.status !== 'paid').length },
               { id: 'overdue', label: 'En retard', count: invoices.filter(i => getDaysOverdue(i) > 0 && i.status !== 'paid' && i.status !== 'disputed').length },
               { id: 'overdue30', label: '> 30 jours', count: invoices.filter(i => getDaysOverdue(i) > 30 && i.status !== 'paid' && i.status !== 'disputed').length },
@@ -444,7 +446,7 @@ export default function InvoicesPage() {
                       </TableCell>
                       <TableCell>
                         <div className="font-medium text-sm">{invoice.client_name}</div>
-                        <div className="text-xs text-gray-400">{invoice.client_email}</div>
+                        <div className="text-xs text-gray-400">{invoice.client_email || 'Email à compléter'}</div>
                       </TableCell>
                       <TableCell className="font-mono text-sm text-gray-600">{invoice.invoice_number}</TableCell>
                       <TableCell className="text-right font-semibold text-sm">{formatEuro(invoice.amount)}</TableCell>

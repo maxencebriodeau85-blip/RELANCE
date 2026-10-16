@@ -53,7 +53,7 @@ export async function POST(request: Request) {
         {
           amount: number
           amount_paid: number
-          client_email: string
+          client_email: string | null
           updated_at: string
         }
       >()
@@ -84,7 +84,7 @@ export async function POST(request: Request) {
         if (
           previous &&
           (Number(previous.amount) !== row.amount ||
-            previous.client_email.toLowerCase() !== row.client_email)
+            (previous.client_email && row.client_email && previous.client_email.toLowerCase() !== row.client_email))
         )
           conflicts.push({
             row: index + 2,
@@ -92,9 +92,9 @@ export async function POST(request: Request) {
             message: `La référence ${row.invoice_number} existe avec un autre montant ou email.`,
           })
         if (!previous) summary.imported++
-        else if (row.remaining_amount === undefined) summary.unchanged++
+        else if (row.remaining_amount === undefined && !(!previous.client_email && row.client_email)) summary.unchanged++
         else summary.updated++
-        return { ...row, expected_updated_at: previous?.updated_at ?? null }
+        return { ...row, client_email: row.client_email || previous?.client_email || null, expected_updated_at: previous?.updated_at ?? null }
       })
       if (conflicts.length)
         return NextResponse.json(

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { assertActiveAccess } from '@/lib/access-control'
-import { isValidDate } from '@/lib/validation'
+import { isValidDate, isValidEmail } from '@/lib/validation'
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -52,6 +52,9 @@ export async function PATCH(
       { error: 'Vérifiez les montants, la date et les notes.' },
       { status: 422 },
     )
+  if ('client_email' in body && body.client_email !== null && (typeof body.client_email !== 'string' || body.client_email.trim().length > 254 || (body.client_email.trim() && !isValidEmail(body.client_email.trim())))) return NextResponse.json({ error: 'Adresse email invalide.' }, { status: 422 })
+  const clientEmail = 'client_email' in body ? (body.client_email?.trim().toLowerCase() || null) : invoice.client_email
+  const emailChanged = clientEmail !== invoice.client_email
   if (Date.parse(body.expected_updated_at) !== Date.parse(invoice.updated_at))
     return NextResponse.json(
       {
@@ -72,9 +75,10 @@ export async function PATCH(
     .from('invoices')
     .update({
       amount_paid: body.amount_paid,
+      client_email: clientEmail,
       status,
       promise_date: body.promise_date || null,
-      reminders_paused: body.reminders_paused,
+      reminders_paused: emailChanged || !clientEmail || body.reminders_paused,
       balance_checked_at: new Date().toISOString(),
       notes: body.notes,
       updated_at: new Date().toISOString(),

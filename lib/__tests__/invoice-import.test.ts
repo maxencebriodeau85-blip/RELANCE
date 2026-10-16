@@ -14,6 +14,22 @@ const row = {
   due_date: '2026-12-01',
 }
 describe('Import integrity', () => {
+  it('accepts a missing email column or empty cells without inventing an address', () => {
+    for (const client_email of [undefined, null, '', '   ']) {
+      const result = validateInvoiceRows([{ ...row, client_email }])
+      expect(result.errors).toEqual([])
+      expect(result.valid[0].client_email).toBeNull()
+    }
+    const result = applyColumnMapping([{ client: 'Client', ref: 'F1', amount: '100', due: '01/10/2026' }], {
+      client_name: 'client', client_email: '', invoice_number: 'ref', amount: 'amount', due_date: 'due',
+    })
+    expect(result.errors).toEqual([])
+    expect(result.valid[0].client_email).toBeNull()
+  })
+  it('still rejects malformed supplied addresses and non-text values', () => {
+    for (const client_email of ['invalide', 'test@domain', 'x'.repeat(255), true, 123])
+      expect(validateInvoiceRows([{ ...row, client_email }]).errors).toContainEqual(expect.objectContaining({ field: 'client_email' }))
+  })
   it('never turns a blank balance into a settlement', () => {
     for (const remaining_amount of ['', null, undefined])
       expect(

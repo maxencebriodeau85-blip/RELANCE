@@ -169,7 +169,7 @@ function NewInvoiceForm() {
                 <FieldError msg={fieldErrors.client_name} />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="client_email">Email <span className="text-red-500">*</span></Label>
+                <Label htmlFor="client_email">Email (facultatif)</Label>
                 <Input
                   id="client_email"
                   type="email"
@@ -178,7 +178,7 @@ function NewInvoiceForm() {
                   placeholder="contact@acme.fr"
                   className={fieldErrors.client_email ? 'border-red-400 focus-visible:ring-red-400' : ''}
                 />
-                <FieldError msg={fieldErrors.client_email} />
+                <FieldError msg={fieldErrors.client_email} /><p className="mt-1 text-xs text-gray-500">Vous pourrez le compléter plus tard. Une adresse est nécessaire pour envoyer une relance.</p>
               </div>
               <div className="col-span-2 space-y-1.5">
                 <Label htmlFor="client_address">Adresse <span className="text-gray-400 font-normal text-xs">(optionnel)</span></Label>

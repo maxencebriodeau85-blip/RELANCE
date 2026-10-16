@@ -28,8 +28,7 @@ export async function POST(request: Request) {
     else if (clientName.length > 200) errors.client_name = 'Nom trop long (200 car. max)'
 
     const clientEmail = String(body.client_email || '').trim().toLowerCase()
-    if (!clientEmail) errors.client_email = 'Email requis'
-    else if (!isValidEmail(clientEmail)) errors.client_email = 'Email invalide'
+    if (clientEmail && (clientEmail.length > 254 || !isValidEmail(clientEmail))) errors.client_email = 'Email invalide'
 
     const invoiceNumber = String(body.invoice_number || '').trim()
     if (!invoiceNumber) errors.invoice_number = 'Numéro de facture requis'
@@ -120,7 +119,7 @@ export async function POST(request: Request) {
       .insert({
         user_id: user.id,
         client_name: clientName,
-        client_email: clientEmail,
+        client_email: clientEmail || null,
         client_address: clientAddress,
         client_siren: clientSiren,
         invoice_number: invoiceNumber,

@@ -440,10 +440,10 @@ export default function InvoiceDetailPage() {
                 </div>
                 <div>
                   <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Email</div>
-                  <a href={`mailto:${invoice.client_email}`} className="flex items-center gap-1 text-brand-600 hover:underline text-sm">
+                  {invoice.client_email ? <a href={`mailto:${invoice.client_email}`} className="flex items-center gap-1 text-brand-600 hover:underline text-sm">
                     <Mail className="h-3.5 w-3.5 text-gray-400" />
                     {invoice.client_email}
-                  </a>
+                  </a> : <span className="text-sm text-amber-700">Email à compléter dans le suivi ci-dessous</span>}
                 </div>
                 {invoice.client_address && (
                   <div className="col-span-2">

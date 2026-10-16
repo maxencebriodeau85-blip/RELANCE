@@ -12,7 +12,7 @@ export interface CSVRow {
 
 export interface ParsedInvoice {
   client_name: string
-  client_email: string
+  client_email: string | null
   invoice_number: string
   amount: number
   due_date: string

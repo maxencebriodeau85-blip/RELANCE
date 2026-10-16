@@ -80,7 +80,7 @@ export type Database = {
           id: string
           user_id: string
           client_name: string
-          client_email: string
+          client_email: string | null
           client_address: string | null
           client_siren: string | null
           invoice_number: string
@@ -104,7 +104,7 @@ export type Database = {
           id?: string
           user_id: string
           client_name: string
-          client_email: string
+          client_email: string | null
           client_address?: string | null
           client_siren?: string | null
           invoice_number: string
@@ -128,7 +128,7 @@ export type Database = {
           id?: string
           user_id?: string
           client_name?: string
-          client_email?: string
+          client_email?: string | null
           client_address?: string | null
           client_siren?: string | null
           invoice_number?: string

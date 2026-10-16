@@ -1,3 +1,5 @@
+import { REMINDER_TEMPLATES } from './reminder-templates'
+
 // Escape user-controlled strings before inserting into HTML to prevent XSS.
 // Email clients render HTML, so any unescaped data is a live attack surface.
 function escapeHtml(s: string): string {
@@ -373,18 +375,11 @@ export function getEmailTemplate(
   type: 'email_1' | 'email_2' | 'email_3' | 'formal_notice',
   data: EmailTemplateData
 ): { subject: string; html: string; text: string } {
-  switch (type) {
-    case 'email_1':
-      return getEmailCordial(data)
-    case 'email_2':
-      return getEmailFerme(data)
-    case 'email_3':
-      return getEmailPrecontentieux(data)
-    case 'formal_notice':
-      return getEmailFormalNotice(data)
-    default:
-      return getEmailCordial(data)
-  }
+  const template = REMINDER_TEMPLATES.find(t => t.type === type)
+  if (!template) return getEmailFormalNotice(data)
+  const subject = interpolateTemplate(template.defaultSubject, data)
+  const body = interpolateTemplate(template.defaultBody, data)
+  return { subject, ...wrapCustomBody(body, data) }
 }
 
 // Variable interpolation for user-customized templates.

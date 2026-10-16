@@ -20,6 +20,7 @@ export async function GET(request: Request) {
     .select('*, profiles!inner(*)')
     .in('status', ['pending', 'reminded', 'formal_notice'])
     .eq('reminders_paused', false)
+    .not('client_email', 'is', null)
     .gte(
       'balance_checked_at',
       new Date(Date.now() - 7 * 86400000).toISOString(),
