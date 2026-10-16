@@ -40,7 +40,9 @@ Les tests de migration utilisent PostgreSQL embarqué via PGlite avec un schéma
 - Toute relance exige un solde vérifié depuis moins de sept jours, un compte actif et une facture échue.
 - Scénarios : standard J+7/15/30, doux J+7/21, ferme J+3/10/20. Une ancienne facture commence par la première étape manquante.
 - Les envois manuels et automatiques partagent le même service. Une réservation SQL empêche deux envois simultanés sur la même facture. Une étape délivrée reste réservée ; temporisation minimale de 24 heures entre étapes.
-- Une réponse ambiguë du fournisseur laisse l'envoi en attente pour vérification, plutôt que de risquer un doublon. Voir DEPLOYMENT.md.
+- Une réponse ambiguë du fournisseur laisse l'envoi en attente. Le webhook signé peut réconcilier la réservation ; un rejet définitif ou un signalement spam suspend le suivi. Voir DEPLOYMENT.md.
+- Les totaux et l’ancienneté des soldes sont calculés directement dans PostgreSQL, sur toutes les factures du compte.
+- Les réglages des relances ne sont confirmés qu’après enregistrement ; une configuration d’envoi manquante est signalée.
 
 ## Périmètre
 

@@ -137,3 +137,43 @@ Migration `20261015060325_invoice_import_and_actions.sql` appliquée à RECOUVRE
 Validation : 130 tests automatisés réussis, typecheck, lint et build de production. Recette SQL sur la base distante, dans une transaction annulée : import avec solde partiel, refus d’un aperçu périmé, règlement et droits anonymes. Les tests PostgreSQL embarqués vérifient aussi l’isolation entre comptes et l’annulation d’un lot en conflit. Le diagnostic Supabase ne signale aucun problème de sécurité SQL ; l’avertissement Auth sur les mots de passe compromis reste inchangé.
 
 Cette version ne fournit pas encore un journal comptable des encaissements ni l’import natif XLSX/PDF. Elle gère un cumul encaissé et des exports CSV. Les limites de configuration emails/Stripe/Vercel décrites plus haut restent à résoudre avant une recette commerciale complète.
+
+## Fiabilité des relances et des totaux — 16 octobre 2026
+
+### Changements livrés
+
+- Les scénarios et le réglage d'automatisation des paramètres utilisent `/api/profile/reminders`. L'interface n'annonce un succès qu'après relecture de l'écriture. Une erreur conserve le scénario affiché ; une panne de chargement propose de réessayer. L'activation est refusée si les variables d'envoi/cron sont absentes ; la désactivation reste possible avec un essai expiré. La présence des variables ne prouve pas la délivrabilité.
+- Le tableau de bord et les statistiques utilisent `collection_overview()`, une agrégation dans un même instantané PostgreSQL sous les droits RLS de l'utilisateur. Les totaux portent sur toutes les factures, sans troncature aux 1 000/2 000 premières lignes. Seule la liste des priorités reste limitée à 12 éléments.
+- Chaque demande d'email porte l'identifiant de sa réservation. Le webhook Resend signé peut ainsi réconcilier un envoi resté `pending` même si la réponse HTTP initiale n'a pas été enregistrée. Les callbacks concurrents sont sérialisés ; un événement tardif ne rétrograde pas le statut. Un échec de persistance renvoie 503 pour solliciter une nouvelle livraison du webhook.
+- Les événements `email.bounced`, `email.complained` et `email.suppressed` suspendent les relances de la facture. Un callback ne réactive jamais un suivi.
+- Le cron revérifie l'activation du compte et de l'automatisation avant l'envoi. Une panne de fournisseur/base retourne 503 au lieu d'être masquée par un résultat réussi. La limite de débit de 25 tentatives et de 500 factures candidates par passage reste en place ; elle doit être revue avant de dépasser ce volume.
+
+### Migrations appliquées et vérifiées
+
+| Fichier local | Version distante RECOUVREMENT |
+| --- | --- |
+| `20261015214719_collection_overview.sql` | `20261016072406` |
+| `20261016071846_reminder_delivery_events.sql` | `20261016072412` |
+| `20261016073442_protect_reminder_history.sql` | `20261016155718` |
+
+Aucun changement de donnée métier par ces migrations additives. Sur la base distante, les totaux ont été comparés sous le rôle `authenticated` avec une requête directe sur les factures du compte. Les permissions interdisent la lecture anonyme du récapitulatif et l'écriture d'événements email aux utilisateurs.
+
+Une recette transactionnelle avec une réservation temporaire a vérifié : rattachement d'un envoi en attente, conservation du statut malgré un callback ancien et pause sur rejet. La transaction a été annulée. Avant/après : 3 comptes, 3 profils, 1 facture, 1 relance. Aucun email envoyé. Le diagnostic SQL ne signale pas de problème de sécurité ; la protection des mots de passe compromis reste désactivée côté Auth ([réglage](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection)).
+
+Dans Resend, abonner le webhook à `email.sent`, `email.delivered`, `email.opened`, `email.clicked`, `email.bounced`, `email.complained`, `email.failed` et `email.suppressed`. Les anciennes réservations sans les nouveaux tags restent réconciliables via `resend_id` s'il est connu ; les anciens envois ambigus sans identifiant nécessitent encore la vérification manuelle décrite plus haut. Les nouvelles clés d'idempotence ont le format `reminder-<reminderId>`.
+
+Références : [tags dans les callbacks Resend](https://resend.com/docs/dashboard/emails/tags), [événement email.sent](https://resend.com/docs/webhooks/emails/sent).
+
+### Blocage de mise en vente constaté
+
+Préversion : `https://relance-git-codex-encai-a75947-maxencebriodeau85-blips-projects.vercel.app`.
+
+Le 16 octobre à 07:23 UTC, `/api/health` (commit `13e4d40`) indique Supabase configuré, mais `billingReady`, `stripeFounderPrice`, `stripeSecret`, `stripeWebhook`, `emailSender`, `resend` et `cronSecret` à `false`. Il ne vérifie pas le SMTP Auth ni la livraison des messages.
+
+L'administration du projet `relance` (`prj_bkhHsaDHfiFhopjd59QajhBo4YqU`), équipe `team_VoRIT8PAxu046vbl6MclJGWM`, répond toujours 403 avec la connexion Vercel disponible. Le CLI n'a pas d'identifiants propres. Le déploiement Git de préproduction fonctionne, mais l'accès actuel ne permet pas de renseigner les variables, connecter les webhooks et valider les paiements/emails réels.
+
+La branche de travail reste la livraison de référence ; `main` contient encore l'ancien RelanceFlow. Ne pas présenter un build réussi comme une ouverture commerciale : il reste à raccorder les prestataires, compléter les coordonnées d'éditeur réelles, valider le parcours email/paiement et déployer la version configurée en production.
+
+Validation de cette livraison : **151 tests automatisés**, TypeScript et lint réussis. Recette navigateur du composant Scénarios à 390 et 1440 px avec API simulée : service absent → activation désactivée ; écriture refusée → scénario précédent conservé ; écriture confirmée → état enregistré affiché ; panne de lecture → message et bouton Réessayer fonctionnels. Aucun débordement horizontal à 390 px ni exception JavaScript. Les scripts de télémétrie Vercel sont inaccessibles dans cet environnement de test. La route temporaire de recette a été supprimée avant livraison. Ce contrôle d'interface ne remplace pas la recette réelle SMTP/Stripe.
+
+La protection de l’historique est appliquée et vérifiée : les comptes clients peuvent consulter leurs relances, mais ne peuvent plus insérer, modifier ou supprimer directement des événements d’envoi. Les services de réservation/envoi/webhook conservent leurs droits.

@@ -4,6 +4,7 @@ import { sendReminder } from '@/lib/reminder-service'
 import { nextReminder, businessDate, reminderBlock } from '@/lib/collection'
 import { getDaysOverdue } from '@/lib/metrics'
 import type { Invoice, Profile } from '@/lib/database.types'
+import { serviceCapabilities } from '@/lib/service-capabilities'
 export const maxDuration = 60
 export async function GET(request: Request) {
   if (
@@ -11,6 +12,8 @@ export async function GET(request: Request) {
     request.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`
   )
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+  if (!serviceCapabilities().automationAvailable)
+    return NextResponse.json({ error: 'Service de relance non configuré.', sent: 0 }, { status: 503 })
   const db = await createAdminClient()
   const { data, error } = await db
     .from('invoices')
@@ -62,9 +65,12 @@ export async function GET(request: Request) {
       continue
     }
     attempted++
-    const result = await sendReminder(row.id, row.user_id, step.type)
+    const result = await sendReminder(row.id, row.user_id, step.type, 'automatic')
     if (result.status === 200) sent++
-    else skipped++
+    else if (result.status >= 500) {
+      // A failed provider/database must not be reported as a successful cron.
+      return NextResponse.json({ error: result.error, sent, skipped, attempted }, { status: 503 })
+    } else skipped++
     await new Promise((resolve) => setTimeout(resolve, 550))
   }
   return NextResponse.json({ sent, skipped, attempted })

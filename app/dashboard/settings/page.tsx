@@ -153,24 +153,21 @@ function SettingsPageInner() {
   const handleSaveNotifications = async () => {
     setSavingNotif(true)
     try {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Non authentifié')
-
-      const { error } = await supabase.from('profiles').update({
-        auto_reminders: autoReminders,
-      } as never).eq('id', user.id)
-
-      if (error) throw error
-
-      toast({
-        title: autoReminders ? 'Relances automatiques activées' : 'Relances automatiques désactivées',
-        description: autoReminders
-          ? 'Encair enverra les relances selon votre scénario actif.'
-          : 'Les relances automatiques sont suspendues. Vous pouvez les envoyer manuellement.',
+      const response = await fetch('/api/profile/reminders', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ auto_reminders: autoReminders }),
       })
-    } catch {
-      toast({ title: 'Erreur', description: 'Impossible de sauvegarder.', variant: 'destructive' })
+      const result = await response.json()
+      if (!response.ok || !result.settings) throw new Error(result.error || 'Enregistrement impossible.')
+      setAutoReminders(result.settings.auto_reminders)
+      toast({
+        title: result.settings.auto_reminders ? 'Relances automatiques activées' : 'Relances automatiques désactivées',
+        description: result.settings.auto_reminders
+          ? 'Le scénario sera appliqué aux factures vérifiées et actives.'
+          : 'Les prochaines relances automatiques sont suspendues. Un envoi déjà en cours peut encore aboutir.',
+      })
+    } catch (error) {
+      toast({ title: 'Réglages non enregistrés', description: error instanceof Error ? error.message : 'Réessayez.', variant: 'destructive' })
     } finally {
       setSavingNotif(false)
     }

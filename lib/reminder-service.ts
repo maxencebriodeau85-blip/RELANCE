@@ -10,6 +10,7 @@ export async function sendReminder(
   invoiceId: string,
   userId: string,
   type: ReminderType,
+  source: 'manual' | 'automatic' = 'manual',
 ) {
   const db = await createAdminClient()
   const [{ data: raw }, { data: rawProfile }] = await Promise.all([
@@ -26,6 +27,8 @@ export async function sendReminder(
   if (!invoice) return { status: 404, error: 'Facture introuvable.' }
   const access = assertActiveAccess(profile)
   if (!access.ok) return { status: access.status, error: access.error }
+  if (source === 'automatic' && !profile?.auto_reminders)
+    return { status: 409, error: 'Les relances automatiques sont désactivées.' }
   const blocked = reminderBlock(invoice)
   if (blocked) return { status: 409, error: blocked }
   if (
@@ -91,21 +94,23 @@ export async function sendReminder(
     },
   )
   const claim = { id: claimId }
-  if (claimError)
+  if (claimError || !claimId)
     return {
-      status: claimError.code === '23505' ? 409 : 503,
+      status: claimError?.code === '23505' ? 409 : 503,
       error:
         'Cette étape est déjà enregistrée ou ne peut pas être réservée. Aucun nouvel envoi.',
     }
   // Re-read just before the external side effect. Never overwrite a concurrent payment.
-  const { data: fresh } = await db
+  const [{ data: fresh }, { data: freshProfile }] = await Promise.all([db
     .from('invoices')
     .select('*')
     .eq('id', invoiceId)
     .eq('user_id', userId)
-    .single()
+    .single(), db.from('profiles').select('auto_reminders,plan,trial_ends_at').eq('id', userId).single()])
   if (
     !fresh ||
+    !assertActiveAccess(freshProfile).ok ||
+    (source === 'automatic' && !freshProfile?.auto_reminders) ||
     reminderBlock(fresh as Invoice) ||
     outstanding(fresh as Invoice) !== outstanding(invoice)
   ) {
@@ -124,7 +129,7 @@ export async function sendReminder(
       headers: {
         Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
         'Content-Type': 'application/json',
-        'Idempotency-Key': `reminder-${invoiceId}-${type}`,
+        'Idempotency-Key': `reminder-${claim.id}`,
       },
       body: JSON.stringify({
         from: `${name} <${process.env.RESEND_FROM_EMAIL}>`,
@@ -134,6 +139,7 @@ export async function sendReminder(
         html: content.html,
         text: content.text,
         tags: [
+          { name: 'reminder_id', value: claim.id },
           { name: 'invoice_id', value: invoiceId },
           { name: 'type', value: type },
         ],

@@ -1,31 +1,16 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { calculateAgingBuckets, formatEuro } from '@/lib/metrics'
-import { outstanding, businessDate } from '@/lib/collection'
-import type { Invoice } from '@/lib/database.types'
+import { formatEuro } from '@/lib/metrics'
+import { loadCollectionOverview } from '@/lib/collection-overview'
 export default async function StatsPage() {
   const db = await createClient()
   const {
     data: { user },
   } = await db.auth.getUser()
   if (!user) redirect('/auth/clear-session')
-  const { data, error } = await db
-    .from('invoices')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('due_date')
-    .limit(2000)
-  if (error) throw new Error('Impossible de charger les statistiques.')
-  const invoices = (data || []) as Invoice[]
-  const buckets = calculateAgingBuckets(invoices)
-  const total = invoices.reduce((sum, i) => sum + outstanding(i), 0)
-  const disputed = invoices
-    .filter((i) => i.status === 'disputed')
-    .reduce((sum, i) => sum + outstanding(i), 0)
-  const overdue = invoices
-    .filter((i) => i.due_date < businessDate())
-    .reduce((sum, i) => sum + outstanding(i), 0)
+  const overview = await loadCollectionOverview(db)
+  const { outstanding: total, disputed, overdue, aging: buckets } = overview
   return (
     <div className="p-5 md:p-8 max-w-6xl mx-auto space-y-8">
       <header>
@@ -76,9 +61,6 @@ export default async function StatsPage() {
       <p className="text-sm text-gray-500">
         Ces données ne constituent pas un relevé bancaire. Confirmez
         régulièrement les soldes ou réimportez votre export actualisé.
-        {invoices.length >= 2000
-          ? ' Vue limitée aux 2 000 premières factures par échéance.'
-          : ''}
       </p>
       <Link className="rf-button" href="/dashboard/invoices/import">
         Actualiser avec un CSV

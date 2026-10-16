@@ -9,9 +9,9 @@ import {
   CircleAlert,
   Clock3,
 } from 'lucide-react'
-import { formatEuro, formatDate, getDaysOverdue } from '@/lib/metrics'
-import { businessDate, outstanding, reminderBlock } from '@/lib/collection'
-import type { Invoice } from '@/lib/database.types'
+import { formatEuro, formatDate } from '@/lib/metrics'
+import { outstanding, reminderBlock } from '@/lib/collection'
+import { loadCollectionOverview } from '@/lib/collection-overview'
 
 export default async function DashboardPage() {
   const db = await createClient()
@@ -21,29 +21,8 @@ export default async function DashboardPage() {
   if (!user) redirect('/auth/clear-session')
   const { data: profile, error: profileError } = await db.from('profiles').select('company_name, plan, trial_ends_at').eq('id', user.id).single()
   if (profileError || !profile) throw new Error('Votre profil ne peut pas être chargé.')
-  const { data, error } = await db
-    .from('invoices')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('due_date')
-    .limit(2000)
-  if (error) throw new Error('Impossible de charger vos factures.')
-  const invoices = (data || []) as Invoice[]
-  const active = invoices.filter((i) => outstanding(i) > 0)
-  const overdue = active.filter((i) => i.due_date < businessDate())
-  const promises = active.filter(
-    (i) => i.promise_date && i.promise_date >= businessDate(),
-  )
-  const stale = active.filter(
-    (i) =>
-      !i.balance_checked_at ||
-      Date.now() - Date.parse(i.balance_checked_at) > 7 * 86400000,
-  )
-  const priorities = [...active]
-    .sort((a, b) => getDaysOverdue(b) - getDaysOverdue(a))
-    .slice(0, 12)
-  const total = (rows: Invoice[]) =>
-    rows.reduce((sum, i) => sum + outstanding(i), 0)
+  const overview = await loadCollectionOverview(db)
+  const priorities = overview.priorities
   return (
     <div className="mx-auto max-w-7xl p-5 sm:p-8 lg:p-10">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
@@ -67,30 +46,30 @@ export default async function DashboardPage() {
           Importer / actualiser
         </Link>
       </div>
-      <GettingStarted companyReady={Boolean(profile.company_name)} imported={invoices.length > 0} verified={invoices.some(invoice => Boolean(invoice.balance_checked_at) && invoice.reminders_paused === false)} trialEndsAt={profile.plan === 'free_trial' ? profile.trial_ends_at : null} />
+      <GettingStarted companyReady={Boolean(profile.company_name)} imported={overview.invoice_count > 0} verified={overview.has_verified} trialEndsAt={profile.plan === 'free_trial' ? profile.trial_ends_at : null} />
       <div className="mb-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
           {
             label: 'Reste à encaisser',
-            value: total(active),
-            note: `${active.length} factures ouvertes`,
+            value: overview.outstanding,
+            note: `${overview.active_count} factures ouvertes`,
             style: 'bg-brand-900 text-white',
           },
           {
             label: 'Échéances dépassées',
-            value: total(overdue),
-            note: `${overdue.length} factures, litiges inclus`,
+            value: overview.overdue,
+            note: `${overview.overdue_count} factures, litiges inclus`,
             style: 'bg-white text-brand-900',
           },
           {
             label: 'Paiements promis',
-            value: total(promises),
-            note: `${promises.length} promesses en cours`,
+            value: overview.promised,
+            note: `${overview.promise_count} promesses en cours`,
             style: 'bg-white text-brand-900',
           },
           {
             label: 'Montants en litige',
-            value: total(active.filter((i) => i.status === 'disputed')),
+            value: overview.disputed,
             note: 'Relances suspendues',
             style: 'bg-white text-brand-900',
           },
@@ -107,12 +86,12 @@ export default async function DashboardPage() {
           </div>
         ))}
       </div>
-      {stale.length > 0 && (
+      {overview.stale_count > 0 && (
         <div className="mb-6 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
           <CircleAlert size={18} className="mt-0.5 shrink-0 text-amber-700" />
           <p className="text-sm leading-relaxed text-amber-900">
             <b>
-              {stale.length} solde{stale.length > 1 ? 's' : ''} à vérifier.
+              {overview.stale_count} solde{overview.stale_count > 1 ? 's' : ''} à vérifier.
             </b>{' '}
             Actualisez votre export ou confirmez les paiements sur la fiche de
             chaque facture. Les soldes non vérifiés depuis sept jours suspendent
@@ -132,7 +111,7 @@ export default async function DashboardPage() {
             <div className="px-6 py-16 text-center">
               <CheckCircle2 className="mx-auto mb-5 text-brand-400" size={35} />
               <h3 className="text-lg font-medium">
-                {invoices.length
+                {overview.invoice_count
                   ? 'Tout est réglé.'
                   : 'Votre suivi commence ici.'}
               </h3>
@@ -191,12 +170,6 @@ export default async function DashboardPage() {
                 )
               })}
             </div>
-          )}
-          {invoices.length === 2000 && (
-            <p className="p-4 text-xs text-amber-700">
-              Vue limitée aux 2 000 premières factures. Consultez la liste pour
-              affiner le suivi.
-            </p>
           )}
         </section>
         <aside className="space-y-5">
