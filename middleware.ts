@@ -52,11 +52,23 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(canonical, 301)
   }
 
+  // Cookie-authenticated writes must come from this app. Provider webhooks and
+  // the bearer-authenticated cron are excluded and verify their own credentials.
+  const sessionApi = ['/api/invoices', '/api/contacts', '/api/notifications', '/api/profile', '/api/email-templates', '/api/integrations/api-keys', '/api/stripe/checkout', '/api/stripe/portal']
+    .some(prefix => pathname === prefix || pathname.startsWith(prefix + '/'))
+  if (sessionApi && !['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
+    const origin = request.headers.get('origin')
+    if ((origin && origin !== request.nextUrl.origin) || request.headers.get('sec-fetch-site') === 'cross-site') {
+      return NextResponse.json({ error: 'Requête provenant d’un autre site refusée.' }, { status: 403, headers: { 'Cache-Control': 'no-store' } })
+    }
+  }
+
   // ── Auth redirects (only run when host is already canonical) ─────────────
   const loggedIn = hasSessionCookie(request)
 
   const isProtected =
     pathname.startsWith('/dashboard') ||
+    sessionApi ||
     pathname.startsWith('/api/invoices') ||
     pathname.startsWith('/api/contacts') ||
     pathname.startsWith('/api/notifications') ||
@@ -99,7 +111,7 @@ export async function middleware(request: NextRequest) {
   if (process.env.VERCEL_ENV && process.env.VERCEL_ENV !== 'production') {
     response.headers.set('X-Robots-Tag', 'noindex, nofollow')
   }
-  if (pathname.startsWith('/auth') || pathname.startsWith('/subscription') || pathname.startsWith('/dashboard')) {
+  if (sessionApi || pathname.startsWith('/auth') || pathname.startsWith('/subscription') || pathname.startsWith('/dashboard')) {
     response.headers.set('Cache-Control', 'private, no-store')
     response.headers.set('Referrer-Policy', 'no-referrer')
   }

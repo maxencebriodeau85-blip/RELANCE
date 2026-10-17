@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { generateApiKey, hashApiKey } from '@/lib/crypto'
+import { integrationUnavailable } from '@/lib/unavailable-features'
 
 // GET — list user's API keys (never returns full key)
 export async function GET() {
@@ -19,40 +19,8 @@ export async function GET() {
 }
 
 // POST — create a new API key
-export async function POST(request: Request) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
-
-  const body = await request.json().catch(() => ({}))
-  const name = String(body.name || '').trim().slice(0, 80)
-  if (!name) return NextResponse.json({ error: 'Nom requis' }, { status: 400 })
-
-  // Limit: 5 keys per user
-  const { count } = await supabase
-    .from('api_keys')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', user.id)
-
-  if ((count || 0) >= 5) {
-    return NextResponse.json({ error: 'Maximum 5 clés API par compte' }, { status: 400 })
-  }
-
-  const fullKey = generateApiKey()
-  const keyHash = await hashApiKey(fullKey)
-  const keyPrefix = fullKey.slice(0, 15) // "rf_live_xxxxxx"
-
-  const { error: insertErr } = await supabase.from('api_keys').insert({
-    user_id:    user.id,
-    name,
-    key_hash:   keyHash,
-    key_prefix: keyPrefix,
-  } as never)
-
-  if (insertErr) return NextResponse.json({ error: insertErr.message }, { status: 500 })
-
-  // Return full key ONCE — never stored in plaintext
-  return NextResponse.json({ key: fullKey, prefix: keyPrefix, name }, { status: 201 })
+export async function POST() {
+  return integrationUnavailable()
 }
 
 // DELETE — revoke a key

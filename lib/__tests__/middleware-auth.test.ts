@@ -30,3 +30,21 @@ describe('Session middleware', () => {
     expect(mock.getUser).not.toHaveBeenCalled()
   })
 })
+
+describe('Session API boundaries', () => {
+  it('rejects cross-origin writes before any session refresh', async () => {
+    const response = await middleware(new NextRequest('https://site.test/api/profile/reminders', { method: 'PATCH', headers: { origin: 'https://other.test', cookie:'sb-project-auth-token=existing' } }))
+    expect(response.status).toBe(403)
+    expect(mock.getUser).not.toHaveBeenCalled()
+  })
+  it('refreshes template sessions and prevents caching private API data', async () => {
+    const response = await middleware(new NextRequest('https://site.test/api/email-templates', { headers: { cookie:'sb-project-auth-token=existing' } }))
+    expect(mock.getUser).toHaveBeenCalled()
+    expect(response.headers.get('cache-control')).toBe('private, no-store')
+  })
+  it('leaves signed provider callbacks to their own authentication', async () => {
+    const response = await middleware(new NextRequest('https://site.test/api/stripe/webhook', { method: 'POST', headers: { origin:'https://provider.test' } }))
+    expect(response.status).toBe(200)
+    expect(mock.getUser).not.toHaveBeenCalled()
+  })
+})

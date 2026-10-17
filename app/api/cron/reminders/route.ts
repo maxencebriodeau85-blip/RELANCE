@@ -49,8 +49,8 @@ export async function GET(request: Request) {
       .select('type,created_at')
       .eq('invoice_id', row.id)
       .neq('status', 'failed')
+    if (historyError) return NextResponse.json({ error: 'Historique des relances indisponible.', sent, skipped, attempted }, { status: 503 })
     if (
-      historyError ||
       history?.some((r) => Date.parse(r.created_at) > Date.now() - 86400000)
     ) {
       skipped++

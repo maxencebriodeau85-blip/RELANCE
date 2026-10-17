@@ -38,9 +38,9 @@ const reminderTypeLabel: Record<string, string> = {
 }
 
 const reminderTypeTone: Record<string, string> = {
-  email_1: 'Ton cordial',
-  email_2: 'Ton ferme',
-  email_3: 'Ton pré-contentieux',
+  email_1: 'Modèle personnalisable',
+  email_2: 'Modèle personnalisable',
+  email_3: 'Modèle personnalisable',
   formal_notice: 'Légal',
 }
 
@@ -78,6 +78,7 @@ export default function InvoiceDetailPage() {
 
   const [invoice, setInvoice] = useState<Invoice | null>(null)
   const [reminders, setReminders] = useState<Reminder[]>([])
+  const [loadError, setLoadError] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
@@ -88,10 +89,12 @@ export default function InvoiceDetailPage() {
 
   const loadData = useCallback(async () => {
     setLoading(true)
+    setLoadError('')
     try {
       const { createClient } = await import('@/lib/supabase/client')
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError && (!authError.status || authError.status >= 500)) throw authError
       if (!user) {
         // Full navigation through /auth/clear-session (not a client-side
         // router.push to /auth/login) — the invalid session's cookie may
@@ -102,28 +105,30 @@ export default function InvoiceDetailPage() {
         return
       }
 
-      const { data: inv } = await supabase
+      const { data: inv, error: invoiceError } = await supabase
         .from('invoices')
         .select('*')
         .eq('id', id)
         .eq('user_id', user.id)
-        .single()
+        .maybeSingle()
 
+      if (invoiceError) throw invoiceError
       if (!inv) { setInvoice(null); setLoading(false); return }
 
       setInvoice(inv as Invoice)
 
-      const { data: rem } = await supabase
+      const { data: rem, error: historyError } = await supabase
         .from('reminders')
         .select('*')
         .eq('invoice_id', id)
         .order('created_at', { ascending: false })
 
+      if (historyError) throw historyError
       const remList = (rem as Reminder[]) || []
       setReminders(remList)
       setSelectedReminderType(getNextReminderType(remList))
     } catch {
-      setInvoice(null)
+      setLoadError('Impossible de charger la facture et son historique. Réessayez.')
     } finally {
       setLoading(false)
     }
@@ -234,6 +239,8 @@ export default function InvoiceDetailPage() {
       </div>
     )
   }
+
+  if (loadError) return <div className="p-6"><p role="alert" className="mb-4 text-red-700">{loadError}</p><Button onClick={loadData}>Réessayer</Button></div>
 
   if (!invoice) {
     return (
@@ -497,9 +504,9 @@ export default function InvoiceDetailPage() {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <Button onClick={handleSendReminder} disabled={sending || !!reminderBlock(invoice)} className="flex-1 sm:flex-none">
+                    <Button onClick={handleSendReminder} disabled={sending || !!reminderBlock(invoice) || reminders.some(r => r.type === selectedReminderType && r.status !== 'failed')} className="flex-1 sm:flex-none">
                       <Send className="mr-2 h-4 w-4" />
-                      {sending ? 'Envoi en cours…' : `Envoyer — ${reminderTypeLabel[selectedReminderType]}`}
+                      {sending ? 'Envoi en cours…' : reminders.some(r => r.type === selectedReminderType && r.status !== 'failed') ? 'Étape déjà enregistrée' : `Envoyer — ${reminderTypeLabel[selectedReminderType]}`}
                     </Button>
                     {selectedReminderType === 'formal_notice' && (
                       <Button variant="outline" size="sm" asChild>

@@ -166,13 +166,13 @@ export default function HomePage() {
           <div>
             <span className="rf-eyebrow">AUCUNE RELANCE GÊNANTE</span>
             <h2>
-              Jamais de relance
+              Des soldes vérifiés
               <br />
-              à un client qui a payé.
+              avant de relancer.
             </h2>
             <p>
-              Sans solde confirmé depuis sept jours, rien ne part. Une promesse,
-              un litige ou un paiement reçu mettent les envois en pause
+              Actualisez les règlements reçus : Encair ne consulte pas votre banque. Sans solde confirmé depuis sept jours, rien ne part. Une promesse,
+              un litige ou un règlement complet enregistré mettent les envois en pause
               automatiquement.
             </p>
             <Link href="/auth/register" className="rf-button rf-button-light">

@@ -13,10 +13,11 @@ export async function GET() {
     .order('created_at', { ascending: false })
     .limit(100)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return NextResponse.json({ error: 'Notifications indisponibles.' }, { status: 503 })
 
-  const unreadCount = (data || []).filter((n) => !n.read).length
-  return NextResponse.json({ notifications: data || [], unreadCount })
+  const { count, error: countError } = await supabase.from('notifications').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('read', false)
+  if (countError || count === null) return NextResponse.json({ error: 'Notifications indisponibles.' }, { status: 503 })
+  return NextResponse.json({ notifications: data || [], unreadCount: count }, { headers: { 'Cache-Control': 'no-store' } })
 }
 
 export async function PATCH() {
@@ -30,6 +31,6 @@ export async function PATCH() {
     .eq('user_id', user.id)
     .eq('read', false)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return NextResponse.json({ error: 'Notifications indisponibles.' }, { status: 503 })
   return NextResponse.json({ success: true })
 }

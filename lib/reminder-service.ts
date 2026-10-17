@@ -13,7 +13,7 @@ export async function sendReminder(
   source: 'manual' | 'automatic' = 'manual',
 ) {
   const db = await createAdminClient()
-  const [{ data: raw }, { data: rawProfile }] = await Promise.all([
+  const [{ data: raw, error: invoiceError }, { data: rawProfile, error: profileError }] = await Promise.all([
     db
       .from('invoices')
       .select('*')
@@ -22,6 +22,7 @@ export async function sendReminder(
       .single(),
     db.from('profiles').select('*').eq('id', userId).single(),
   ])
+  if (invoiceError || profileError) return { status: 503, error: 'Impossible de vérifier la facture et le compte. Aucun envoi.' }
   const invoice = raw as Invoice | null
   const profile = rawProfile as Profile | null
   if (!invoice) return { status: 404, error: 'Facture introuvable.' }

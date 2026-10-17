@@ -207,3 +207,12 @@ Une erreur de lecture du profil, du quota ou de la référence empêche la créa
 Les corps JSON sont bornés pendant la lecture du flux (32 Kio en création, 5 Mio en import), même si Content-Length manque ou est mensonger. Un dépassement renvoie 413, un JSON mal formé 400. Les limites du fournisseur d’hébergement peuvent être plus basses.
 
 Validation : 201 tests automatisés, TypeScript et lint. Aucune migration requise, aucune modification des données existantes. Configuration par navigateur interrompue à la demande de l’utilisateur ; raccordements Resend/Stripe toujours en attente.
+
+
+## Audit fonctionnel — 17 octobre 2026
+
+Voir `AUDIT-2026-10-17.md` pour la matrice des fonctionnalités, les défauts corrigés, les limites et les critères de lancement. Validation : 222 tests, TypeScript, lint et build réussis ; PDF fictif rendu et contrôlé. Aucune recette réelle de paiement ou d’email.
+
+Migration locale `20261017083654_collection_notifications.sql` appliquée sous la version distante `20261017142418`. Fonction réservée à service_role, droits vérifiés, deux appels en transaction annulée sans erreur. Ne pas lancer un db push aveugle : les versions distantes historiques diffèrent des noms locaux.
+
+Anciens webhook et générateur de mise en demeure retirés (410) ; Pennylane et émission de nouvelles clés indisponibles (503). Anciennes données conservées. La future API v1 reste à développer. Les raccordements Resend/SMTP/Stripe et la recette authentifiée restent des conditions de commercialisation.

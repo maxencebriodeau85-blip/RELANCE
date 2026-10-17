@@ -1,5 +1,6 @@
 'use client'
 
+import { invoiceExportCSV } from '@/lib/invoice-export'
 import { useState, useEffect, useCallback } from 'react'
 import { Header } from '@/components/dashboard/header'
 import { Button } from '@/components/ui/button'
@@ -29,21 +30,7 @@ import { useToast } from '@/hooks/use-toast'
 const PAGE_SIZE = 10
 
 function exportToCSV(invoices: Invoice[]) {
-  const headers = ['N° Facture', 'Client', 'Email', 'Montant (€)', 'Reste à payer', 'Échéance', 'Statut', 'Jours de retard']
-  const rows = invoices.map((inv) => [
-    inv.invoice_number,
-    inv.client_name,
-    inv.client_email,
-    Number(inv.amount).toFixed(2).replace('.', ','),
-    outstanding(inv).toFixed(2).replace('.', ','),
-    inv.due_date,
-    inv.status,
-    getDaysOverdue(inv),
-  ])
-  const csv = [headers, ...rows]
-    .map((r) => r.map((c) => `"${String(c).replace(/^[=+@\t\r-]/, '\'$&').replace(/"/g, '""')}"`).join(';'))
-    .join('\n')
-  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+  const blob = new Blob([invoiceExportCSV(invoices)], { type: 'text/csv;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
