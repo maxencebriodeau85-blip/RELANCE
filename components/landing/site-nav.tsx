@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { CTA_LABEL } from '@/lib/plans'
 import Link from 'next/link'
 import { Menu, X } from 'lucide-react'
 import { Logo } from '@/components/brand/logo'
@@ -76,7 +77,7 @@ export function SiteNav() {
               href="/auth/register"
               className="rounded-lg bg-brand-gradient text-white text-sm font-semibold px-4 py-2 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all"
             >
-              Essai gratuit 30j
+              {CTA_LABEL}
             </Link>
           </Magnetic>
         </div>
@@ -119,7 +120,7 @@ export function SiteNav() {
                 onClick={() => setOpen(false)}
                 className="block text-center rounded-lg bg-brand-gradient text-white text-sm font-semibold px-4 py-2.5"
               >
-                Essai gratuit 30j
+                {CTA_LABEL}
               </Link>
             </div>
           </div>

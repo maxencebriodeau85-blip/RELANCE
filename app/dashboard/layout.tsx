@@ -7,44 +7,47 @@ import { Logo } from '@/components/brand/logo'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
 
   // Not /auth/login directly — see app/auth/clear-session/route.ts for why
   // an invalid session must be cleared via a Route Handler, not a redirect
   // straight out of this Server Component.
+  if (authError && (!authError.status || authError.status >= 500)) throw new Error('La connexion est momentanément indisponible. Réessayez.')
   if (!user) redirect('/auth/clear-session')
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('plan, trial_ends_at')
     .eq('id', user.id)
     .single()
 
+  if (profileError || !profile) throw new Error('Votre espace est momentanément indisponible. Réessayez dans un instant.')
+
   // Fail-closed: a free_trial with no trial_ends_at (legacy row, or a
   // cancelled subscription reverted to free_trial) is treated as expired.
   if (
     profile?.plan === 'free_trial' &&
-    (!profile.trial_ends_at || new Date(profile.trial_ends_at) < new Date())
+    (!profile.trial_ends_at || !Number.isFinite(Date.parse(profile.trial_ends_at)) || new Date(profile.trial_ends_at) <= new Date())
   ) {
     redirect('/subscription')
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="rf-workspace flex h-screen overflow-hidden bg-gray-50">
       {/* Desktop sidebar */}
       <Sidebar />
 
       {/* Main content area */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Top bar — mobile: hamburger + logo + bell | desktop: bell only */}
-        <div className="flex h-14 items-center justify-between border-b bg-white px-4 flex-shrink-0">
+        <div className="rf-workspace-top flex items-center justify-between border-b px-5 flex-shrink-0">
           {/* Mobile left */}
           <div className="flex items-center gap-3 md:hidden">
             <MobileNav />
             <Logo href="/dashboard" size="sm" />
           </div>
           {/* Desktop spacer */}
-          <div className="hidden md:block" />
+          <p className="hidden md:block">Encair <span className="mx-3 opacity-40">/</span> Votre suivi des impayés</p>
           {/* Right: notification bell */}
           <NotificationBell />
         </div>

@@ -1,3 +1,5 @@
+import { REMINDER_TEMPLATES } from './reminder-templates'
+
 // Escape user-controlled strings before inserting into HTML to prevent XSS.
 // Email clients render HTML, so any unescaped data is a live attack surface.
 function escapeHtml(s: string): string {
@@ -109,7 +111,7 @@ export function getEmailCordial(data: EmailTemplateData): {
   <p>Cordialement,<br><strong>${eName}</strong></p>
 
   <div style="border-top: 1px solid #E5E7EB; padding-top: 16px; margin-top: 24px; font-size: 12px; color: #9CA3AF;">
-    <p>Ce message est généré automatiquement par RelanceFlow. Pour toute question, contactez directement ${eName}.</p>
+    <p>Ce message est généré automatiquement par Encair. Pour toute question, contactez directement ${eName}.</p>
   </div>
 </body>
 </html>`
@@ -182,7 +184,7 @@ export function getEmailFerme(data: EmailTemplateData): {
   <p>Cordialement,<br><strong>${eName}</strong></p>
 
   <div style="border-top: 1px solid #E5E7EB; padding-top: 16px; margin-top: 24px; font-size: 12px; color: #9CA3AF;">
-    <p>Ce message est généré automatiquement par RelanceFlow.</p>
+    <p>Ce message est généré automatiquement par Encair.</p>
   </div>
 </body>
 </html>`
@@ -373,18 +375,11 @@ export function getEmailTemplate(
   type: 'email_1' | 'email_2' | 'email_3' | 'formal_notice',
   data: EmailTemplateData
 ): { subject: string; html: string; text: string } {
-  switch (type) {
-    case 'email_1':
-      return getEmailCordial(data)
-    case 'email_2':
-      return getEmailFerme(data)
-    case 'email_3':
-      return getEmailPrecontentieux(data)
-    case 'formal_notice':
-      return getEmailFormalNotice(data)
-    default:
-      return getEmailCordial(data)
-  }
+  const template = REMINDER_TEMPLATES.find(t => t.type === type)
+  if (!template) return getEmailFormalNotice(data)
+  const subject = interpolateTemplate(template.defaultSubject, data)
+  const body = interpolateTemplate(template.defaultBody, data)
+  return { subject, ...wrapCustomBody(body, data) }
 }
 
 // Variable interpolation for user-customized templates.
@@ -426,7 +421,7 @@ export function wrapCustomBody(
   <div style="font-size: 14px;">${escapedBody}</div>
   ${paymentButton}
   <div style="border-top: 1px solid #E5E7EB; padding-top: 16px; margin-top: 24px; font-size: 12px; color: #9CA3AF;">
-    <p>Envoyé par RelanceFlow pour ${eName}.</p>
+    <p>Envoyé par Encair pour ${eName}.</p>
   </div>
 </body>
 </html>`

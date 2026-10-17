@@ -54,10 +54,10 @@ function NewInvoiceForm() {
     client_siren: '',
     invoice_number: '',
     amount: searchParams.get('amount') || '',
-    issued_date: todayStr,
-    due_date: addDays(todayStr, 30),
+    issued_date: '',
+    due_date: '',
     description: '',
-    vat_mention: 'TVA non applicable, art. 293B du CGI',
+    vat_mention: '',
     notes: '',
   })
 
@@ -79,13 +79,13 @@ function NewInvoiceForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
-          amount: parseFloat(form.amount),
+          amount: form.amount,
         }),
       })
 
       const data = await res.json()
 
-      if (res.status === 422 && data.fields) {
+      if ((res.status === 422 || res.status === 409) && data.fields) {
         setFieldErrors(data.fields)
         setLoading(false)
         return
@@ -127,7 +127,7 @@ function NewInvoiceForm() {
   return (
     <div>
       <Header
-        title="Nouvelle facture"
+        title="Ajouter une facture au suivi"
         description="Saisir manuellement une facture à recouvrer"
         actions={
           <Button variant="outline" size="sm" asChild>
@@ -169,7 +169,7 @@ function NewInvoiceForm() {
                 <FieldError msg={fieldErrors.client_name} />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="client_email">Email <span className="text-red-500">*</span></Label>
+                <Label htmlFor="client_email">Email (facultatif)</Label>
                 <Input
                   id="client_email"
                   type="email"
@@ -178,7 +178,7 @@ function NewInvoiceForm() {
                   placeholder="contact@acme.fr"
                   className={fieldErrors.client_email ? 'border-red-400 focus-visible:ring-red-400' : ''}
                 />
-                <FieldError msg={fieldErrors.client_email} />
+                <FieldError msg={fieldErrors.client_email} /><p className="mt-1 text-xs text-gray-500">Vous pourrez le compléter plus tard. Une adresse est nécessaire pour envoyer une relance.</p>
               </div>
               <div className="col-span-2 space-y-1.5">
                 <Label htmlFor="client_address">Adresse <span className="text-gray-400 font-normal text-xs">(optionnel)</span></Label>
@@ -234,9 +234,8 @@ function NewInvoiceForm() {
                   <Euro className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     id="amount"
-                    type="number"
-                    step="0.01"
-                    min="0.01"
+                    type="text"
+                    inputMode="decimal"
                     value={form.amount}
                     onChange={set('amount')}
                     placeholder="1 500,00"
@@ -246,7 +245,7 @@ function NewInvoiceForm() {
                 <FieldError msg={fieldErrors.amount} />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="issued_date">Date d&apos;émission <span className="text-red-500">*</span></Label>
+                <Label htmlFor="issued_date">Date d&apos;émission (facultative)</Label>
                 <Input
                   id="issued_date"
                   type="date"
@@ -287,8 +286,8 @@ function NewInvoiceForm() {
               </div>
               <div className="col-span-2 space-y-1.5">
                 <Label htmlFor="description">
-                  Désignation / objet de la prestation <span className="text-red-500">*</span>
-                  <span className="ml-1 text-gray-400 font-normal text-xs">(mention légale obligatoire)</span>
+                  Désignation / objet de la prestation
+                  <span className="ml-1 text-gray-400 font-normal text-xs">(facultatif pour le suivi)</span>
                 </Label>
                 <textarea
                   id="description"
@@ -299,6 +298,7 @@ function NewInvoiceForm() {
                   placeholder="Ex : Développement site web – Sprint 3 (15 au 28 juin 2024)"
                   className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
                 />
+                <FieldError msg={fieldErrors.description} />
                 {form.description.length > 400 && (
                   <p className="text-xs text-gray-400">{form.description.length}/500</p>
                 )}
@@ -311,6 +311,7 @@ function NewInvoiceForm() {
                   onChange={set('vat_mention')}
                   className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
+                  <option value="">Non renseignée</option>
                   <option value="TVA non applicable, art. 293B du CGI">TVA non applicable, art. 293B du CGI (auto-entrepreneur)</option>
                   <option value="TVA 20%">TVA 20% — taux normal</option>
                   <option value="TVA 10%">TVA 10% — taux intermédiaire</option>
@@ -339,7 +340,7 @@ function NewInvoiceForm() {
           <div className="flex items-center gap-3 pt-1">
             <Button type="submit" disabled={loading} className="min-w-32">
               <Save className="mr-2 h-4 w-4" />
-              {loading ? 'Création…' : 'Créer la facture'}
+              {loading ? 'Création…' : 'Ajouter au suivi'}
             </Button>
             <Button variant="ghost" type="button" asChild>
               <Link href="/dashboard/invoices">Annuler</Link>

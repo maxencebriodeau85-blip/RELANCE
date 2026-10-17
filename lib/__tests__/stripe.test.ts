@@ -1,10 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 
-// lib/stripe.ts instantiates the Stripe SDK at module load time, which
-// requires STRIPE_SECRET_KEY to be set (any non-empty string works — the SDK
-// doesn't validate the key format or reach the network until an API call is
-// made). Set dummy env vars before importing so this module-level side
-// effect doesn't crash the test run.
 beforeAll(() => {
   process.env.STRIPE_SECRET_KEY ??= 'sk_test_dummy'
   process.env.STRIPE_STARTER_PRICE_ID ??= 'price_starter_test'
@@ -31,5 +26,18 @@ describe('getPlanFromPriceId', () => {
     expect(getPlanFromPriceId(process.env.STRIPE_STARTER_PRICE_ID!)).toBe('starter')
     expect(getPlanFromPriceId(process.env.STRIPE_PRO_PRICE_ID!)).toBe('pro')
     expect(getPlanFromPriceId(process.env.STRIPE_BUSINESS_PRICE_ID!)).toBe('business')
+  })
+})
+
+// Public offer rendering must not require a payment provider secret.
+describe('Stripe optional during setup', () => {
+  it('renders plans without constructing the payment client', async () => {
+    const previous = process.env.STRIPE_SECRET_KEY
+    delete process.env.STRIPE_SECRET_KEY
+    const { STRIPE_PLANS, billingConfigured, getStripe } = await import('../stripe')
+    expect(STRIPE_PLANS.starter.price).toBe(16)
+    expect(billingConfigured()).toBe(false)
+    expect(() => getStripe()).toThrow('configuré')
+    process.env.STRIPE_SECRET_KEY = previous
   })
 })

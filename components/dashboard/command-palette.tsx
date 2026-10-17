@@ -20,12 +20,9 @@ interface Action {
 const ACTIONS: Action[] = [
   { id: 'go-dashboard', label: 'Tableau de bord', icon: BarChart3, shortcut: 'g d', run: (r) => r.push('/dashboard'), keywords: ['home', 'accueil', 'kpi'] },
   { id: 'go-invoices', label: 'Factures', icon: FileText, shortcut: 'g i', run: (r) => r.push('/dashboard/invoices'), keywords: ['invoice', 'facturation'] },
-  { id: 'go-pipeline', label: 'Pipeline', icon: Kanban, shortcut: 'g p', run: (r) => r.push('/dashboard/pipeline'), keywords: ['crm', 'kanban', 'deals'] },
   { id: 'go-scenarios', label: 'Scénarios de relance', icon: Bell, shortcut: 'g s', run: (r) => r.push('/dashboard/scenarios'), keywords: ['rules', 'automation'] },
-  { id: 'go-templates', label: 'Templates email', icon: Mail, shortcut: 'g t', run: (r) => r.push('/dashboard/templates'), keywords: ['emails', 'modèles'] },
+  { id: 'go-templates', label: 'Modèles email', icon: Mail, shortcut: 'g t', run: (r) => r.push('/dashboard/templates'), keywords: ['emails', 'modèles'] },
   { id: 'go-stats', label: 'Statistiques', icon: BarChart3, shortcut: 'g a', run: (r) => r.push('/dashboard/stats'), keywords: ['analytics', 'graphiques'] },
-  { id: 'go-formal', label: 'Mises en demeure', icon: AlertTriangle, shortcut: 'g m', run: (r) => r.push('/dashboard/mise-en-demeure'), keywords: ['legal', 'contentieux'] },
-  { id: 'go-integrations', label: 'Intégrations', icon: Plug, run: (r) => r.push('/dashboard/integrations'), keywords: ['api', 'webhook', 'pennylane'] },
   { id: 'go-settings', label: 'Paramètres', icon: Settings, shortcut: 'g ,', run: (r) => r.push('/dashboard/settings'), keywords: ['compte', 'plan', 'billing'] },
   { id: 'new-invoice', label: 'Nouvelle facture', hint: 'Créer une facture', icon: Plus, shortcut: 'n', run: (r) => r.push('/dashboard/invoices/new'), keywords: ['create', 'add'] },
   { id: 'import-csv', label: 'Importer un CSV de factures', icon: Upload, run: (r) => r.push('/dashboard/invoices/import'), keywords: ['bulk', 'csv'] },
@@ -161,7 +158,7 @@ export function CommandPalette() {
         <div className="border-t border-gray-100 px-4 py-2 flex items-center justify-between text-[10px] text-gray-400">
           <span className="flex items-center gap-1.5">
             <Zap className="h-3 w-3" />
-            RelanceFlow
+            Encair
           </span>
           <span className="flex items-center gap-3">
             <span><kbd className="bg-gray-100 px-1 rounded font-mono">↑↓</kbd> naviguer</span>

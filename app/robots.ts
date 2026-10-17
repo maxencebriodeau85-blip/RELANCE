@@ -1,7 +1,8 @@
+import { getAppUrl } from '@/lib/app-url'
 import type { MetadataRoute } from 'next'
 
 // Hardcoded production domain — see sitemap.ts for rationale.
-const BASE_URL = 'https://relanceflow.fr'
+const BASE_URL = getAppUrl()
 
 export default function robots(): MetadataRoute.Robots {
   return {

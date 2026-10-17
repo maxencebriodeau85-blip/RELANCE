@@ -1,5 +1,6 @@
 'use client'
 
+import { invoiceExportCSV } from '@/lib/invoice-export'
 import { useState, useEffect, useCallback } from 'react'
 import { Header } from '@/components/dashboard/header'
 import { Button } from '@/components/ui/button'
@@ -13,6 +14,7 @@ import {
 import { StatusBadge } from '@/components/invoices/status-badge'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Skeleton } from '@/components/ui/skeleton'
+import { outstanding, reminderBlock } from '@/lib/collection'
 import { formatEuro, formatDate, getDaysOverdue } from '@/lib/metrics'
 import {
   Plus, Upload, Search, ChevronLeft, ChevronRight, Eye, Send,
@@ -22,25 +24,13 @@ import {
 import Link from 'next/link'
 import type { Invoice } from '@/lib/database.types'
 import { createClient } from '@/lib/supabase/client'
+import { applyInvoiceAction } from '@/lib/invoice-actions'
 import { useToast } from '@/hooks/use-toast'
 
 const PAGE_SIZE = 10
 
 function exportToCSV(invoices: Invoice[]) {
-  const headers = ['N° Facture', 'Client', 'Email', 'Montant (€)', 'Échéance', 'Statut', 'Jours de retard']
-  const rows = invoices.map((inv) => [
-    inv.invoice_number,
-    inv.client_name,
-    inv.client_email,
-    inv.amount.toFixed(2).replace('.', ','),
-    inv.due_date,
-    inv.status,
-    getDaysOverdue(inv),
-  ])
-  const csv = [headers, ...rows]
-    .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(';'))
-    .join('\n')
-  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+  const blob = new Blob([invoiceExportCSV(invoices)], { type: 'text/csv;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
@@ -56,6 +46,7 @@ export default function InvoicesPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [bulkLoading, setBulkLoading] = useState(false)
   const [dateFrom, setDateFrom] = useState('')
@@ -63,15 +54,23 @@ export default function InvoicesPage() {
 
   const loadInvoices = useCallback(async () => {
     setLoading(true)
+    setLoadError('')
     try {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const { data } = await supabase
-        .from('invoices').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
-      setInvoices((data as Invoice[]) ?? [])
+      const collected: Invoice[] = []
+      for (let offset = 0; ; offset += 500) {
+        const { data, error } = await supabase.from('invoices').select('*').eq('user_id', user.id)
+          .order('created_at', { ascending: false }).order('id', { ascending: false }).range(offset, offset + 499)
+        if (error) throw error
+        collected.push(...((data || []) as Invoice[]))
+        if (!data || data.length < 500) break
+      }
+      setInvoices(collected)
+      setSelected(new Set())
     } catch {
-      setInvoices([])
+      setLoadError('Impossible d’actualiser les factures. Les données affichées peuvent être anciennes.')
     } finally {
       setLoading(false)
     }
@@ -79,14 +78,14 @@ export default function InvoicesPage() {
 
   useEffect(() => { loadInvoices() }, [loadInvoices])
 
-  const [quickFilter, setQuickFilter] = useState<'all' | 'overdue' | 'overdue30' | 'unpaid' | 'sent_today'>('all')
+  const [quickFilter, setQuickFilter] = useState<'all' | 'overdue' | 'overdue30' | 'unpaid' | 'missing_email'>('all')
 
   const filtered = invoices.filter((inv) => {
     const q = search.toLowerCase()
     const matchSearch = !search ||
       inv.client_name.toLowerCase().includes(q) ||
       inv.invoice_number.toLowerCase().includes(q) ||
-      inv.client_email.toLowerCase().includes(q)
+      (inv.client_email || '').toLowerCase().includes(q)
     const matchStatus = statusFilter === 'all' || inv.status === statusFilter
     const matchFrom = !dateFrom || inv.due_date >= dateFrom
     const matchTo = !dateTo || inv.due_date <= dateTo
@@ -94,12 +93,14 @@ export default function InvoicesPage() {
     let matchQuick = true
     if (quickFilter === 'overdue') matchQuick = od > 0 && inv.status !== 'paid' && inv.status !== 'disputed'
     else if (quickFilter === 'overdue30') matchQuick = od > 30 && inv.status !== 'paid' && inv.status !== 'disputed'
+    else if (quickFilter === 'missing_email') matchQuick = !inv.client_email
     else if (quickFilter === 'unpaid') matchQuick = inv.status !== 'paid'
     return matchSearch && matchStatus && matchFrom && matchTo && matchQuick
   })
 
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const visiblePage = Math.min(page, totalPages)
+  const paginated = filtered.slice((visiblePage - 1) * PAGE_SIZE, visiblePage * PAGE_SIZE)
 
   const toggleSelect = (id: string) => {
     setSelected((prev) => {
@@ -132,14 +133,13 @@ export default function InvoicesPage() {
   const bulkMarkPaid = async () => {
     setBulkLoading(true)
     try {
-      const supabase = createClient()
-      await supabase.from('invoices').update({ status: 'paid' } as never).in('id', Array.from(selected))
+      await applyInvoiceAction('paid', invoices.filter(i => selected.has(i.id)))
       await loadInvoices()
       const n = selected.size
       clearSelection()
       toast({ title: `${n} facture${n > 1 ? 's' : ''} marquée${n > 1 ? 's' : ''} payée${n > 1 ? 's' : ''}` })
-    } catch {
-      toast({ title: 'Erreur', variant: 'destructive' })
+    } catch (error) {
+      toast({ title: 'Action interrompue', description: error instanceof Error ? error.message : 'Réessayez.', variant: 'destructive' })
     } finally {
       setBulkLoading(false)
     }
@@ -150,10 +150,10 @@ export default function InvoicesPage() {
     // Parallelize sends — bounded concurrency to avoid hammering the Resend API.
     const ids = Array.from(selected).filter((id) => {
       const inv = invoices.find((i) => i.id === id)
-      return inv && inv.status !== 'paid' && inv.status !== 'disputed'
+      return inv && !reminderBlock(inv)
     })
 
-    const CONCURRENCY = 5
+    const CONCURRENCY = 1
     let sent = 0
     let failed = 0
 
@@ -168,6 +168,7 @@ export default function InvoicesPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type: 'email_1' }),
           })
+          await new Promise(resolve=>setTimeout(resolve,550))
           if (res.ok) sent++
           else failed++
         } catch {
@@ -196,22 +197,22 @@ export default function InvoicesPage() {
     if (!confirm(`Supprimer ${n} facture${n > 1 ? 's' : ''} ? Cette action est irréversible.`)) return
     setBulkLoading(true)
     try {
-      const supabase = createClient()
-      await supabase.from('invoices').delete().in('id', Array.from(selected))
+      await applyInvoiceAction('delete', invoices.filter(i => selected.has(i.id)))
       await loadInvoices()
       clearSelection()
       toast({ title: `${n} facture${n > 1 ? 's' : ''} supprimée${n > 1 ? 's' : ''}` })
-    } catch {
-      toast({ title: 'Erreur', variant: 'destructive' })
+    } catch (error) {
+      toast({ title: 'Action interrompue', description: error instanceof Error ? error.message : 'Réessayez.', variant: 'destructive' })
     } finally {
       setBulkLoading(false)
     }
   }
 
-  const totalAmount = filtered.reduce((s, inv) => s + inv.amount, 0)
+  const totalAmount = filtered.reduce((s, inv) => s + outstanding(inv), 0)
 
   return (
     <div>
+      {loadError && <div role="alert" className="m-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">{loadError}<Button variant="outline" className="ml-3" onClick={loadInvoices}>Réessayer</Button></div>}
       <Header
         title="Factures"
         description={`${filtered.length} facture${filtered.length !== 1 ? 's' : ''} · ${formatEuro(totalAmount)}`}
@@ -224,7 +225,7 @@ export default function InvoicesPage() {
               <Link href="/dashboard/invoices/import"><Upload className="mr-2 h-4 w-4" />Importer</Link>
             </Button>
             <Button size="sm" asChild>
-              <Link href="/dashboard/invoices/new"><Plus className="mr-2 h-4 w-4" />Nouvelle facture</Link>
+              <Link href="/dashboard/invoices/new"><Plus className="mr-2 h-4 w-4" />Ajouter au suivi</Link>
             </Button>
           </div>
         }
@@ -252,6 +253,7 @@ export default function InvoicesPage() {
           <div className="flex gap-1.5 flex-wrap">
             {[
               { id: 'all', label: 'Toutes', count: invoices.length },
+              { id: 'missing_email', label: 'Sans email', count: invoices.filter(i => !i.client_email).length },
               { id: 'unpaid', label: 'Non payées', count: invoices.filter(i => i.status !== 'paid').length },
               { id: 'overdue', label: 'En retard', count: invoices.filter(i => getDaysOverdue(i) > 0 && i.status !== 'paid' && i.status !== 'disputed').length },
               { id: 'overdue30', label: '> 30 jours', count: invoices.filter(i => getDaysOverdue(i) > 30 && i.status !== 'paid' && i.status !== 'disputed').length },
@@ -431,7 +433,7 @@ export default function InvoicesPage() {
                       </TableCell>
                       <TableCell>
                         <div className="font-medium text-sm">{invoice.client_name}</div>
-                        <div className="text-xs text-gray-400">{invoice.client_email}</div>
+                        <div className="text-xs text-gray-400">{invoice.client_email || 'Email à compléter'}</div>
                       </TableCell>
                       <TableCell className="font-mono text-sm text-gray-600">{invoice.invoice_number}</TableCell>
                       <TableCell className="text-right font-semibold text-sm">{formatEuro(invoice.amount)}</TableCell>
@@ -471,13 +473,13 @@ export default function InvoicesPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-500">
-              {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} sur {filtered.length}
+              {(visiblePage - 1) * PAGE_SIZE + 1}–{Math.min(visiblePage * PAGE_SIZE, filtered.length)} sur {filtered.length}
             </p>
             <div className="flex gap-1">
-              <Button variant="outline" size="icon" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
+              <Button variant="outline" size="icon" onClick={() => setPage(Math.max(1, visiblePage - 1))} disabled={visiblePage === 1}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="icon" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+              <Button variant="outline" size="icon" onClick={() => setPage(Math.min(totalPages, visiblePage + 1))} disabled={visiblePage === totalPages}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>

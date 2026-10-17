@@ -1,5 +1,7 @@
 /* eslint-disable jsx-a11y/alt-text */
+import React from 'react'
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
+import { outstanding } from './collection'
 import type { Invoice, Profile } from './database.types'
 
 const styles = StyleSheet.create({
@@ -237,10 +239,11 @@ function formatEuro(amount: number): string {
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency: 'EUR',
-  }).format(amount)
+  }).format(amount).replace(/[\u00a0\u202f]/g, ' ')
 }
 
-function formatDate(s: string): string {
+function formatDate(s: string | null): string {
+  if (!s) return 'Non renseignée'
   return new Intl.DateTimeFormat('fr-FR', {
     day: '2-digit',
     month: 'long',
@@ -252,16 +255,15 @@ function formatDate(s: string): string {
 export interface InvoicePDFProps {
   invoice: Invoice
   profile: Pick<Profile, 'company_name' | 'address' | 'postal_code' | 'city' | 'siren' | 'email' | 'phone'>
-  paymentUrl?: string
 }
 
-export function InvoicePDF({ invoice, profile, paymentUrl }: InvoicePDFProps) {
+export function InvoicePDF({ invoice, profile }: InvoicePDFProps) {
   const ttc = Number(invoice.amount)
 
   return (
     <Document
-      title={`Facture ${invoice.invoice_number}`}
-      author={profile.company_name || 'RelanceFlow'}
+      title={`Fiche de suivi ${invoice.invoice_number}`}
+      author={profile.company_name || 'Encair'}
     >
       <Page size="A4" style={styles.page}>
         {/* Header */}
@@ -278,7 +280,7 @@ export function InvoicePDF({ invoice, profile, paymentUrl }: InvoicePDFProps) {
             {profile.email && <Text style={styles.brandSubtitle}>{profile.email}</Text>}
           </View>
           <View style={styles.invoiceTitle}>
-            <Text style={styles.invoiceLabel}>FACTURE</Text>
+            <Text style={styles.invoiceLabel}>FICHE DE SUIVI</Text>
             <Text style={styles.invoiceNumber}>N° {invoice.invoice_number}</Text>
           </View>
         </View>
@@ -292,7 +294,7 @@ export function InvoicePDF({ invoice, profile, paymentUrl }: InvoicePDFProps) {
             {profile.phone && <Text style={styles.partyDetail}>{profile.phone}</Text>}
           </View>
           <View style={styles.partyBlock}>
-            <Text style={styles.partyLabel}>Facturé à</Text>
+            <Text style={styles.partyLabel}>Client</Text>
             <Text style={styles.partyName}>{invoice.client_name}</Text>
             {invoice.client_address && (
               <Text style={styles.partyDetail}>{invoice.client_address}</Text>
@@ -321,11 +323,11 @@ export function InvoicePDF({ invoice, profile, paymentUrl }: InvoicePDFProps) {
           <View style={styles.tableHeader}>
             <Text style={[styles.tableHeaderText, styles.colDesc]}>Désignation</Text>
             <Text style={[styles.tableHeaderText, styles.colQty]}>Qté</Text>
-            <Text style={[styles.tableHeaderText, styles.colTotal]}>Total HT</Text>
+            <Text style={[styles.tableHeaderText, styles.colTotal]}>Montant TTC</Text>
           </View>
           <View style={styles.tableRow}>
             <Text style={[styles.tableCellText, styles.colDesc]}>
-              {invoice.description || 'Prestation de service'}
+              {invoice.description || 'Désignation non renseignée'}
             </Text>
             <Text style={[styles.tableCellText, styles.colQty]}>1</Text>
             <Text style={[styles.tableCellText, styles.colTotal]}>{formatEuro(ttc)}</Text>
@@ -336,49 +338,32 @@ export function InvoicePDF({ invoice, profile, paymentUrl }: InvoicePDFProps) {
         <View style={styles.totalSection}>
           <View style={styles.totalBox}>
             <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Sous-total</Text>
+              <Text style={styles.totalLabel}>Montant initial TTC</Text>
               <Text style={styles.totalValue}>{formatEuro(ttc)}</Text>
             </View>
             <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>TVA</Text>
-              <Text style={styles.totalValue}>—</Text>
+              <Text style={styles.totalLabel}>Montant encaissé</Text>
+              <Text style={styles.totalValue}>{formatEuro(Math.max(0, ttc - outstanding(invoice)))}</Text>
             </View>
             <View style={styles.grandTotalRow}>
-              <Text style={styles.grandTotalLabel}>Total TTC</Text>
-              <Text style={styles.grandTotalValue}>{formatEuro(ttc)}</Text>
+              <Text style={styles.grandTotalLabel}>Reste à payer</Text>
+              <Text style={styles.grandTotalValue}>{formatEuro(outstanding(invoice))}</Text>
             </View>
           </View>
         </View>
 
-        {/* TVA mention (mention légale) */}
-        <View style={styles.vatMention}>
-          <Text>{invoice.vat_mention || 'TVA non applicable, art. 293B du CGI'}</Text>
+        {Boolean(invoice.vat_mention) && <View style={styles.vatMention}>
+          <Text>Mention TVA renseignée : {invoice.vat_mention}</Text>
+        </View>}
+        <View style={styles.notesSection}>
+          <Text style={styles.notesText}>Solde vérifié : {invoice.balance_checked_at ? formatDate(invoice.balance_checked_at) : 'Non confirmé'}</Text>
+          <Text style={styles.notesText}>Ces montants proviennent des données saisies ou importées ; ils ne sont pas rapprochés automatiquement avec la banque.</Text>
         </View>
-
-        {/* Payment URL */}
-        {paymentUrl && (
-          <View style={styles.paymentBox}>
-            <Text style={styles.paymentBoxTitle}>Payer en ligne</Text>
-            <Text style={styles.paymentBoxUrl}>{paymentUrl}</Text>
-          </View>
-        )}
-
-        {/* Notes */}
-        {invoice.notes && (
-          <View style={styles.notesSection}>
-            <Text style={styles.notesLabel}>Notes</Text>
-            <Text style={styles.notesText}>{invoice.notes}</Text>
-          </View>
-        )}
 
         {/* Legal footer */}
         <View style={styles.legalFooter} fixed>
           <Text style={styles.legalText}>
-            En cas de retard de paiement : pénalités de retard au taux d&apos;intérêt légal majoré de 10 points
-            (art. L441-10 C.com.) et indemnité forfaitaire de recouvrement de 40 € (art. D441-5 C.com.).
-          </Text>
-          <Text style={styles.legalText}>
-            Aucun escompte pour paiement anticipé. Facture éditée le {formatDate(invoice.issued_date)}.
+            Document de suivi uniquement. Consultez la facture originale pour les modalités de règlement.
           </Text>
         </View>
       </Page>

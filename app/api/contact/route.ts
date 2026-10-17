@@ -6,6 +6,7 @@ const MAX_LENGTH = 5000
 
 export async function POST(request: Request) {
   try {
+    if (!process.env.RESEND_FROM_EMAIL || !process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.includes('placeholder') || !process.env.SUPPORT_EMAIL) return NextResponse.json({error:'Le service de messagerie n’est pas encore disponible.'},{status:503})
     // Rate limit: 5 messages per IP per hour.
     const rl = rateLimit(getIp(request), {
       key: 'contact',
@@ -45,26 +46,27 @@ export async function POST(request: Request) {
     }
 
     // Send to support email via Resend
-    const supportTo = process.env.SUPPORT_EMAIL || 'hello@relanceflow.fr'
+    const supportTo = process.env.SUPPORT_EMAIL!
 
     if (process.env.RESEND_API_KEY && !process.env.RESEND_API_KEY.includes('placeholder')) {
       try {
         const { Resend } = await import('resend')
         const resend = new Resend(process.env.RESEND_API_KEY)
-        const fromEmail = process.env.RESEND_FROM_EMAIL || 'no-reply@relanceflow.fr'
+        const fromEmail = process.env.RESEND_FROM_EMAIL!
 
         // Strip CR/LF from name/subject to prevent header injection
         const safeName = name.replace(/[\r\n<>"]/g, '')
         const safeSubject = subject.replace(/[\r\n]/g, ' ')
 
-        await resend.emails.send({
-          from: `RelanceFlow Contact <${fromEmail}>`,
+        const result = await resend.emails.send({
+          from: `Encair Contact <${fromEmail}>`,
           to: [supportTo],
           reply_to: email,
           subject: `[Contact] ${safeSubject}`,
           text: `Nouveau message via le formulaire de contact :\n\nNom : ${safeName}\nEmail : ${email}\n\n---\n\n${message}\n`,
           tags: [{ name: 'type', value: 'contact' }],
         })
+        if (result.error || !result.data?.id) throw new Error('Email not accepted')
       } catch (emailErr) {
         console.error('Contact email send error:', emailErr)
         return NextResponse.json({ error: "Impossible d'envoyer le message pour le moment." }, { status: 500 })

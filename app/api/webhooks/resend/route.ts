@@ -13,11 +13,13 @@ type ResendEvent = {
     | 'email.opened'
     | 'email.clicked'
     | 'email.failed'
+    | 'email.suppressed'
   created_at: string
   data: {
     email_id: string
     to?: string[]
     subject?: string
+    tags?: Record<string, string>
     [k: string]: unknown
   }
 }
@@ -98,90 +100,31 @@ export async function POST(request: Request) {
     }
 
     const event = JSON.parse(rawBody) as ResendEvent
-    if (!event?.type || !event?.data?.email_id) {
+    if (typeof event?.type !== 'string' || typeof event?.data?.email_id !== 'string' || !event.data.email_id || event.data.email_id.length > 200 || !Number.isFinite(Date.parse(event.created_at))) {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
     }
 
+    const supported = ['email.sent', 'email.delivered', 'email.opened', 'email.clicked', 'email.bounced', 'email.complained', 'email.failed', 'email.suppressed']
+    if (!supported.includes(event.type)) return NextResponse.json({ ok: true, ignored: true })
     const supabase = await createAdminClient()
-    const resendId = event.data.email_id
-    const now = new Date().toISOString()
-
-    // Map Resend event to (status, timestamp_column)
-    let status: string | null = null
-    let timestampCol: string | null = null
-
-    switch (event.type) {
-      case 'email.delivered':
-        status = 'delivered'
-        timestampCol = 'delivered_at'
-        break
-      case 'email.opened':
-        status = 'opened'
-        timestampCol = 'opened_at'
-        break
-      case 'email.clicked':
-        status = 'clicked'
-        timestampCol = 'clicked_at'
-        break
-      case 'email.bounced':
-        status = 'bounced'
-        timestampCol = 'bounced_at'
-        break
-      case 'email.complained':
-        status = 'complained'
-        timestampCol = 'complained_at'
-        break
-      case 'email.failed':
-        status = 'failed'
-        break
-      default:
-        // sent / delivery_delayed: ignore, already tracked
-        return NextResponse.json({ ok: true, ignored: event.type })
-    }
-
-    // Only escalate status — never downgrade (e.g. don't overwrite "clicked" with "delivered").
-    const STATUS_RANK: Record<string, number> = {
-      sent: 1,
-      delivered: 2,
-      opened: 3,
-      clicked: 4,
-      bounced: 5,
-      complained: 5,
-      failed: 5,
-    }
-
-    const { data: current } = await supabase
-      .from('reminders')
-      .select('id, status')
-      .eq('resend_id', resendId)
-      .maybeSingle()
-
-    if (!current) {
-      // Email not tracked here (welcome email etc.) — ack but no-op.
-      return NextResponse.json({ ok: true, not_tracked: true })
-    }
-
-    const currentRank = STATUS_RANK[(current as { status: string }).status] ?? 0
-    const newRank = STATUS_RANK[status] ?? 0
-
-    const update: Record<string, string> = {}
-    if (newRank > currentRank) {
-      update.status = status
-    }
-    if (timestampCol) {
-      update[timestampCol] = now
-    }
-
-    if (Object.keys(update).length > 0) {
-      await supabase
-        .from('reminders')
-        .update(update as never)
-        .eq('id', (current as { id: string }).id)
-    }
-
-    return NextResponse.json({ ok: true })
+    const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    const tags = event.data.tags
+    const claimId = typeof tags?.reminder_id === 'string' && uuid.test(tags.reminder_id) ? tags.reminder_id : null
+    const invoiceId = typeof tags?.invoice_id === 'string' && uuid.test(tags.invoice_id) ? tags.invoice_id : null
+    const reminderType = typeof tags?.type === 'string' && ['email_1', 'email_2', 'email_3'].includes(tags.type) ? tags.type : null
+    const { data, error } = await supabase.rpc('record_collection_email_event', {
+      p_resend_id: event.data.email_id,
+      p_event_type: event.type,
+      p_occurred_at: new Date(event.created_at).toISOString(),
+      p_claim_id: claimId,
+      p_invoice_id: invoiceId,
+      p_reminder_type: reminderType,
+    })
+    // Retryable response: acknowledging a failed write would lose the event.
+    if (error) return NextResponse.json({ error: 'Événement non enregistré. Réessayez.' }, { status: 503 })
+    return NextResponse.json({ ok: true, tracked: data === true })
   } catch (err) {
-    console.error('Resend webhook error:', err)
+    console.error('Resend webhook error:', err instanceof Error ? err.name : 'unknown')
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
