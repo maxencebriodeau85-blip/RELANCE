@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { readJsonBody } from '@/lib/request-json'
 import { assertActiveAccess } from '@/lib/access-control'
-import { MAX_IMPORT_ROWS, validateInvoiceRows } from '@/lib/invoice-input'
+import { MAX_IMPORT_ROWS, MAX_IMPORT_BYTES, validateInvoiceRows } from '@/lib/invoice-input'
 
 export async function POST(request: Request) {
   try {
@@ -11,7 +12,9 @@ export async function POST(request: Request) {
     } = await db.auth.getUser()
     if (!user)
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
-    const body = await request.json().catch(() => null)
+    const parsed = await readJsonBody(request, MAX_IMPORT_BYTES)
+    if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: parsed.status })
+    const body = parsed.value as { invoices?: unknown[]; preview?: boolean } | null
     if (
       !Array.isArray(body?.invoices) ||
       !body.invoices.length ||

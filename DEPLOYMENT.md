@@ -196,3 +196,14 @@ L’accès Fondateur a été accordé administrativement au compte de test deman
 Resend : aucun connecteur disponible dans la recherche de plugins. Le formulaire de création de compte a été ouvert ; l’inscription et l’acceptation des conditions nécessitent la participation du propriétaire. Le domaine expéditeur et ses DNS doivent ensuite être vérifiés. L’administration Vercel reste refusée (403), donc les clés d’envoi, webhook et cron restent absentes sur le déploiement. Ne pas annoncer la disponibilité commerciale tant que le raccordement email/SMTP et Stripe n’est pas vérifié.
 
 Suite demandée : API pour les logiciels de facturation. L’ancienne route de webhook et les anciennes clés dans le dépôt ne constituent pas une API v1 validée. Prévoir des clés révocables et limitées au compte, import/mise à jour idempotents, règlements partiels, emails facultatifs, conflits explicites, quotas, documentation OpenAPI et tests d’isolation. Ne pas afficher les anciens connecteurs comme opérationnels avant cette recette.
+
+
+## Fiabilité de la création manuelle — 17 octobre 2026
+
+La saisie manuelle partage les règles de validation de l’import : montants à deux décimales, dates réelles, SIREN exact, email facultatif et longueurs contrôlées. Les textes trop longs et les types incorrects sont refusés, sans troncature ni conversion silencieuse. Le formulaire transmet le montant saisi sans parseFloat ; les virgules décimales sont reconnues par le validateur. Une date d’émission inconnue reste nulle ; les dates et la mention TVA ne sont plus préremplies arbitrairement. La désignation est facultative pour ce document de suivi.
+
+Une erreur de lecture du profil, du quota ou de la référence empêche la création avec une réponse 503. Le propriétaire vient de la session, la facture est explicitement créée en pause et une écriture sans ligne retournée n’annonce pas un succès. L’index unique et le contrôle SQL de quota restent les protections contre les créations concurrentes.
+
+Les corps JSON sont bornés pendant la lecture du flux (32 Kio en création, 5 Mio en import), même si Content-Length manque ou est mensonger. Un dépassement renvoie 413, un JSON mal formé 400. Les limites du fournisseur d’hébergement peuvent être plus basses.
+
+Validation : 201 tests automatisés, TypeScript et lint. Aucune migration requise, aucune modification des données existantes. Configuration par navigateur interrompue à la demande de l’utilisateur ; raccordements Resend/Stripe toujours en attente.
