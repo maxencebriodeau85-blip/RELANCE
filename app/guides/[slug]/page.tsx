@@ -87,6 +87,7 @@ export default async function GuideArticlePage({ params }: { params: Promise<{ s
       </div>
 
       <article className="mx-auto max-w-3xl px-4 py-12">
+        <aside className="mb-6 rounded border border-blue-100 bg-blue-50 p-4 text-sm">Ce guide donne des repères généraux ; il ne remplace pas l’examen de votre contrat et de votre situation. Encair assure le suivi amiable : il ne fournit ni acte juridique validé ni représentation en justice. Pour une procédure, vérifiez les règles et formulaires sur <a className="underline" href="https://entreprendre.service-public.gouv.fr/">Service Public</a>.</aside>
         {/* Article header */}
         <div className="mb-10">
           <div className="flex items-center gap-3 text-xs text-gray-500 mb-4">

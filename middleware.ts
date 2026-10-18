@@ -7,16 +7,19 @@ const configuredUrl = process.env.NEXT_PUBLIC_APP_URL
 let canonicalHost: string | null = null
 try {
   const url = new URL(configuredUrl || '')
-  if (url.protocol === 'https:' && !/(^|\.)relanceflow\.fr$/.test(url.hostname)) canonicalHost = url.hostname
-} catch { /* Domain not configured yet. */ }
+  if (url.protocol === 'https:' && !/(^|\.)relanceflow\.fr$/.test(url.hostname))
+    canonicalHost = url.hostname
+} catch {
+  /* Domain not configured yet. */
+}
 
 function hasSessionCookie(request: NextRequest): boolean {
   // @supabase/ssr stores the session in a cookie named:
   //   sb-<project-ref>-auth-token          (small JWTs)
   //   sb-<project-ref>-auth-token.0/.1/…  (chunked large JWTs)
-  return request.cookies.getAll().some(
-    (c) => c.name.startsWith('sb-') && c.name.includes('-auth-token')
-  )
+  return request.cookies
+    .getAll()
+    .some((c) => c.name.startsWith('sb-') && c.name.includes('-auth-token'))
 }
 
 export async function middleware(request: NextRequest) {
@@ -47,19 +50,41 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/api/health')
 
   const enforceCanonical = process.env.ENFORCE_CANONICAL_HOST === 'true'
-  if (enforceCanonical && canonicalHost && process.env.VERCEL_ENV !== 'preview' && !isLocalHost && !isWebhook && hostname !== canonicalHost) {
+  if (
+    enforceCanonical &&
+    canonicalHost &&
+    process.env.VERCEL_ENV !== 'preview' &&
+    !isLocalHost &&
+    !isWebhook &&
+    hostname !== canonicalHost
+  ) {
     const canonical = new URL(`https://${canonicalHost}${pathname}${search}`)
     return NextResponse.redirect(canonical, 301)
   }
 
   // Cookie-authenticated writes must come from this app. Provider webhooks and
   // the bearer-authenticated cron are excluded and verify their own credentials.
-  const sessionApi = ['/api/invoices', '/api/contacts', '/api/notifications', '/api/profile', '/api/email-templates', '/api/integrations/api-keys', '/api/stripe/checkout', '/api/stripe/portal']
-    .some(prefix => pathname === prefix || pathname.startsWith(prefix + '/'))
+  const sessionApi = [
+    '/api/invoices',
+    '/api/contacts',
+    '/api/notifications',
+    '/api/profile',
+    '/api/email-templates',
+    '/api/integrations/api-keys',
+    '/api/integrations/keys',
+    '/api/stripe/checkout',
+    '/api/stripe/portal',
+  ].some((prefix) => pathname === prefix || pathname.startsWith(prefix + '/'))
   if (sessionApi && !['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
     const origin = request.headers.get('origin')
-    if ((origin && origin !== request.nextUrl.origin) || request.headers.get('sec-fetch-site') === 'cross-site') {
-      return NextResponse.json({ error: 'Requête provenant d’un autre site refusée.' }, { status: 403, headers: { 'Cache-Control': 'no-store' } })
+    if (
+      (origin && origin !== request.nextUrl.origin) ||
+      request.headers.get('sec-fetch-site') === 'cross-site'
+    ) {
+      return NextResponse.json(
+        { error: 'Requête provenant d’un autre site refusée.' },
+        { status: 403, headers: { 'Cache-Control': 'no-store' } },
+      )
     }
   }
 
@@ -77,29 +102,49 @@ export async function middleware(request: NextRequest) {
 
   let response = NextResponse.next()
   if (isProtected && !loggedIn) {
-    if (pathname.startsWith('/api/')) return NextResponse.json({ error: 'Connectez-vous pour continuer.' }, { status: 401 })
+    if (pathname.startsWith('/api/'))
+      return NextResponse.json(
+        { error: 'Connectez-vous pour continuer.' },
+        { status: 401 },
+      )
     const url = new URL('/auth/login', request.url)
     url.searchParams.set('redirectedFrom', pathname + search)
     return NextResponse.redirect(url)
   }
-  if (loggedIn && (isProtected || pathname.startsWith('/api/profile') || pathname === '/api/stripe/portal')) {
+  if (
+    loggedIn &&
+    (isProtected ||
+      pathname.startsWith('/api/profile') ||
+      pathname === '/api/stripe/portal')
+  ) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     if (supabaseUrl && key) {
       const supabase = createServerClient(supabaseUrl, key, {
-        global: { fetch: (input, init) => fetch(input, { ...init, signal: AbortSignal.timeout(8000) }) },
+        global: {
+          fetch: (input, init) =>
+            fetch(input, { ...init, signal: AbortSignal.timeout(8000) }),
+        },
         cookies: {
           getAll: () => request.cookies.getAll(),
           setAll(values) {
-            values.forEach(({ name, value }) => request.cookies.set(name, value))
+            values.forEach(({ name, value }) =>
+              request.cookies.set(name, value),
+            )
             response = NextResponse.next({ request })
-            values.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
+            values.forEach(({ name, value, options }) =>
+              response.cookies.set(name, value, options),
+            )
           },
         },
       })
       // Authorization stays in server handlers. A transient outage must not
       // erase a valid browser session or redirect an API call to an HTML form.
-      try { await supabase.auth.getUser() } catch { /* Handler reports the outage. */ }
+      try {
+        await supabase.auth.getUser()
+      } catch {
+        /* Handler reports the outage. */
+      }
     }
   }
 
@@ -111,7 +156,12 @@ export async function middleware(request: NextRequest) {
   if (process.env.VERCEL_ENV && process.env.VERCEL_ENV !== 'production') {
     response.headers.set('X-Robots-Tag', 'noindex, nofollow')
   }
-  if (sessionApi || pathname.startsWith('/auth') || pathname.startsWith('/subscription') || pathname.startsWith('/dashboard')) {
+  if (
+    sessionApi ||
+    pathname.startsWith('/auth') ||
+    pathname.startsWith('/subscription') ||
+    pathname.startsWith('/dashboard')
+  ) {
     response.headers.set('Cache-Control', 'private, no-store')
     response.headers.set('Referrer-Policy', 'no-referrer')
   }

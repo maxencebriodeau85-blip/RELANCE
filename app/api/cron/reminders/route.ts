@@ -13,66 +13,124 @@ export async function GET(request: Request) {
   )
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   if (!serviceCapabilities().automationAvailable)
-    return NextResponse.json({ error: 'Service de relance non configuré.', sent: 0 }, { status: 503 })
-  const db = await createAdminClient()
-  const { data, error } = await db
-    .from('invoices')
-    .select('*, profiles!inner(*)')
-    .in('status', ['pending', 'reminded', 'formal_notice'])
-    .eq('reminders_paused', false)
-    .not('client_email', 'is', null)
-    .gte(
-      'balance_checked_at',
-      new Date(Date.now() - 7 * 86400000).toISOString(),
-    )
-    .lt('due_date', businessDate())
-    .eq('profiles.auto_reminders', true)
-    .order('due_date')
-    .limit(500)
-  if (error)
     return NextResponse.json(
-      { error: 'Chargement des relances impossible.' },
+      { error: 'Service de relance non configuré.', sent: 0 },
       { status: 503 },
     )
-  let sent = 0,
-    skipped = 0,
-    attempted = 0
-  const started = Date.now()
-  for (const row of (data || []) as (Invoice & { profiles: Profile })[]) {
-    if (attempted >= 25 || Date.now() - started > 40000) break
-    if (reminderBlock(row)) {
-      skipped++
-      continue
-    }
-    const { data: history, error: historyError } = await db
-      .from('reminders')
-      .select('type,created_at')
-      .eq('invoice_id', row.id)
-      .neq('status', 'failed')
-    if (historyError) return NextResponse.json({ error: 'Historique des relances indisponible.', sent, skipped, attempted }, { status: 503 })
-    if (
-      history?.some((r) => Date.parse(r.created_at) > Date.now() - 86400000)
-    ) {
-      skipped++
-      continue
-    }
-    const step = nextReminder(
-      getDaysOverdue(row),
-      row.profiles.active_scenario,
-      history?.map((r) => r.type) || [],
+  const db = await createAdminClient()
+  const { data: claim, error: claimError } = await db.rpc(
+    'claim_collection_worker',
+  )
+  if (claimError)
+    return NextResponse.json(
+      { error: 'Réservation du traitement impossible.' },
+      { status: 503 },
     )
-    if (!step) {
-      skipped++
-      continue
+  if (!claim) return NextResponse.json({ busy: true, sent: 0 }, { status: 202 })
+  let cursor: string | null = claim.cursor_id,
+    sent = 0,
+    skipped = 0,
+    attempted = 0,
+    scanned = 0,
+    failure = false
+  const started = Date.now()
+  try {
+    let query = db
+      .from('invoices')
+      .select('*, profiles!inner(*)')
+      .in('status', ['pending', 'reminded', 'formal_notice'])
+      .eq('reminders_paused', false)
+      .not('client_email', 'is', null)
+      .gte(
+        'balance_checked_at',
+        new Date(Date.now() - 7 * 86400000).toISOString(),
+      )
+      .lt('due_date', businessDate())
+      .eq('profiles.auto_reminders', true)
+      .order('id')
+      .limit(100)
+    if (cursor) query = query.gt('id', cursor)
+    const { data, error } = await query
+    if (error) throw Error('INVOICE_READ_FAILED')
+    const rows = (data || []) as (Invoice & { profiles: Profile })[]
+    if (!rows.length) cursor = null
+    let history: { invoice_id: string; type: string; created_at: string }[] = []
+    if (rows.length) {
+      const result = await db
+        .from('reminders')
+        .select('invoice_id,type,created_at')
+        .in(
+          'invoice_id',
+          rows.map((r) => r.id),
+        )
+        .neq('status', 'failed')
+      if (result.error) throw Error('HISTORY_READ_FAILED')
+      history = result.data || []
     }
-    attempted++
-    const result = await sendReminder(row.id, row.user_id, step.type, 'automatic')
-    if (result.status === 200) sent++
-    else if (result.status >= 500) {
-      // A failed provider/database must not be reported as a successful cron.
-      return NextResponse.json({ error: result.error, sent, skipped, attempted }, { status: 503 })
-    } else skipped++
-    await new Promise((resolve) => setTimeout(resolve, 550))
+    for (const row of rows) {
+      if (attempted >= 25 || Date.now() - started > 40000) break
+      const previous = history.filter((r) => r.invoice_id === row.id)
+      if (
+        reminderBlock(row) ||
+        previous.some((r) => Date.parse(r.created_at) > Date.now() - 86400000)
+      ) {
+        skipped++
+        cursor = row.id
+        scanned++
+        continue
+      }
+      const step = nextReminder(
+        getDaysOverdue(row),
+        row.profiles.active_scenario,
+        previous.map((r) => r.type),
+      )
+      if (!step) {
+        skipped++
+        cursor = row.id
+        scanned++
+        continue
+      }
+      attempted++
+      const result = await sendReminder(
+        row.id,
+        row.user_id,
+        step.type,
+        'automatic',
+      )
+      // Advance even on provider failure: do not let one broken account starve all others.
+      cursor = row.id
+      scanned++
+      if (result.status === 200) sent++
+      else if (result.status >= 500) throw Error('DELIVERY_FAILED')
+      else skipped++
+      await new Promise((resolve) => setTimeout(resolve, 550))
+    }
+  } catch {
+    failure = true
   }
-  return NextResponse.json({ sent, skipped, attempted })
+  const summary = {
+    sent,
+    skipped,
+    attempted,
+    scanned,
+    ok: !failure,
+    duration_ms: Date.now() - started,
+  }
+  const finished = await db.rpc('finish_collection_worker', {
+    p_lease: claim.lease_id,
+    p_cursor: cursor,
+    p_result: summary,
+  })
+  if (finished.error || !finished.data || failure)
+    return NextResponse.json(
+      {
+        ...summary,
+        error:
+          'Traitement incomplet. Consultez le suivi ; le prochain passage reprendra la progression.',
+      },
+      { status: 503, headers: { 'Cache-Control': 'no-store' } },
+    )
+  return NextResponse.json(summary, {
+    headers: { 'Cache-Control': 'no-store' },
+  })
 }

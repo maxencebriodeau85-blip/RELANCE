@@ -53,9 +53,9 @@ export const GUIDES: GuideContent[] = [
         ],
       },
       {
-        heading: 'Modèle de mise en demeure conforme',
+        heading: 'Éléments à vérifier dans une mise en demeure',
         paragraphs: [
-          "Voici la structure type d'une mise en demeure légalement valable :",
+          "Voici les éléments à examiner et à adapter avec un professionnel selon votre situation :",
         ],
         list: [
           "Objet clair : « Mise en demeure de payer — Facture n°X »",
@@ -95,7 +95,7 @@ export const GUIDES: GuideContent[] = [
       {
         heading: 'Quand basculer du amiable au contentieux ?',
         paragraphs: [
-          "La règle empirique : si 45 jours après la mise en demeure aucun paiement ni dialogue n'est intervenu, le passage au contentieux est justifié. Au-delà, plus vous attendez, plus le risque que le débiteur soit insolvable augmente.",
+          "Il n’existe pas de délai universel imposant de passer au contentieux après une relance. Appréciez le montant, les justificatifs, la prescription et les réponses du débiteur avec un professionnel avant de décider.",
           "Trois signaux d'alerte doivent vous faire basculer immédiatement : silence radio persistant, changement de coordonnées du débiteur sans information, et toute mention publique de difficultés financières (procédure collective annoncée, par exemple).",
         ],
       },
@@ -220,7 +220,7 @@ export const GUIDES: GuideContent[] = [
         heading: "Qui doit, qui reçoit, quand",
         paragraphs: [
           "L'indemnité de 40 € est due exclusivement dans les relations B2B (professionnel à professionnel). Elle ne s'applique pas aux clients particuliers.",
-          "Elle est due dès le premier jour de retard, sans mise en demeure préalable, sans négociation. Le débiteur ne peut pas la refuser ni la négocier.",
+          "Elle est due dès le premier jour de retard, sans mise en demeure préalable, sans négociation. Son applicabilité dépend notamment de la qualité professionnelle du débiteur et de la situation de la créance.",
           "Elle s'applique par facture, pas par débiteur. Si un client vous doit 5 factures échues, ce sont 5 × 40 € = 200 € qui s'ajoutent.",
         ],
       },

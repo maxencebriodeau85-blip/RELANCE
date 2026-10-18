@@ -31,6 +31,12 @@ const navItems = [
   { href: '/dashboard/scenarios', label: 'Scénarios', icon: Bell },
   { href: '/dashboard/templates', label: 'Modèles email', icon: Mail },
   { href: '/dashboard/stats', label: 'Statistiques', icon: BarChart3 },
+  { href: '/dashboard/integrations', label: 'Connexions', icon: Plug },
+  {
+    href: '/dashboard/operations',
+    label: 'État des relances',
+    icon: AlertTriangle,
+  },
   { href: '/dashboard/settings', label: 'Paramètres', icon: Settings },
 ]
 
@@ -82,9 +88,17 @@ function SidebarContent({
     <div className="flex h-full flex-col bg-white">
       {/* Logo */}
       <div className="flex h-14 items-center justify-between border-b px-5 flex-shrink-0">
-        <Logo href="/dashboard" size="sm" className="hover:opacity-80 transition-opacity" />
+        <Logo
+          href="/dashboard"
+          size="sm"
+          className="hover:opacity-80 transition-opacity"
+        />
         {onClose && (
-          <button onClick={onClose} aria-label="Fermer le menu" className="p-1 rounded-md hover:bg-gray-100 text-gray-500">
+          <button
+            onClick={onClose}
+            aria-label="Fermer le menu"
+            className="p-1 rounded-md hover:bg-gray-100 text-gray-500"
+          >
             <X className="h-5 w-5" />
           </button>
         )}
@@ -93,7 +107,13 @@ function SidebarContent({
       {/* ⌘K hint — opens the command palette */}
       <button
         onClick={() => {
-          window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true }))
+          window.dispatchEvent(
+            new KeyboardEvent('keydown', {
+              key: 'k',
+              metaKey: true,
+              bubbles: true,
+            }),
+          )
           onClose?.()
         }}
         className="mx-3 my-3 flex items-center justify-between px-3 py-1.5 text-xs text-gray-500 bg-gray-50 hover:bg-gray-100 border border-gray-100 rounded-lg transition-colors group"
@@ -103,8 +123,12 @@ function SidebarContent({
           Rechercher…
         </span>
         <kbd className="flex items-center gap-0.5 font-mono text-[10px] text-gray-400 group-hover:text-gray-600 transition-colors">
-          <span className="bg-white border border-gray-200 rounded px-1 py-0.5">⌘</span>
-          <span className="bg-white border border-gray-200 rounded px-1 py-0.5">K</span>
+          <span className="bg-white border border-gray-200 rounded px-1 py-0.5">
+            ⌘
+          </span>
+          <span className="bg-white border border-gray-200 rounded px-1 py-0.5">
+            K
+          </span>
         </kbd>
       </button>
 
@@ -126,7 +150,7 @@ function SidebarContent({
                 'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                 isActive
                   ? 'bg-brand-gradient text-white shadow-sm shadow-brand-500/30'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
               )}
             >
               <Icon className="h-4 w-4 flex-shrink-0" />
@@ -230,13 +254,19 @@ export function MobileNav() {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) return
       setEmail(user.email || '')
-      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
       if (data) setProfile(data as Profile)
     })
   }, [])
 
   // Close on route change
-  useEffect(() => { setOpen(false) }, [pathname])
+  useEffect(() => {
+    setOpen(false)
+  }, [pathname])
 
   return (
     <>
@@ -246,8 +276,18 @@ export function MobileNav() {
         className="md:hidden flex items-center justify-center h-9 w-9 rounded-lg hover:bg-gray-100 text-gray-600"
         aria-label="Ouvrir le menu"
       >
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        <svg
+          className="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M4 6h16M4 12h16M4 18h16"
+          />
         </svg>
       </button>
 
@@ -263,7 +303,7 @@ export function MobileNav() {
       <div
         className={cn(
           'fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out md:hidden',
-          open ? 'translate-x-0' : '-translate-x-full'
+          open ? 'translate-x-0' : '-translate-x-full',
         )}
       >
         <SidebarContent

@@ -216,3 +216,9 @@ Voir `AUDIT-2026-10-17.md` pour la matrice des fonctionnalités, les défauts co
 Migration locale `20261017083654_collection_notifications.sql` appliquée sous la version distante `20261017142418`. Fonction réservée à service_role, droits vérifiés, deux appels en transaction annulée sans erreur. Ne pas lancer un db push aveugle : les versions distantes historiques diffèrent des noms locaux.
 
 Anciens webhook et générateur de mise en demeure retirés (410) ; Pennylane et émission de nouvelles clés indisponibles (503). Anciennes données conservées. La future API v1 reste à développer. Les raccordements Resend/SMTP/Stripe et la recette authentifiée restent des conditions de commercialisation.
+
+## API et exploitation — 18 octobre 2026
+
+Voir `docs/DELIVERY-2026-10-18.md` et `docs/OPERATIONS.md`. API v1 et gestion des clés disponibles dans Connexions ; documentation `/api-docs` et `/openapi.json`. Migrations locales `20261018082254_integration_api_v1.sql` et `20261018082548_collection_operations.sql` appliquées sous `20261018083533` et `20261018083603`. Recette SQL distante annulée sans donnée conservée.
+
+249 tests, recette navigateur ciblée à 390/1440 px et compilation vérifiés. Les routes temporaires de recette sont retirées. Les raccordements email et Stripe sont expressément laissés au propriétaire. Les coordonnées juridiques réelles, la restauration isolée et l’alerte externe restent à finaliser ; cadence actuelle quotidienne, 25 tentatives de relance par passage.
