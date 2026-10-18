@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react'
 import { useDropzone } from 'react-dropzone'
+import { ImportPresets } from '@/components/dashboard/import-presets'
 import { Header } from '@/components/dashboard/header'
 import { Button } from '@/components/ui/button'
 import {
@@ -357,6 +358,7 @@ export default function ImportPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                <ImportPresets headers={headers} mapping={mapping} onApply={setMapping} />
                 {Object.entries(FIELD_LABELS).map(([field, label]) => (
                   <div
                     key={field}

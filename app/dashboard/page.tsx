@@ -47,6 +47,7 @@ export default async function DashboardPage() {
         </Link>
       </div>
       <GettingStarted companyReady={Boolean(profile.company_name)} imported={overview.invoice_count > 0} verified={overview.has_verified} trialEndsAt={profile.plan === 'free_trial' ? profile.trial_ends_at : null} />
+      <Link href="/dashboard/today" className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50 p-5"><span><b>À faire aujourd’hui</b><span className="mt-1 block text-sm text-gray-600">Emails à compléter, soldes à vérifier, promesses dépassées et incidents d’envoi.</span></span><span className="text-sm font-medium">Voir mes actions →</span></Link>
       <div className="mb-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
           {

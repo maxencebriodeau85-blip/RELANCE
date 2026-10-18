@@ -222,3 +222,13 @@ Anciens webhook et générateur de mise en demeure retirés (410) ; Pennylane et
 Voir `docs/DELIVERY-2026-10-18.md` et `docs/OPERATIONS.md`. API v1 et gestion des clés disponibles dans Connexions ; documentation `/api-docs` et `/openapi.json`. Migrations locales `20261018082254_integration_api_v1.sql` et `20261018082548_collection_operations.sql` appliquées sous `20261018083533` et `20261018083603`. Recette SQL distante annulée sans donnée conservée.
 
 249 tests, recette navigateur ciblée à 390/1440 px et compilation vérifiés. Les routes temporaires de recette sont retirées. Les raccordements email et Stripe sont expressément laissés au propriétaire. Les coordonnées juridiques réelles, la restauration isolée et l’alerte externe restent à finaliser ; cadence actuelle quotidienne, 25 tentatives de relance par passage.
+
+### 18 octobre 2026 — actions, clients et formats CSV
+
+Migration locale `20261018153639_import_presets.sql`, appliquée au projet
+`ernphhgmmkntlhdgnrnn` sous la version distante `20261018210412`.
+Ne pas rejouer cette migration : les horodatages locaux et distants diffèrent.
+Elle ajoute les formats CSV privés par compte (RLS), limités à 100, sans données
+de factures. La migration doit précéder la publication de la nouvelle interface.
+Les routes `/dashboard/today` et `/dashboard/clients` utilisent les tables
+existantes via la session utilisateur et des lectures paginées par identifiant.

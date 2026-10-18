@@ -17,6 +17,7 @@ import {
   BarChart3,
   Plug,
   Kanban,
+  Users,
   X,
   Search,
 } from 'lucide-react'
@@ -27,6 +28,8 @@ import type { Profile } from '@/lib/database.types'
 
 const navItems = [
   { href: '/dashboard', label: 'Vue d’ensemble', icon: LayoutDashboard },
+  { href: '/dashboard/today', label: 'À faire aujourd’hui', icon: Clock },
+  { href: '/dashboard/clients', label: 'Mes clients', icon: Users },
   { href: '/dashboard/invoices', label: 'Mes impayés', icon: FileText },
   { href: '/dashboard/scenarios', label: 'Scénarios', icon: Bell },
   { href: '/dashboard/templates', label: 'Modèles email', icon: Mail },

@@ -403,6 +403,7 @@ export default function InvoiceDetailPage() {
                     <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Mention TVA</div>
                     <div className="text-sm text-gray-600 italic">{invoice.vat_mention}</div>
                   </div>
+                  <Link href={`/dashboard/clients/${invoice.id}`} className="mb-3 block text-sm text-brand-700 underline">Voir toutes les factures de ce client →</Link>
                   {invoice.notes && (
                     <div className="col-span-2">
                       <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Notes internes</div>
