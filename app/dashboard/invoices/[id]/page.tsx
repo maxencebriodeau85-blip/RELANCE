@@ -4,6 +4,7 @@ import { CollectionControls } from '@/components/invoices/collection-controls'
 import { reminderBlock } from '@/lib/collection'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { ReminderReview } from '@/components/invoices/reminder-review'
 import { Header } from '@/components/dashboard/header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -62,7 +63,7 @@ function formatTime(s: string): string {
   })
 }
 
-function getNextReminderType(reminders: Reminder[]): 'email_1' | 'email_2' | 'email_3' | 'formal_notice' {
+function getNextReminderType(reminders: Reminder[]): 'email_1' | 'email_2' | 'email_3' {
   const sent = new Set(reminders.filter(r=>r.status!=='failed').map((r) => r.type))
   if (!sent.has('email_1')) return 'email_1'
   if (!sent.has('email_2')) return 'email_2'
@@ -80,10 +81,9 @@ export default function InvoiceDetailPage() {
   const [reminders, setReminders] = useState<Reminder[]>([])
   const [loadError, setLoadError] = useState('')
   const [loading, setLoading] = useState(true)
-  const [sending, setSending] = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  const [selectedReminderType, setSelectedReminderType] = useState<'email_1' | 'email_2' | 'email_3' | 'formal_notice'>('email_1')
+  const [selectedReminderType, setSelectedReminderType] = useState<'email_1' | 'email_2' | 'email_3'>('email_1')
   const [showReminderPicker, setShowReminderPicker] = useState(false)
   const [copySuccess, setCopySuccess] = useState(false)
 
@@ -135,38 +135,6 @@ export default function InvoiceDetailPage() {
   }, [id])
 
   useEffect(() => { loadData() }, [loadData])
-
-  const handleSendReminder = async () => {
-    if (!invoice) return
-    setSending(true)
-    try {
-      const response = await fetch(`/api/invoices/${id}/remind`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: selectedReminderType }),
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        toast({
-          title: 'Relance envoyée !',
-          description: `${reminderTypeLabel[selectedReminderType]} envoyée à ${invoice.client_email}`,
-        })
-        await loadData()
-      } else {
-        toast({
-          title: 'Erreur',
-          description: data.error || "Impossible d'envoyer la relance",
-          variant: 'destructive',
-        })
-      }
-    } catch {
-      toast({ title: 'Erreur', description: 'Impossible d\'envoyer la relance', variant: 'destructive' })
-    } finally {
-      setSending(false)
-    }
-  }
 
   const handleMarkAsPaid = async () => {
     if (!invoice) return
@@ -505,24 +473,8 @@ export default function InvoiceDetailPage() {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <Button onClick={handleSendReminder} disabled={sending || !!reminderBlock(invoice) || reminders.some(r => r.type === selectedReminderType && r.status !== 'failed')} className="flex-1 sm:flex-none">
-                      <Send className="mr-2 h-4 w-4" />
-                      {sending ? 'Envoi en cours…' : reminders.some(r => r.type === selectedReminderType && r.status !== 'failed') ? 'Étape déjà enregistrée' : `Envoyer — ${reminderTypeLabel[selectedReminderType]}`}
-                    </Button>
-                    {selectedReminderType === 'formal_notice' && (
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/dashboard/mise-en-demeure?invoice=${invoice.id}`}>
-                          <ExternalLink className="mr-2 h-3.5 w-3.5" />
-                          Version avancée
-                        </Link>
-                      </Button>
-                    )}
+                    <ReminderReview ids={[invoice.id]} type={selectedReminderType} disabled={!!reminderBlock(invoice) || reminders.some(r => r.type === selectedReminderType && r.status !== 'failed')} onSent={loadData} />
                   </div>
-                  {selectedReminderType === 'formal_notice' && (
-                    <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2">
-                      La mise en demeure a une valeur légale. Elle inclut automatiquement les pénalités de retard (3× taux légal) et l&apos;indemnité forfaitaire de 40 €.
-                    </p>
-                  )}
                 </CardContent>
               </Card>
             )}

@@ -25,8 +25,7 @@ const cspHeader = [
 ].join('; ')
 
 const nextConfig = {
-  // Next.js 14.2+ — keep @react-pdf/renderer in Node.js runtime only
-  serverExternalPackages: ['@react-pdf/renderer'],
+  outputFileTracingIncludes: { '/api/invoices/*/pdf': ['./assets/fonts/DejaVuSans.ttf'] },
   images: {
     remotePatterns: [
       {
@@ -38,6 +37,9 @@ const nextConfig = {
   async redirects() {
     return [
       // Une seule page de contact et une seule FAQ (accueil).
+      { source: '/login', destination: '/auth/login', permanent: true },
+      { source: '/dashboard/pipeline', destination: '/dashboard/clients', permanent: true },
+      { source: '/dashboard/contacts/:path*', destination: '/dashboard/clients', permanent: true },
       { source: '/support', destination: '/contact', permanent: true },
       // Le journal des versions publiait d'anciens prix et des détails internes.
       { source: '/changelog', destination: '/', permanent: true },

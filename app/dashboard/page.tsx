@@ -53,7 +53,7 @@ export default async function DashboardPage() {
           {
             label: 'Reste à encaisser',
             value: overview.outstanding,
-            note: `${overview.active_count} factures ouvertes`,
+            note: `${overview.active_count} facture${overview.active_count === 1 ? '' : 's'} ouverte${overview.active_count === 1 ? '' : 's'}`,
             style: 'bg-brand-900 text-white',
           },
           {
@@ -65,7 +65,7 @@ export default async function DashboardPage() {
           {
             label: 'Paiements promis',
             value: overview.promised,
-            note: `${overview.promise_count} promesses en cours`,
+            note: `${overview.promise_count} promesse${overview.promise_count === 1 ? '' : 's'} en cours`,
             style: 'bg-white text-brand-900',
           },
           {

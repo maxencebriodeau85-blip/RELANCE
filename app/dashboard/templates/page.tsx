@@ -157,6 +157,7 @@ export default function TemplatesPage() {
       />
 
       <div className="p-6 space-y-6 max-w-4xl">
+        <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">Les modèles par défaut sont des relances amiables sans pénalités automatiques. Vérifiez vos textes personnalisés : les mentions de l’article L441-10 et de l’indemnité de 40 € concernent les relations entre professionnels, pas les clients particuliers.</p>
         {/* Concept primer */}
         <div className="rounded-2xl bg-gradient-to-br from-brand-50 via-white to-purple-50 border border-brand-100 p-5">
           <h2 className="text-sm font-bold text-gray-900 mb-1">Comment ça fonctionne</h2>

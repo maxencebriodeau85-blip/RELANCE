@@ -285,41 +285,6 @@ function NewInvoiceForm() {
                 </div>
               </div>
               <div className="col-span-2 space-y-1.5">
-                <Label htmlFor="description">
-                  Désignation / objet de la prestation
-                  <span className="ml-1 text-gray-400 font-normal text-xs">(facultatif pour le suivi)</span>
-                </Label>
-                <textarea
-                  id="description"
-                  value={form.description}
-                  onChange={set('description')}
-                  rows={2}
-                  maxLength={500}
-                  placeholder="Ex : Développement site web – Sprint 3 (15 au 28 juin 2024)"
-                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
-                />
-                <FieldError msg={fieldErrors.description} />
-                {form.description.length > 400 && (
-                  <p className="text-xs text-gray-400">{form.description.length}/500</p>
-                )}
-              </div>
-              <div className="col-span-2 space-y-1.5">
-                <Label htmlFor="vat_mention">Mention TVA</Label>
-                <select
-                  id="vat_mention"
-                  value={form.vat_mention}
-                  onChange={set('vat_mention')}
-                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <option value="">Non renseignée</option>
-                  <option value="TVA non applicable, art. 293B du CGI">TVA non applicable, art. 293B du CGI (auto-entrepreneur)</option>
-                  <option value="TVA 20%">TVA 20% — taux normal</option>
-                  <option value="TVA 10%">TVA 10% — taux intermédiaire</option>
-                  <option value="TVA 5,5%">TVA 5,5% — taux réduit</option>
-                  <option value="Exonéré de TVA, art. 261 du CGI">Exonéré de TVA, art. 261 du CGI (formation pro)</option>
-                </select>
-              </div>
-              <div className="col-span-2 space-y-1.5">
                 <Label htmlFor="notes">Notes internes <span className="text-gray-400 font-normal text-xs">(optionnel, non transmis au client)</span></Label>
                 <textarea
                   id="notes"

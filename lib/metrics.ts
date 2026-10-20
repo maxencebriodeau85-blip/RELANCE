@@ -56,6 +56,7 @@ export function calculateRecoveryRate(invoices: Invoice[]): number {
 }
 
 export function getDaysOverdue(invoice: Invoice): number {
+  if (outstanding(invoice) === 0) return 0
   return Math.max(0, Math.round((Date.parse(businessDate()) - Date.parse(invoice.due_date)) / 86400000))
 }
 
@@ -142,7 +143,7 @@ export function formatEuro(amount: number): string {
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency: 'EUR',
-    minimumFractionDigits: 0,
+    minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount)
 }

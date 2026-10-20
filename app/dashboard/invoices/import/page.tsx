@@ -160,6 +160,8 @@ export default function ImportPage() {
       })
       const data = await response.json()
       if (!response.ok) {
+        const conflicted = new Set<number>((data.errors || []).map((e: ValidationError) => e.row))
+        setValidInvoices(response.status === 409 ? result.valid.filter((_, index) => !conflicted.has(index + 2)) : [])
         setErrors(
           data.errors || [
             {
@@ -526,7 +528,7 @@ export default function ImportPage() {
                   <ul className="mt-2 space-y-1 text-sm">
                     {errors.slice(0, 10).map((err, i) => (
                       <li key={i}>
-                        Ligne {err.row} · <strong>{err.field}</strong> :{' '}
+                        Ligne {err.row} · <strong>{FIELD_LABELS[err.field as keyof ColumnMapping]?.replace(' *', '') || (err.field === 'import' ? 'Import' : 'Ligne')}</strong> :{' '}
                         {err.message}
                         {err.value !== undefined &&
                           ` (valeur : "${err.value}")`}

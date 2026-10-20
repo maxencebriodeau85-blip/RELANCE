@@ -1,12 +1,10 @@
-import { createElement, type FunctionComponent } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { renderToBuffer } from '@react-pdf/renderer'
-import { InvoicePDF } from '@/lib/invoice-pdf'
+import { renderInvoicePDF } from '@/lib/invoice-pdf'
 import { sanitizeHeaderValue } from '@/lib/validation'
 import type { Invoice, Profile } from '@/lib/database.types'
 
-// Force Node.js runtime — @react-pdf/renderer is not edge-compatible.
+// PDF generation reads the bundled font in the Node.js runtime.
 export const runtime = 'nodejs'
 
 export async function GET(
@@ -55,16 +53,7 @@ export async function GET(
       phone: null,
     }
 
-    // @react-pdf and React have incompatible Style typings — cast through unknown.
-    type InvoicePDFProps = {
-      invoice: Invoice
-      profile: Pick<Profile, 'company_name' | 'address' | 'postal_code' | 'city' | 'siren' | 'email' | 'phone'>
-    }
-    const element = createElement(
-      InvoicePDF as unknown as FunctionComponent<InvoicePDFProps>,
-      { invoice, profile }
-    )
-    const buffer = await renderToBuffer(element as unknown as Parameters<typeof renderToBuffer>[0])
+    const buffer = await renderInvoicePDF({ invoice, profile })
 
     return new NextResponse(buffer as unknown as BodyInit, {
       status: 200,

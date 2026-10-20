@@ -31,7 +31,7 @@ import type { Profile } from '@/lib/database.types'
 
 const PLAN_LABELS: Record<string, string> = {
   free_trial: 'Essai gratuit',
-  starter: 'Fondateur',
+  starter: 'Offre active',
   pro: 'Pro',
   business: 'Business',
 }
@@ -278,7 +278,7 @@ function SettingsPageInner() {
                     <Icon className={`h-5 w-5 mb-2 ${plan.color}`} />
                     <div className="font-bold text-gray-900">{plan.name}</div>
                     <div className={`text-xl font-bold mt-1 ${plan.color}`}>{plan.price} €<span className="text-xs text-gray-400 font-normal"> HT/mois</span></div>
-                    <div className="text-xs text-gray-500 mt-1 mb-3">{plan.limit}</div>
+
                     <ul className="space-y-1">
                       {plan.features.map((f) => (
                         <li key={f} className="text-xs text-gray-600 flex items-start gap-1">

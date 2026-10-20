@@ -1,14 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { isValidElement } from 'react'
-import { InvoicePDF } from '../invoice-pdf'
+import { invoiceSummary, renderInvoicePDF } from '../invoice-pdf'
 import { invoiceExportCSV, csvCell } from '../invoice-export'
 import type { Invoice } from '../database.types'
 const invoice = { id:'invoice',invoice_number:'F1',client_name:'Client',client_email:null,amount:100,amount_paid:40,status:'pending',due_date:'2026-01-01',issued_date:null,notes:'SECRET INTERNE',vat_mention:'',balance_checked_at:null } as Invoice
-function allText(node: unknown): string {
-  if (Array.isArray(node)) return node.map(allText).join(' ')
-  if (isValidElement<{ children?: unknown }>(node)) return allText(node.props.children)
-  return typeof node === 'string' || typeof node === 'number' ? String(node) : ''
-}
 describe('Exports reflect collection data', () => {
   it('exports an empty email and the outstanding balance', () => {
     const csv=invoiceExportCSV([invoice])
@@ -21,8 +15,13 @@ describe('Exports reflect collection data', () => {
   it('escapes quotes while keeping ordinary references intact', () => {
     expect(csvCell('FA-123 "A"')).toBe('"FA-123 ""A"""')
   })
+  it('generates a real PDF without a React renderer', async () => {
+    const pdf = await renderInvoicePDF({ invoice, profile: { company_name: 'Entreprise', address: null, postal_code: null, city: null, siren: null, email: 'owner@example.invalid', phone: null } })
+    expect(pdf.subarray(0, 4).toString()).toBe('%PDF')
+    expect(pdf.length).toBeGreaterThan(1000)
+  })
   it('shows the remaining balance without internal notes, a payment link or invented tax terms', () => {
-    const text=allText(InvoicePDF({ invoice, profile:{ company_name:'Entreprise',address:null,postal_code:null,city:null,siren:null,email:'owner@example.invalid',phone:null } }))
+    const text=JSON.stringify(invoiceSummary({ invoice, profile:{ company_name:'Entreprise',address:null,postal_code:null,city:null,siren:null,email:'owner@example.invalid',phone:null } }))
     expect(text).toContain('Reste à payer')
     expect(text).toMatch(/60,00/)
     expect(text).toMatch(/40,00/)

@@ -1,7 +1,6 @@
 import { createAdminClient } from './supabase/server'
-import { resolveEmailTemplate } from './email-templates'
+import { reminderContent, validReminderConfirmation } from './reminder-confirmation'
 import { assertActiveAccess } from './access-control'
-import { getDaysOverdue } from './metrics'
 import { reminderBlock, outstanding } from './collection'
 import type { Invoice, Profile, ReminderType } from './database.types'
 
@@ -11,6 +10,7 @@ export async function sendReminder(
   userId: string,
   type: ReminderType,
   source: 'manual' | 'automatic' = 'manual',
+  confirmation?: string,
 ) {
   const db = await createAdminClient()
   const [{ data: raw, error: invoiceError }, { data: rawProfile, error: profileError }] = await Promise.all([
@@ -68,22 +68,9 @@ export async function sendReminder(
     .maybeSingle()
   if (templateError)
     return { status: 503, error: 'Impossible de charger le modèle.' }
-  const content = resolveEmailTemplate(
-    type,
-    {
-      creditorName: profile!.company_name || 'Votre fournisseur',
-      creditorEmail: profile!.email,
-      clientName: invoice.client_name,
-      invoiceNumber: invoice.invoice_number,
-      amount: outstanding(invoice),
-      dueDate: invoice.due_date,
-      daysOverdue: getDaysOverdue(invoice),
-      invoiceId,
-      description: invoice.description,
-      vat_mention: invoice.vat_mention,
-    },
-    override,
-  )
+  const content = reminderContent(invoice, profile!, type, override)
+  if (source === 'manual' && !validReminderConfirmation(confirmation, invoice, profile!, type, content))
+    return { status: 409, error: 'L’aperçu a expiré ou les données ont changé. Ouvrez un nouvel aperçu avant de confirmer.' }
   const { data: claimId, error: claimError } = await db.rpc(
     'claim_collection_reminder',
     {
@@ -114,6 +101,7 @@ export async function sendReminder(
     (source === 'automatic' && !freshProfile?.auto_reminders) ||
     reminderBlock(fresh as Invoice) ||
     fresh.client_email !== invoice.client_email ||
+    fresh.updated_at !== invoice.updated_at ||
     outstanding(fresh as Invoice) !== outstanding(invoice)
   ) {
     await db.from('reminders').update({ status: 'failed' }).eq('id', claim.id)
