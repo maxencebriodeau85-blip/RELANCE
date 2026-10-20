@@ -1,0 +1,116 @@
+name: Sauvegarde quotidienne Encair
+
+# Sauvegarde la base de production chaque nuit, la chiffre, puis la restaure
+# dans une base jetable pour prouver qu'elle est exploitable.
+#
+# Secrets à créer (Settings > Secrets and variables > Actions) :
+#   PROD_DB_URL        Chaîne « Session pooler » de la base de production
+#                      (Supabase > Connect), mot de passe inclus.
+#   BACKUP_PASSPHRASE  Phrase de chiffrement des sauvegardes. À garder aussi
+#                      dans un gestionnaire de mots de passe : sans elle, une
+#                      sauvegarde téléchargée est illisible.
+
+on:
+  schedule:
+    - cron: '30 2 * * *' # 02:30 UTC, hors des envois de relances (08:00 UTC)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PROD_DB_URL: ${{ secrets.PROD_DB_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+    steps:
+      - name: Vérifier les secrets
+        run: |
+          test -n "$PROD_DB_URL" || { echo "::error::Secret PROD_DB_URL manquant"; exit 1; }
+          test -n "$BACKUP_PASSPHRASE" || { echo "::error::Secret BACKUP_PASSPHRASE manquant"; exit 1; }
+
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Exporter rôles, schéma et données
+        run: |
+          mkdir -p dump
+          supabase db dump --db-url "$PROD_DB_URL" -f dump/roles.sql --role-only
+          supabase db dump --db-url "$PROD_DB_URL" -f dump/schema.sql
+          supabase db dump --db-url "$PROD_DB_URL" -f dump/data.sql --use-copy --data-only \
+            -x "storage.buckets_vectors" -x "storage.vector_indexes"
+          supabase db dump --db-url "$PROD_DB_URL" -f dump/history_schema.sql --schema supabase_migrations
+          supabase db dump --db-url "$PROD_DB_URL" -f dump/history_data.sql --use-copy --data-only --schema supabase_migrations
+
+      - name: Compter les lignes de référence
+        run: |
+          command -v psql >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client; }
+          psql "$PROD_DB_URL" -Atq -v ON_ERROR_STOP=1 -f scripts/ops/backup-counts.sql > dump/counts.txt
+          cat dump/counts.txt
+
+      - name: Chiffrer
+        run: |
+          tar -C dump -czf encair-backup.tar.gz .
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$BACKUP_PASSPHRASE" \
+            --symmetric --cipher-algo AES256 -o "encair-backup-$(date -u +%Y%m%d-%H%M).tar.gz.gpg" encair-backup.tar.gz
+          rm -f encair-backup.tar.gz
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: encair-backup-${{ github.run_id }}
+          path: encair-backup-*.tar.gz.gpg
+          retention-days: 14
+          if-no-files-found: error
+
+      # ── Exercice de restauration ────────────────────────────────────────
+      # La sauvegarde est restaurée dans une pile Supabase locale et jetable,
+      # puis les comptages sont comparés à ceux de la production.
+      - name: Démarrer une base Supabase jetable
+        run: |
+          supabase init --force >/dev/null
+          supabase start -x studio,imgproxy,mailpit,realtime,storage-api,edge-runtime,logflare,vector,supavisor,postgres-meta,kong,postgrest
+          echo "LOCAL_DB_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres" >> "$GITHUB_ENV"
+
+      - name: Restaurer la sauvegarde
+        run: |
+          mkdir -p restore
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$BACKUP_PASSPHRASE" \
+            -d encair-backup-*.tar.gz.gpg | tar -C restore -xzf -
+          # Rôles réservés de la plateforme : ignorés en local.
+          sed -i -E '/cli_login_postgres|supabase_admin/s/^/-- /' restore/roles.sql
+          sed -i -E '/OWNER TO "?supabase_admin"?/s/^/-- /' restore/schema.sql
+          psql "$LOCAL_DB_URL" --single-transaction -v ON_ERROR_STOP=1 -q \
+            --file restore/roles.sql \
+            --file restore/schema.sql \
+            --command 'SET session_replication_role = replica' \
+            --file restore/data.sql
+
+      - name: Comparer avec la production
+        run: |
+          psql "$LOCAL_DB_URL" -Atq -v ON_ERROR_STOP=1 -f scripts/ops/backup-counts.sql > restore/counts-restored.txt
+          if diff -u restore/counts.txt restore/counts-restored.txt; then
+            echo "Restauration vérifiée : comptages identiques."
+          else
+            echo "::error::La sauvegarde restaurée ne correspond pas à la production."
+            exit 1
+          fi
+
+      - name: Signaler l'échec
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="Alerte Encair : sauvegarde en échec"
+          body="La sauvegarde ou sa restauration de contrôle a échoué : ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          existing=$(gh issue list --state open --search "in:title \"$title\"" --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then gh issue comment "$existing" --body "$body"; else gh issue create --title "$title" --body "$body"; fi
