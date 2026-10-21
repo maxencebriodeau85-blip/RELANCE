@@ -1,119 +1,70 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { assertPlan } from '@/lib/access-control'
-import type { Profile } from '@/lib/database.types'
+import { assertActiveAccess } from '@/lib/access-control'
+import { TEMPLATE_VARIABLES } from '@/lib/reminder-templates'
+import { z } from 'zod'
 
-const VALID_TYPES = ['email_1', 'email_2', 'email_3', 'formal_notice'] as const
-type TemplateType = (typeof VALID_TYPES)[number]
+const types = ['email_1', 'email_2', 'email_3', 'formal_notice'] as const
+const fields = 'template_type,subject,body,enabled'
+const schema = z.object({
+  template_type: z.enum(types),
+  subject: z.string().trim().min(1).max(200).refine(value => !/[\r\n]/.test(value)),
+  body: z.string().trim().min(1).max(5000),
+  enabled: z.boolean().default(true),
+}).strict()
+const unavailable = () => NextResponse.json({ error: 'Les modèles sont momentanément indisponibles. Réessayez.' }, { status: 503 })
 
-// Templates personnalisés = feature Pro. Shared guard for PUT/DELETE.
-async function requireProPlan(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  userId: string
-): Promise<{ error: string; status: number } | null> {
-  const { data } = await supabase
-    .from('profiles')
-    .select('plan, trial_ends_at')
-    .eq('id', userId)
-    .single()
-  const gate = assertPlan(data as Pick<Profile, 'plan' | 'trial_ends_at'> | null, 'pro')
-  return gate.ok ? null : { error: gate.error!, status: gate.status }
+async function context(write = false) {
+  const db = await createClient()
+  const { data: { user } } = await db.auth.getUser()
+  if (!user) return { response: NextResponse.json({ error: 'Reconnectez-vous pour continuer.' }, { status: 401 }) }
+  if (write) {
+    const { data, error } = await db.from('profiles').select('plan,trial_ends_at').eq('id', user.id).single()
+    if (error) return { response: unavailable() }
+    // Custom reminders are included in the active trial and Founder offer.
+    const access = assertActiveAccess(data)
+    if (!access.ok) return { response: NextResponse.json({ error: access.error }, { status: access.status }) }
+  }
+  return { db, user }
 }
 
 export async function GET() {
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
-
-    const { data } = await supabase
-      .from('email_template_overrides')
-      .select('*')
-      .eq('user_id', user.id)
-
-    return NextResponse.json({ templates: data ?? [] })
-  } catch (err) {
-    console.error('GET email-templates error:', err)
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
-  }
+    const ctx = await context()
+    if (ctx.response) return ctx.response
+    const { data, error } = await ctx.db.from('email_template_overrides').select(fields).eq('user_id', ctx.user.id)
+    if (error || !data) return unavailable()
+    return NextResponse.json({ templates: data }, { headers: { 'Cache-Control': 'no-store' } })
+  } catch { return unavailable() }
 }
 
 export async function PUT(request: Request) {
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
-
-    const gate = await requireProPlan(supabase, user.id)
-    if (gate) return NextResponse.json({ error: gate.error }, { status: gate.status })
-
-    const body = await request.json().catch(() => null)
-    if (!body) return NextResponse.json({ error: 'Corps invalide' }, { status: 400 })
-
-    const type = String(body.template_type) as TemplateType
-    if (!VALID_TYPES.includes(type)) {
-      return NextResponse.json({ error: 'Type invalide' }, { status: 400 })
-    }
-
-    const subject = String(body.subject || '').trim().slice(0, 200)
-    const bodyText = String(body.body || '').trim().slice(0, 5000)
-    const enabled = body.enabled !== false
-
-    if (!subject || !bodyText) {
-      return NextResponse.json({ error: 'Objet et corps requis' }, { status: 422 })
-    }
-
-    // Upsert
-    const { error } = await supabase
-      .from('email_template_overrides')
-      .upsert({
-        user_id: user.id,
-        template_type: type,
-        subject,
-        body: bodyText,
-        enabled,
-        updated_at: new Date().toISOString(),
-      } as never, { onConflict: 'user_id,template_type' })
-
-    if (error) {
-      console.error('Upsert template error:', error)
-      return NextResponse.json({ error: 'Erreur lors de la sauvegarde' }, { status: 500 })
-    }
-
-    return NextResponse.json({ success: true })
-  } catch (err) {
-    console.error('PUT email-templates error:', err)
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
-  }
+    const ctx = await context(true)
+    if (ctx.response) return ctx.response
+    const parsed = schema.safeParse(await request.json().catch(() => null))
+    if (!parsed.success) return NextResponse.json({ error: 'Vérifiez le modèle : objet de 1 à 200 caractères, message de 1 à 5 000 caractères.' }, { status: 422 })
+    const value = parsed.data
+    const allowed = new Set<string>([...TEMPLATE_VARIABLES.map(v => v.name), 'payment_url'])
+    const unknown = [...(value.subject + value.body).matchAll(/\{\{(\w+)\}\}/g)].map(m => m[1]).filter(name => !allowed.has(name))
+    if (unknown.length) return NextResponse.json({ error: `Variable inconnue : ${unknown[0]}. Utilisez les variables indiquées dans l’éditeur.` }, { status: 422 })
+    const { data, error } = await ctx.db.from('email_template_overrides')
+      .upsert({ ...value, user_id: ctx.user.id, updated_at: new Date().toISOString() }, { onConflict: 'user_id,template_type' })
+      .select(fields).single()
+    if (error || !data) return unavailable()
+    return NextResponse.json({ template: data })
+  } catch { return unavailable() }
 }
 
 export async function DELETE(request: Request) {
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
-
-    const { searchParams } = new URL(request.url)
-    const type = searchParams.get('type') as TemplateType
-    if (!VALID_TYPES.includes(type)) {
-      return NextResponse.json({ error: 'Type invalide' }, { status: 400 })
-    }
-
-    await supabase
-      .from('email_template_overrides')
-      .delete()
-      .eq('user_id', user.id)
-      .eq('template_type', type)
-
+    const ctx = await context(true)
+    if (ctx.response) return ctx.response
+    const type = new URL(request.url).searchParams.get('type')
+    if (!types.includes(type as typeof types[number])) return NextResponse.json({ error: 'Type de modèle invalide.' }, { status: 422 })
+    const { error } = await ctx.db.from('email_template_overrides').delete().eq('user_id', ctx.user.id).eq('template_type', type)
+    if (error) return unavailable()
+    // A zero-row delete is valid: the default template is already active.
     return NextResponse.json({ success: true })
-  } catch (err) {
-    console.error('DELETE email-templates error:', err)
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
-  }
+  } catch { return unavailable() }
 }

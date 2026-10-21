@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 
 const VALID_STAGES = ['prospect', 'qualified', 'proposal', 'signed', 'lost']
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
@@ -11,7 +11,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   const { data: contact, error } = await supabase
     .from('contacts')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', (await params).id)
     .eq('user_id', user.id)
     .single()
 
@@ -20,20 +20,20 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   const { data: journal } = await supabase
     .from('journal_entries')
     .select('*')
-    .eq('contact_id', params.id)
+    .eq('contact_id', (await params).id)
     .order('occurred_at', { ascending: false })
 
   const { data: invoices } = await supabase
     .from('invoices')
     .select('id, invoice_number, amount, status, due_date, issued_date')
-    .eq('contact_id', params.id)
+    .eq('contact_id', (await params).id)
     .eq('user_id', user.id)
     .order('issued_date', { ascending: false })
 
   return NextResponse.json({ contact, journal: journal || [], invoices: invoices || [] })
 }
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
@@ -62,7 +62,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   const { data, error } = await supabase
     .from('contacts')
     .update(updates as never)
-    .eq('id', params.id)
+    .eq('id', (await params).id)
     .eq('user_id', user.id)
     .select()
     .single()
@@ -71,7 +71,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   return NextResponse.json({ contact: data })
 }
 
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
@@ -79,7 +79,7 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
   const { error } = await supabase
     .from('contacts')
     .delete()
-    .eq('id', params.id)
+    .eq('id', (await params).id)
     .eq('user_id', user.id)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

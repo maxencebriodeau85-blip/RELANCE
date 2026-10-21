@@ -80,17 +80,22 @@ export type Database = {
           id: string
           user_id: string
           client_name: string
-          client_email: string
+          client_email: string | null
           client_address: string | null
           client_siren: string | null
           invoice_number: string
           amount: number
           due_date: string
-          issued_date: string
+          issued_date: string | null
           status: 'pending' | 'reminded' | 'formal_notice' | 'paid' | 'disputed'
           notes: string | null
           description: string | null
           vat_mention: string
+          amount_paid?: number
+          paid_at?: string | null
+          balance_checked_at?: string | null
+          promise_date?: string | null
+          reminders_paused?: boolean
           payment_token: string | null
           created_at: string
           updated_at: string
@@ -99,17 +104,22 @@ export type Database = {
           id?: string
           user_id: string
           client_name: string
-          client_email: string
+          client_email: string | null
           client_address?: string | null
           client_siren?: string | null
           invoice_number: string
           amount: number
           due_date: string
-          issued_date?: string
+          issued_date?: string | null
           status?: 'pending' | 'reminded' | 'formal_notice' | 'paid' | 'disputed'
           notes?: string | null
           description?: string | null
           vat_mention?: string
+          amount_paid?: number
+          paid_at?: string | null
+          balance_checked_at?: string | null
+          promise_date?: string | null
+          reminders_paused?: boolean
           payment_token?: string | null
           created_at?: string
           updated_at?: string
@@ -118,17 +128,22 @@ export type Database = {
           id?: string
           user_id?: string
           client_name?: string
-          client_email?: string
+          client_email?: string | null
           client_address?: string | null
           client_siren?: string | null
           invoice_number?: string
           amount?: number
           due_date?: string
-          issued_date?: string
+          issued_date?: string | null
           status?: 'pending' | 'reminded' | 'formal_notice' | 'paid' | 'disputed'
           notes?: string | null
           description?: string | null
           vat_mention?: string
+          amount_paid?: number
+          paid_at?: string | null
+          balance_checked_at?: string | null
+          promise_date?: string | null
+          reminders_paused?: boolean
           payment_token?: string | null
           created_at?: string
           updated_at?: string
@@ -153,7 +168,7 @@ export type Database = {
           channel: 'email' | 'sms' | 'courrier'
           content: string | null
           subject: string | null
-          status: 'sent' | 'delivered' | 'opened' | 'clicked' | 'failed' | 'bounced' | 'complained'
+          status: 'pending' | 'sent' | 'delivered' | 'opened' | 'clicked' | 'failed' | 'bounced' | 'complained'
           resend_id: string | null
           delivered_at: string | null
           opened_at: string | null
@@ -171,7 +186,7 @@ export type Database = {
           channel?: 'email' | 'sms' | 'courrier'
           content?: string | null
           subject?: string | null
-          status?: 'sent' | 'delivered' | 'opened' | 'clicked' | 'failed' | 'bounced' | 'complained'
+          status?: 'pending' | 'sent' | 'delivered' | 'opened' | 'clicked' | 'failed' | 'bounced' | 'complained'
           resend_id?: string | null
           delivered_at?: string | null
           opened_at?: string | null
@@ -189,7 +204,7 @@ export type Database = {
           channel?: 'email' | 'sms' | 'courrier'
           content?: string | null
           subject?: string | null
-          status?: 'sent' | 'delivered' | 'opened' | 'clicked' | 'failed' | 'bounced' | 'complained'
+          status?: 'pending' | 'sent' | 'delivered' | 'opened' | 'clicked' | 'failed' | 'bounced' | 'complained'
           resend_id?: string | null
           delivered_at?: string | null
           opened_at?: string | null

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,36 +8,19 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createClient } from '@/lib/supabase/client'
+import { Logo } from '@/components/brand/logo'
 import { supabaseAuthError } from '@/lib/auth-errors'
-import { Zap, AlertCircle, CheckCircle, ArrowLeft, Clock } from 'lucide-react'
+import { AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react'
 
-const COUNTDOWN_SECONDS = 8
 const RATE_LIMIT_SECONDS = 60
 
 export default function ForgotPasswordPage() {
-  const router = useRouter()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [sent, setSent] = useState(false)
-  const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS)
   const [rateLimitRemaining, setRateLimitRemaining] = useState(0)
   const lastSentAt = useRef<number | null>(null)
-
-  useEffect(() => {
-    if (!sent) return
-    const interval = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval)
-          router.push('/auth/login')
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [sent, router])
 
   useEffect(() => {
     if (rateLimitRemaining <= 0) return
@@ -72,7 +54,7 @@ export default function ForgotPasswordPage() {
       // into NEXT_PUBLIC_APP_URL at build time.
       const appUrl = window.location.origin
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${appUrl}/auth/reset-password`,
+        redirectTo: `${appUrl}/auth/confirm?next=/auth/reset-password&type=recovery`,
       })
 
       if (resetError) {
@@ -81,7 +63,7 @@ export default function ForgotPasswordPage() {
       }
 
       lastSentAt.current = Date.now()
-      setCountdown(COUNTDOWN_SECONDS)
+      setRateLimitRemaining(RATE_LIMIT_SECONDS)
       setSent(true)
     } catch {
       setError('Une erreur inattendue est survenue. Réessayez.')
@@ -93,11 +75,8 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4 pb-28 sm:pb-4 overflow-y-auto">
       <div className="w-full max-w-md">
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600">
-            <Zap className="h-6 w-6 text-white" />
-          </div>
-          <span className="text-2xl font-bold text-gray-900">RelanceFlow</span>
+        <div className="flex items-center justify-center mb-8">
+          <Logo size="md" />
         </div>
 
         {sent ? (
@@ -109,13 +88,10 @@ export default function ForgotPasswordPage() {
               <div>
                 <h2 className="text-xl font-semibold">Email envoyé</h2>
                 <p className="text-gray-500 mt-2 text-sm">
-                  Un lien de réinitialisation a été envoyé à <strong>{email}</strong>. Vérifiez votre boîte de réception (et vos spams).
+                  Si un compte existe pour <strong>{email}</strong>, un lien de réinitialisation vous sera envoyé. Vérifiez votre boîte de réception (et vos spams).
                 </p>
               </div>
-              <div className="flex items-center justify-center gap-1.5 text-sm text-gray-400">
-                <Clock className="h-4 w-4" />
-                Redirection automatique dans {countdown}s…
-              </div>
+              <Button variant="outline" className="w-full" disabled={rateLimitRemaining > 0} onClick={() => setSent(false)}>{rateLimitRemaining > 0 ? `Renvoyer dans ${rateLimitRemaining} s` : 'Renvoyer ou modifier l’adresse'}</Button>
               <Button variant="outline" asChild className="w-full">
                 <Link href="/auth/login">
                   <ArrowLeft className="mr-2 h-4 w-4" />

@@ -18,7 +18,8 @@ export function GET() {
 
   return NextResponse.json({
     status: 'ok',
-    service: 'relanceflow',
+    checks: 'configuration-presence-only',
+    service: 'encair',
     version: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? 'dev',
     timestamp: new Date().toISOString(),
     // Config presence — booleans only, no secret material is exposed.
@@ -27,6 +28,9 @@ export function GET() {
       supabaseUrl,
       supabaseAnonKey,
       supabaseServiceRole: has(process.env.SUPABASE_SERVICE_ROLE_KEY),
+      billingReady: has(process.env.STRIPE_SECRET_KEY) && has(process.env.STRIPE_FOUNDER_PRICE_ID) && has(process.env.STRIPE_WEBHOOK_SECRET) && has(process.env.SUPABASE_SERVICE_ROLE_KEY),
+      stripeFounderPrice: has(process.env.STRIPE_FOUNDER_PRICE_ID),
+      emailSender: has(process.env.RESEND_FROM_EMAIL),
       stripeSecret: has(process.env.STRIPE_SECRET_KEY),
       stripeWebhook: has(process.env.STRIPE_WEBHOOK_SECRET),
       resend: has(process.env.RESEND_API_KEY),

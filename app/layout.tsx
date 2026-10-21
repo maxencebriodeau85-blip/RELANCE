@@ -1,3 +1,5 @@
+import { getAppUrl } from '@/lib/app-url'
+import { OFFER } from '@/lib/plans'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
@@ -16,64 +18,44 @@ const inter = Inter({
   weight: ['400', '500', '600', '700'],
 })
 
-// Canonical & metadata URL — always points to the production domain so that
-// Open Graph cards, JSON-LD, canonical and sitemap never leak a Vercel preview
-// hostname. If you change the production domain, edit this constant
-// (NOT the NEXT_PUBLIC_APP_URL env var, which controls runtime links inside
-// emails — that one should also be set to https://relanceflow.fr in prod).
-const SITE_URL = 'https://relanceflow.fr'
+// Canonical URLs follow the configured, owned deployment domain.
+const SITE_URL = getAppUrl()
+
+const TITLE = 'Encair — Suivi et relance des factures impayées pour TPE'
+const DESCRIPTION =
+  'Import CSV depuis votre logiciel de facturation, relances email, promesses de paiement et litiges. Pour les TPE. 30 jours gratuits, sans carte bancaire.'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'RelanceFlow — Automatisez vos relances de factures impayées',
-    template: '%s | RelanceFlow',
+    default: TITLE,
+    template: '%s | Encair',
   },
-  description:
-    'Logiciel français de relance automatique des factures impayées pour indépendants, consultants et TPE. Pipeline CRM, mise en demeure conforme, paiement Stripe intégré. 30 jours gratuits, sans carte bancaire.',
-  keywords: [
-    'relance facture impayée',
-    'logiciel recouvrement',
-    'relance client automatique',
-    'mise en demeure',
-    'facture impayée que faire',
-    'pénalités de retard',
-    'pipeline CRM français',
-    'facturation indépendant',
-    'consultant',
-    'coach',
-    'freelance',
-    'TPE',
-    'auto-entrepreneur',
-  ],
-  authors: [{ name: 'RelanceFlow' }],
-  creator: 'RelanceFlow',
-  publisher: 'RelanceFlow',
-  applicationName: 'RelanceFlow',
+  description: DESCRIPTION,
+  authors: [{ name: 'Encair' }],
+  creator: 'Encair',
+  publisher: 'Encair',
+  applicationName: 'Encair',
   category: 'business',
-  alternates: {
-    canonical: '/',
-  },
+  // Pas de canonical ici : chaque page déclare la sienne (sinon toutes
+  // les pages hériteraient de la canonical de l'accueil).
   openGraph: {
-    title: 'RelanceFlow — Automatisez vos relances de factures impayées',
-    description:
-      'Logiciel français de relance automatique des factures impayées pour indépendants et TPE. Pipeline CRM, mise en demeure conforme, paiement Stripe intégré. 30 jours gratuits.',
-    url: SITE_URL,
-    siteName: 'RelanceFlow',
+    title: TITLE,
+    description: DESCRIPTION,
+    siteName: 'Encair',
     type: 'website',
     locale: 'fr_FR',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'RelanceFlow — Automatisez vos relances de factures impayées',
-    description:
-      'Logiciel français de relance automatique pour indépendants et TPE. 30 jours gratuits.',
+    title: TITLE,
+    description: DESCRIPTION,
   },
   robots: {
-    index: true,
+    index: process.env.VERCEL_ENV !== 'preview',
     follow: true,
     googleBot: {
-      index: true,
+      index: process.env.VERCEL_ENV !== 'preview',
       follow: true,
       'max-image-preview': 'large',
       'max-snippet': -1,
@@ -92,17 +74,27 @@ export const metadata: Metadata = {
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
-  name: 'RelanceFlow',
+  name: 'Encair',
   applicationCategory: 'BusinessApplication',
   operatingSystem: 'Web',
   description:
-    "Logiciel français d'automatisation des relances de factures impayées et de génération de mises en demeure conformes au droit français.",
+    "Suivi des impayés, import CSV et relances email pour les petites entreprises.",
   url: SITE_URL,
   inLanguage: 'fr-FR',
   offers: [
-    { '@type': 'Offer', name: 'Starter', price: '19', priceCurrency: 'EUR' },
-    { '@type': 'Offer', name: 'Pro', price: '49', priceCurrency: 'EUR' },
-    { '@type': 'Offer', name: 'Business', price: '99', priceCurrency: 'EUR' },
+    {
+      '@type': 'Offer',
+      name: OFFER.name,
+      price: String(OFFER.price),
+      priceCurrency: 'EUR',
+      priceSpecification: {
+        '@type': 'UnitPriceSpecification',
+        price: String(OFFER.price),
+        priceCurrency: 'EUR',
+        unitText: 'mois',
+        valueAddedTaxIncluded: false,
+      },
+    },
   ],
 }
 
@@ -114,10 +106,7 @@ export default function RootLayout({
   return (
     <html lang="fr" className={inter.variable} suppressHydrationWarning>
       <head>
-        {/* DNS prefetch + TCP preconnect to third parties used on first paint —
-            shaves ~100-200ms off LCP on a fresh visit. */}
-        <link rel="dns-prefetch" href="https://js.stripe.com" />
-        <link rel="preconnect" href="https://js.stripe.com" crossOrigin="" />
+        {/* Stripe n'est chargé que sur la page d'abonnement : pas de preconnect global. */}
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <script
           type="application/ld+json"

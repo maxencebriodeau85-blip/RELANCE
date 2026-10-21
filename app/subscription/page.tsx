@@ -1,32 +1,35 @@
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import Link from 'next/link'
+import { CheckoutButton } from '@/components/auth/checkout-button'
 import { Check, AlertCircle, Clock } from 'lucide-react'
 import { Logo } from '@/components/brand/logo'
 import { SignOutButton } from '@/components/auth/sign-out-button'
 import { STRIPE_PLANS } from '@/lib/stripe'
 
-const PLANS: { key: 'starter' | 'pro' | 'business'; popular: boolean; desc: string }[] = [
-  { key: 'starter', popular: false, desc: 'Pour consultants et coaches indépendants' },
-  { key: 'pro', popular: true, desc: 'Volume plus important et intégrations' },
-  { key: 'business', popular: false, desc: 'Multi-utilisateurs et API dédiée' },
+const PLANS: { key: 'starter'; popular: boolean; desc: string }[] = [
+ { key: 'starter', popular: false, desc: 'Le suivi de vos impayés, simplement.' },
 ]
 
-export default async function SubscriptionPage() {
+export default async function SubscriptionPage({ searchParams }: { searchParams: Promise<{ checkout?: string }> }) {
+  const { checkout } = await searchParams
   const supabase = await createClient()
   const {
-    data: { user },
+    data: { user }, error: authError,
   } = await supabase.auth.getUser()
 
   // See app/auth/clear-session/route.ts — an invalid session must be cleared
   // via a Route Handler, not a redirect straight out of this Server Component.
+  if (authError && (!authError.status || authError.status >= 500)) throw new Error('La connexion est momentanément indisponible. Réessayez.')
   if (!user) redirect('/auth/clear-session')
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('plan, trial_ends_at, company_name')
     .eq('id', user.id)
     .single()
+
+  if (profileError || !profile) throw new Error('Votre profil ne peut pas être chargé. Réessayez dans un instant.')
 
   // Active paid subscriber — nothing to do here
   if (profile && profile.plan !== 'free_trial') {
@@ -34,7 +37,7 @@ export default async function SubscriptionPage() {
   }
 
   const trialEnd = profile?.trial_ends_at ? new Date(profile.trial_ends_at) : null
-  const isExpired = trialEnd ? trialEnd < new Date() : false
+  const isExpired = !trialEnd || !Number.isFinite(trialEnd.getTime()) || trialEnd <= new Date()
   const daysLeft = trialEnd
     ? Math.max(0, Math.ceil((trialEnd.getTime() - Date.now()) / 86_400_000))
     : null
@@ -66,7 +69,7 @@ export default async function SubscriptionPage() {
       {/* Title */}
       <div className="text-center mb-10 max-w-xl">
         <h1 className="text-3xl font-bold text-white mb-3">
-          {isExpired ? 'Continuez avec RelanceFlow' : 'Choisissez votre plan'}
+          {isExpired ? 'Continuez avec Encair' : 'Choisissez votre plan'}
         </h1>
         <p className="text-blue-200 text-sm leading-relaxed">
           {isExpired
@@ -75,8 +78,10 @@ export default async function SubscriptionPage() {
         </p>
       </div>
 
+      {checkout === 'cancelled' && <p role="status" className="mb-6 max-w-md rounded-lg bg-white/10 p-4 text-sm text-white">Vous avez quitté le paiement. Vous pouvez reprendre votre essai s’il est encore actif.</p>}
+      {!isExpired && <Link className="mb-6 text-white underline" href="/dashboard">Continuer mon essai gratuit →</Link>}
       {/* Pricing cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full max-w-4xl mb-10">
+      <div className="grid grid-cols-1 gap-5 w-full max-w-md mb-10">
         {PLANS.map(({ key, popular, desc }) => {
           const plan = STRIPE_PLANS[key]
           return (
@@ -106,7 +111,7 @@ export default async function SubscriptionPage() {
               <div className="mb-5 flex items-end gap-1">
                 <span className="text-4xl font-bold text-white">{plan.price}</span>
                 <span className={`text-sm pb-1 ${popular ? 'text-blue-200' : 'text-blue-300/70'}`}>
-                  €&thinsp;/&thinsp;mois
+                  € HT&thinsp;/&thinsp;mois
                 </span>
               </div>
 
@@ -123,16 +128,7 @@ export default async function SubscriptionPage() {
                 ))}
               </ul>
 
-              <a
-                href={`/api/stripe/checkout?plan=${key}`}
-                className={`block w-full text-center py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                  popular
-                    ? 'bg-white text-blue-700 hover:bg-blue-50 shadow-lg'
-                    : 'bg-blue-600/60 text-white border border-blue-500/40 hover:bg-blue-600'
-                }`}
-              >
-                Choisir {plan.name}
-              </a>
+              <CheckoutButton />
             </div>
           )
         })}
@@ -140,7 +136,7 @@ export default async function SubscriptionPage() {
 
       {/* Reassurance */}
       <p className="text-blue-300/50 text-xs text-center mb-6">
-        Sans engagement · Annulation à tout moment · Données hébergées en Europe · Conforme RGPD
+        Sans engagement · Annulation à tout moment
       </p>
 
       {/* Sign out */}

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Bell, X, Phone, Mail, FileText, Users } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { loadNotifications, markNotificationsRead, notificationLink } from '@/lib/notifications-client'
 import { cn } from '@/lib/utils'
 
 interface Notif {
@@ -29,39 +30,27 @@ export function NotificationBell() {
   const [notifs, setNotifs] = useState<Notif[]>([])
   const [unread, setUnread] = useState(0)
   const [open, setOpen] = useState(false)
-  const [generated, setGenerated] = useState(false)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(true)
   const ref = useRef<HTMLDivElement>(null)
 
-  // Load notifications
   useEffect(() => {
-    fetch('/api/notifications')
-      .then(r => r.json())
-      .then(({ notifications, unreadCount }) => {
-        setNotifs(notifications || [])
-        setUnread(unreadCount || 0)
-      })
-      .catch(() => null)
+    let live = true
+    const load = async () => {
+      try {
+        const generated = await fetch('/api/notifications/generate', { method: 'POST' })
+        const data = await loadNotifications()
+        if (!live) return
+        setNotifs(data.notifications)
+        setUnread(data.unreadCount)
+        if (!generated.ok) setError('Les nouvelles alertes n’ont pas pu être actualisées.')
+      } catch {
+        if (live) setError('Notifications indisponibles. Ouvrez la liste pour réessayer.')
+      } finally { if (live) setLoading(false) }
+    }
+    void load()
+    return () => { live = false }
   }, [])
-
-  // Generate smart alerts once per session
-  useEffect(() => {
-    if (generated) return
-    setGenerated(true)
-    fetch('/api/notifications/generate', { method: 'POST' })
-      .then(r => r.json())
-      .then(({ created }) => {
-        if (created > 0) {
-          // Refresh notifications list
-          return fetch('/api/notifications')
-            .then(r => r.json())
-            .then(({ notifications, unreadCount }) => {
-              setNotifs(notifications || [])
-              setUnread(unreadCount || 0)
-            })
-        }
-      })
-      .catch(() => null)
-  }, [generated])
 
   // Close on outside click
   useEffect(() => {
@@ -76,9 +65,11 @@ export function NotificationBell() {
     const next = !open
     setOpen(next)
     if (next && unread > 0) {
-      setUnread(0)
-      setNotifs(n => n.map(x => ({ ...x, read: true })))
-      await fetch('/api/notifications', { method: 'PATCH' })
+      try {
+        await markNotificationsRead()
+        const data = await loadNotifications()
+        setNotifs(data.notifications); setUnread(data.unreadCount)
+      } catch { setError('Lecture non enregistrée. Réessayez depuis la liste.') }
     }
   }
 
@@ -101,7 +92,7 @@ export function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-2xl bg-white shadow-2xl border border-gray-100 overflow-hidden">
+        <div className="absolute right-0 top-full z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-2xl bg-white shadow-2xl border border-gray-100 overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b">
             <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
@@ -116,11 +107,12 @@ export function NotificationBell() {
 
           {/* List */}
           <div className="max-h-[360px] overflow-y-auto divide-y">
-            {notifs.length === 0 ? (
+            {error && <p role="alert" className="p-4 text-sm text-red-700">{error}</p>}
+            {loading ? <p className="p-4 text-sm text-gray-500">Chargement…</p> : !error && notifs.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-center">
                 <Bell className="h-8 w-8 text-gray-200 mb-2" />
                 <p className="text-sm text-gray-400">Aucune notification</p>
-                <p className="text-xs text-gray-300 mt-1">Tout est à jour 👌</p>
+                <p className="text-xs text-gray-300 mt-1">Aucune alerte enregistrée.</p>
               </div>
             ) : (
               notifs.map(n => {
@@ -147,8 +139,8 @@ export function NotificationBell() {
                   </div>
                 )
 
-                return n.action_url ? (
-                  <Link key={n.id} href={n.action_url} onClick={() => setOpen(false)}>
+                return notificationLink(n.action_url) ? (
+                  <Link key={n.id} href={notificationLink(n.action_url)!} onClick={() => setOpen(false)}>
                     {content}
                   </Link>
                 ) : (

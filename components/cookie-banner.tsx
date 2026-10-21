@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { Cookie, X } from 'lucide-react'
 
@@ -32,12 +33,20 @@ function writeConsent(v: Exclude<Consent, null>): void {
 }
 
 export function CookieBanner() {
+  const pathname = usePathname()
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
     if (readConsent() === null) setOpen(true)
   }, [])
 
+  // Informational notice stays in the document flow on account forms so it
+  // cannot cover the submit button or a recovery link on small screens.
+  if (pathname.startsWith('/auth/')) return <aside className="border-t bg-white px-6 py-4 text-center text-xs text-gray-500">
+    Un cookie de session est nécessaire à votre connexion.{' '}
+    <Link href="/privacy" className="underline">Confidentialité</Link>{' · '}
+    <Link href="/mentions-legales" className="underline">Mentions légales</Link>
+  </aside>
   if (!open) return null
 
   const accept = () => {
@@ -59,7 +68,7 @@ export function CookieBanner() {
       <div className="rounded-2xl border border-gray-200 bg-white shadow-2xl p-4 relative">
         <button
           onClick={reject}
-          aria-label="Refuser et fermer"
+          aria-label="Fermer"
           className="absolute top-3 right-3 h-7 w-7 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
         >
           <X className="h-4 w-4" />
@@ -72,8 +81,8 @@ export function CookieBanner() {
           <div>
             <h2 className="text-sm font-semibold text-gray-900">Cookies &amp; vie privée</h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Cookies nécessaires uniquement. La mesure d&apos;audience est optionnelle
-              et n&apos;est activée qu&apos;avec ton accord.
+              Encair n&apos;utilise qu&apos;un cookie nécessaire à la connexion. La mesure
+              d&apos;audience fonctionne sans cookie et sans données personnelles.
             </p>
           </div>
         </div>
@@ -85,13 +94,7 @@ export function CookieBanner() {
             onClick={accept}
             className="flex-1 rounded-lg bg-brand-gradient text-white text-sm font-semibold px-4 py-2 transition-all hover:shadow-md"
           >
-            Tout accepter
-          </button>
-          <button
-            onClick={reject}
-            className="flex-1 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 text-sm font-semibold px-4 py-2 transition-colors"
-          >
-            Refuser
+            Compris
           </button>
         </div>
 

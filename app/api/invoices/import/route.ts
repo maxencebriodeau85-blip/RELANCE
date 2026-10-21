@@ -1,146 +1,150 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import type { ParsedInvoice } from '@/lib/csv-parser'
-import type { Profile } from '@/lib/database.types'
-import { isValidEmail, isValidDate } from '@/lib/validation'
-import { assertActiveAccess, monthlyInvoiceCount, planLimit } from '@/lib/access-control'
-
-const MAX_BATCH_SIZE = 500 // hard cap per request, regardless of plan
+import { readJsonBody } from '@/lib/request-json'
+import { assertActiveAccess } from '@/lib/access-control'
+import { MAX_IMPORT_ROWS, MAX_IMPORT_BYTES, validateInvoiceRows } from '@/lib/invoice-input'
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient()
+    const db = await createClient()
     const {
       data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
+    } = await db.auth.getUser()
+    if (!user)
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
-    }
-
-    const body = await request.json().catch(() => null)
-    const invoices = (body?.invoices ?? []) as ParsedInvoice[]
-
-    if (!Array.isArray(invoices) || invoices.length === 0) {
-      return NextResponse.json({ error: 'Aucune facture à importer' }, { status: 400 })
-    }
-
-    if (invoices.length > MAX_BATCH_SIZE) {
+    const parsed = await readJsonBody(request, MAX_IMPORT_BYTES)
+    if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: parsed.status })
+    const body = parsed.value as { invoices?: unknown[]; preview?: boolean } | null
+    if (
+      !Array.isArray(body?.invoices) ||
+      !body.invoices.length ||
+      body.invoices.length > MAX_IMPORT_ROWS
+    )
       return NextResponse.json(
-        { error: `Maximum ${MAX_BATCH_SIZE} factures par import.` },
-        { status: 400 }
+        { error: `Importez entre 1 et ${MAX_IMPORT_ROWS} lignes.` },
+        { status: 400 },
       )
-    }
-
-    const { data: profileData } = await supabase
+    const { data: profile, error: profileError } = await db
       .from('profiles')
-      .select('plan, trial_ends_at')
+      .select('plan,trial_ends_at')
       .eq('id', user.id)
       .single()
-
-    const profile = profileData as Pick<Profile, 'plan' | 'trial_ends_at'> | null
-
-    // Trial / access gate (shared helper, fail-closed on null trial).
+    if (profileError)
+      return NextResponse.json(
+        { error: 'Profil momentanément indisponible.' },
+        { status: 503 },
+      )
     const access = assertActiveAccess(profile)
-    if (!access.ok) {
-      return NextResponse.json({ error: access.error }, { status: access.status })
-    }
-
-    // Quota: real monthly count (never drifts), not the buggy invoice_count_month.
-    const limit = planLimit(profile?.plan)
-    const currentCount = await monthlyInvoiceCount(supabase, user.id)
-
-    if (currentCount + invoices.length > limit) {
+    if (!access.ok)
+      return NextResponse.json(
+        { error: access.error },
+        { status: access.status },
+      )
+    const { valid: invoices, errors } = validateInvoiceRows(body.invoices)
+    if (errors.length)
       return NextResponse.json(
         {
-          error: `Limite du plan atteinte (${limit} factures/mois). Vous en avez ${currentCount} ce mois-ci ; cet import en ajouterait ${invoices.length}.`,
-          limitReached: true,
+          error: 'Corrigez les lignes signalées. Aucune donnée enregistrée.',
+          errors,
         },
-        { status: 403 }
+        { status: 422 },
       )
-    }
 
-    // ── Server-side re-validation (client parser can be bypassed via curl) ──
-    const today = new Date().toISOString().split('T')[0]
-    const rowErrors: string[] = []
-    const toInsert = invoices.map((inv, i) => {
-      const line = i + 1
-      const clientName = String(inv.client_name || '').trim().slice(0, 200)
-      const clientEmail = String(inv.client_email || '').trim().toLowerCase().slice(0, 200)
-      const invoiceNumber = String(inv.invoice_number || '').trim().slice(0, 50)
-      const amount = Number(inv.amount)
-      const dueDate = String(inv.due_date || '').trim()
-      const issuedDate = String(inv.issued_date || today).trim()
-
-      if (!clientName) rowErrors.push(`Ligne ${line} : nom du client manquant`)
-      if (!clientEmail || !isValidEmail(clientEmail))
-        rowErrors.push(`Ligne ${line} : email invalide`)
-      if (!invoiceNumber) rowErrors.push(`Ligne ${line} : numéro de facture manquant`)
-      if (!Number.isFinite(amount) || amount <= 0)
-        rowErrors.push(`Ligne ${line} : montant invalide (doit être > 0)`)
-      else if (amount > 10_000_000) rowErrors.push(`Ligne ${line} : montant trop élevé`)
-      if (!isValidDate(dueDate)) rowErrors.push(`Ligne ${line} : date d'échéance invalide`)
-      if (!isValidDate(issuedDate)) rowErrors.push(`Ligne ${line} : date d'émission invalide`)
-
-      return {
-        user_id: user.id,
-        client_name: clientName,
-        client_email: clientEmail,
-        client_address: String(inv.client_address || '').trim() || null,
-        client_siren: String(inv.client_siren || '').replace(/\D/g, '').slice(0, 9) || null,
-        invoice_number: invoiceNumber,
-        amount,
-        due_date: dueDate,
-        issued_date: issuedDate,
-        status: 'pending',
+    if (body.preview === true) {
+      const existing = new Map<
+        string,
+        {
+          amount: number
+          amount_paid: number
+          client_email: string | null
+          updated_at: string
+        }
+      >()
+      // Keep query URLs bounded even with 500 long references.
+      for (let offset = 0; offset < invoices.length; offset += 50) {
+        const { data, error } = await db
+          .from('invoices')
+          .select('invoice_number,amount,amount_paid,client_email,updated_at')
+          .eq('user_id', user.id)
+          .in(
+            'invoice_number',
+            invoices.slice(offset, offset + 50).map((i) => i.invoice_number),
+          )
+        if (error)
+          return NextResponse.json(
+            {
+              error:
+                'Impossible de vérifier les factures existantes. Réessayez.',
+            },
+            { status: 503 },
+          )
+        for (const row of data || []) existing.set(row.invoice_number, row)
       }
-    })
-
-    if (rowErrors.length > 0) {
-      return NextResponse.json(
-        { error: 'Certaines lignes sont invalides', details: rowErrors.slice(0, 20) },
-        { status: 422 }
-      )
-    }
-
-    const { data, error } = await supabase
-      .from('invoices')
-      .insert(toInsert as never)
-      .select('id')
-
-    if (error) {
-      console.error('Insert error:', error)
-      const code = (error as { code?: string }).code
-      // 23505 = unique_violation (duplicate invoice_number for this user)
-      if (code === '23505') {
-        return NextResponse.json(
-          { error: 'Un ou plusieurs numéros de facture existent déjà.' },
-          { status: 409 }
+      const conflicts: { row: number; field: string; message: string }[] = []
+      const summary = { imported: 0, updated: 0, unchanged: 0 }
+      const reviewed = invoices.map((row, index) => {
+        const previous = existing.get(row.invoice_number)
+        if (
+          previous &&
+          (Number(previous.amount) !== row.amount ||
+            (previous.client_email && row.client_email && previous.client_email.toLowerCase() !== row.client_email))
         )
-      }
-      // 23514 = check_violation raised by enforce_invoice_quota() — the atomic
-      // DB-side safety net that catches concurrent imports racing the quota.
-      if (code === '23514') {
+          conflicts.push({
+            row: index + 2,
+            field: 'invoice_number',
+            message: `La référence ${row.invoice_number} existe avec un autre montant ou email.`,
+          })
+        if (!previous) summary.imported++
+        else if (row.remaining_amount === undefined && !(!previous.client_email && row.client_email)) summary.unchanged++
+        else summary.updated++
+        return { ...row, client_email: row.client_email || previous?.client_email || null, expected_updated_at: previous?.updated_at ?? null }
+      })
+      if (conflicts.length)
         return NextResponse.json(
           {
-            error: `Limite du plan atteinte (${limit} factures/mois).`,
-            limitReached: true,
+            error: 'Des références sont en conflit. Aucune donnée enregistrée.',
+            errors: conflicts,
           },
-          { status: 403 }
+          { status: 409 },
         )
-      }
-      return NextResponse.json({ error: "Erreur lors de l'import" }, { status: 500 })
+      return NextResponse.json({ invoices: reviewed, summary })
     }
-
-    const rows = data as unknown as { id: string }[] | null
-
-    return NextResponse.json({
-      success: true,
-      imported: rows?.length || invoices.length,
-      ids: rows?.map((d) => d.id),
+    if (invoices.some((row) => !('expected_updated_at' in row)))
+      return NextResponse.json(
+        { error: 'Vérifiez l’aperçu avant de confirmer l’import.' },
+        { status: 409 },
+      )
+    const { data, error } = await db.rpc('import_collection_invoices', {
+      rows: invoices,
     })
-  } catch (err) {
-    console.error('Import error:', err)
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+    if (error) {
+      const conflict = ['40001', '23505'].includes(error.code)
+      return NextResponse.json(
+        {
+          error: conflict
+            ? 'Une facture a changé depuis l’aperçu. Revenez à la correspondance pour vérifier de nouveau. Aucune ligne enregistrée.'
+            : error.code === '23514'
+              ? 'Quota de nouvelles factures atteint. Aucune ligne enregistrée. Un fichier contenant uniquement des mises à jour reste accepté.'
+              : error.code === '22023'
+                ? error.message
+                : 'Import impossible. Aucune ligne enregistrée.',
+        },
+        {
+          status: conflict
+            ? 409
+            : error.code === '23514' || error.code === '42501'
+              ? 403
+              : 422,
+        },
+      )
+    }
+    return NextResponse.json({ success: true, ...data })
+  } catch {
+    return NextResponse.json(
+      {
+        error: 'Import non confirmé. Vérifiez vos factures avant de réessayer.',
+      },
+      { status: 503 },
+    )
   }
 }
