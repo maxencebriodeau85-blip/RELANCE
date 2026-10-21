@@ -5,6 +5,7 @@ import { Header } from '@/components/dashboard/header'
 import { Button } from '@/components/ui/button'
 import { formatDistanceToNow, format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { loadNotifications, markNotificationsRead, notificationLink } from '@/lib/notifications-client'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import {
@@ -42,15 +43,19 @@ export default function NotificationsPage() {
   const [notifs, setNotifs] = useState<Notif[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
+  const [error, setError] = useState('')
+  const [totalUnread, setTotalUnread] = useState(0)
   const [markingRead, setMarkingRead] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
+    setError('')
     try {
-      const r = await fetch('/api/notifications')
-      const { notifications } = await r.json()
-      setNotifs(notifications || [])
-    } catch { /* silent */ } finally {
+      const generated = await fetch('/api/notifications/generate', { method: 'POST' })
+      const data = await loadNotifications()
+      setNotifs(data.notifications); setTotalUnread(data.unreadCount)
+      if (!generated.ok) setError('Les nouvelles alertes n’ont pas pu être actualisées. Les alertes déjà enregistrées restent affichées.')
+    } catch { setError('Impossible de charger les notifications. Réessayez.') } finally {
       setLoading(false)
     }
   }, [])
@@ -60,9 +65,10 @@ export default function NotificationsPage() {
   const handleMarkAllRead = async () => {
     setMarkingRead(true)
     try {
-      await fetch('/api/notifications', { method: 'PATCH' })
-      setNotifs(n => n.map(x => ({ ...x, read: true })))
-    } catch { /* silent */ } finally {
+      await markNotificationsRead()
+      const data = await loadNotifications()
+      setNotifs(data.notifications); setTotalUnread(data.unreadCount)
+    } catch { setError('Lecture non enregistrée. Réessayez.') } finally {
       setMarkingRead(false)
     }
   }
@@ -73,7 +79,7 @@ export default function NotificationsPage() {
     return n.type === filter
   })
 
-  const unreadCount = notifs.filter(n => !n.read).length
+  const unreadCount = totalUnread
 
   // Group by date
   const grouped = filtered.reduce<Record<string, Notif[]>>((acc, n) => {
@@ -88,7 +94,7 @@ export default function NotificationsPage() {
     <div>
       <Header
         title="Notifications"
-        description={unreadCount > 0 ? `${unreadCount} non lue${unreadCount > 1 ? 's' : ''}` : 'Tout est à jour'}
+        description={unreadCount > 0 ? `${unreadCount} non lue${unreadCount > 1 ? 's' : ''}` : 'Les 100 notifications les plus récentes'}
         actions={
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={load} disabled={loading}>
@@ -106,8 +112,9 @@ export default function NotificationsPage() {
       />
 
       <div className="p-6 max-w-2xl space-y-5">
+        {error && <p role="alert" className="rounded-lg bg-red-50 p-4 text-sm text-red-700">{error}</p>}
         {/* Filter tabs */}
-        <div className="flex gap-1 border-b pb-1">
+        <div className="flex flex-wrap gap-1 border-b pb-1">
           {FILTER_TABS.map(tab => (
             <button
               key={tab.key}
@@ -197,8 +204,8 @@ export default function NotificationsPage() {
                         )}
                       </div>
                     )
-                    return n.action_url ? (
-                      <Link key={n.id} href={n.action_url}>{inner}</Link>
+                    return notificationLink(n.action_url) ? (
+                      <Link key={n.id} href={notificationLink(n.action_url)!}>{inner}</Link>
                     ) : (
                       <div key={n.id}>{inner}</div>
                     )

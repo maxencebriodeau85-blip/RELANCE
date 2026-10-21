@@ -1,524 +1,273 @@
 import Link from 'next/link'
-import { FAQSection } from '@/components/landing/faq-section'
-import { PricingSection } from '@/components/landing/pricing-section'
-import { TestimonialsSection } from '@/components/landing/testimonials-section'
-import { ResultsSection } from '@/components/landing/results-section'
-import { ComparisonSection } from '@/components/landing/comparison-section'
-import { ProductTourSection } from '@/components/landing/product-tour'
-import { SiteFooter } from '@/components/landing/footer'
-import { SiteNav } from '@/components/landing/site-nav'
-import { TrustStrip } from '@/components/landing/trust-strip'
-import { HeroNetworkCanvas } from '@/components/landing/hero-network-canvas'
-import { Reveal } from '@/components/reveal'
-import { ParallaxOrbs } from '@/components/effects/parallax-orbs'
-import { Magnetic } from '@/components/effects/magnetic'
-import { SpotlightGroup } from '@/components/effects/spotlight-group'
-import { TiltCard } from '@/components/effects/tilt-card'
-import { HeroPreviewCard } from '@/components/landing/hero-preview-card'
-import { StickyMobileCta } from '@/components/landing/sticky-mobile-cta'
 import {
   ArrowRight,
-  CheckCircle,
-  ChevronRight,
-  Kanban,
-  FileText,
-  Bell,
+  ArrowUpRight,
+  Check,
+  Upload,
   Mail,
-  MessageSquare,
-  TrendingUp,
-  Euro,
-  X,
+  ListChecks,
+  ShieldCheck,
+  CornerDownRight,
 } from 'lucide-react'
+import { SiteNav } from '@/components/landing/site-nav'
+import { SiteFooter } from '@/components/landing/site-footer'
+import { PricingSection } from '@/components/landing/pricing-section'
+import { ProductPreview } from '@/components/landing/product-preview'
+import { CTA_LABEL, OFFER, TRIAL_LINE } from '@/lib/plans'
+import { CONTACT_EMAIL, PUBLISHER } from '@/lib/legal'
 
-// ─── data ─────────────────────────────────────────────────────────────────────
+export const metadata = {
+  alternates: { canonical: '/' },
+}
 
-const painPoints = [
-  {
-    wrong: 'Envoyer une proposition et espérer que le prospect rappelle',
-    right: 'Séquence auto J+3, J+7, J+14 — si pas de réponse, RelanceFlow relance à ta place',
-  },
-  {
-    wrong: 'Ouvrir 3 fichiers pour savoir où en est chaque deal',
-    right: 'Pipeline visuel : tous tes contacts d\'un coup d\'œil, triés par étape',
-  },
-  {
-    wrong: 'Oublier de facturer après avoir signé une mission',
-    right: 'La facture se génère en 2 clics depuis le deal signé',
-  },
-  {
-    wrong: 'Relancer manuellement tes clients qui ne paient pas',
-    right: 'Relances factures automatiques à J+7, J+15, J+30 — tu n\'as rien à faire',
-  },
+const faq = [
+  [
+    'Dois-je changer de logiciel de facturation ?',
+    'Non. Exportez vos factures au format CSV depuis votre outil actuel (ou un fichier Excel enregistré en CSV), puis importez-les dans Encair. Vous continuez à établir vos factures dans votre logiciel habituel.',
+  ],
+  [
+    'Mon logiciel de facturation relance déjà, pourquoi Encair ?',
+    'Si ses relances vous suffisent, gardez-les. Encair sert quand une relance doit tenir compte de ce que le client vous a dit : une promesse pour vendredi, un acompte versé, une facture contestée. Ces situations mettent l’envoi en pause automatiquement, et vous voyez chaque jour les factures qui demandent une action.',
+  ],
+  [
+    'De quelle adresse partent les relances ?',
+    'Elles partent au nom de votre entreprise, depuis l’adresse d’envoi d’Encair. Le bouton « Répondre » de votre client vous écrit directement, sur l’adresse email de votre compte.',
+  ],
+  [
+    'Est-ce que les relances partent immédiatement ?',
+    'Non. Les nouvelles factures sont importées en pause. Vérifiez les informations, confirmez le solde et activez les relances. Une promesse de paiement, un litige ou un solde non vérifié depuis sept jours suspend l’envoi automatique.',
+  ],
+  [
+    'Comment les paiements sont-ils mis à jour ?',
+    'Réimportez votre fichier CSV avec la colonne « Reste à payer », ou renseignez le montant encaissé sur la fiche de la facture. La connexion bancaire automatique n’est pas disponible pour l’instant.',
+  ],
+  [
+    'Que se passe-t-il après l’essai ?',
+    'Rien n’est prélevé : aucune carte bancaire n’est demandée à l’inscription. Si vous ne vous abonnez pas, les relances s’arrêtent et vous ne pouvez plus ajouter de factures, mais vous gardez l’accès à vos données pour les consulter et les exporter en CSV.',
+  ],
+  [
+    'Et au-delà de 100 factures dans le mois ?',
+    'Le quota compte les nouvelles factures ajoutées dans le mois civil. L’actualisation des factures déjà suivies n’est pas décomptée. Une fois les 100 atteintes, l’ajout de nouvelles factures reprend le 1er du mois suivant ; rien n’est facturé en plus.',
+  ],
+  [
+    'Mon assistante ou mon expert-comptable peut-il y accéder ?',
+    'L’offre fondateur comprend un seul utilisateur. Si vous avez besoin d’un accès partagé, écrivez-moi : c’est le genre de retour qui décide de la suite.',
+  ],
 ]
-
-const features = [
-  {
-    icon: Kanban,
-    title: 'Pipeline kanban 5 étapes',
-    description: 'Prospect → Qualifié → Proposition → Signé → Perdu. Glisse tes contacts d\'une colonne à l\'autre. Tu vois en 10 secondes où en est chaque deal.',
-    color: 'bg-blue-100 text-blue-600',
-  },
-  {
-    icon: MessageSquare,
-    title: 'Journal d\'activité',
-    description: 'Note chaque appel, email ou réunion directement sur la fiche contact. "Appel 12 mai, 8min — intéressé, rappeler après le 20." Tout est horodaté.',
-    color: 'bg-violet-100 text-violet-600',
-  },
-  {
-    icon: Mail,
-    title: 'Séquences relance prospects',
-    description: 'Quand une proposition part, la séquence se déclenche automatiquement. J+3 : relance douce. J+7 : rappel. J+14 : alerte interne "appeler". Si le prospect répond, tout s\'arrête.',
-    color: 'bg-amber-100 text-amber-600',
-  },
-  {
-    icon: FileText,
-    title: 'Facture en 2 clics',
-    description: 'Deal signé → tu cliques "Générer la facture". Le montant est pré-rempli depuis le deal. La facture part par email avec un lien de paiement Stripe en 30 secondes.',
-    color: 'bg-emerald-100 text-emerald-600',
-  },
-  {
-    icon: Bell,
-    title: 'Relances factures auto',
-    description: 'Facture impayée à J+7 : premier rappel. J+15 : deuxième relance. J+30 : alerte interne "appeler". Tu encaisses sans courir après ton argent.',
-    color: 'bg-red-100 text-red-600',
-  },
-  {
-    icon: TrendingUp,
-    title: 'Stats en temps réel',
-    description: 'Taux de conversion pipeline, factures en attente, montant encaissé ce mois. Pas de graphiques inutiles — des chiffres lisibles en 10 secondes.',
-    color: 'bg-green-100 text-green-600',
-  },
-]
-
-const steps = [
-  { n: 1, label: 'Prospect', color: 'bg-blue-500', sub: 'Premier contact' },
-  { n: 2, label: 'Qualifié', color: 'bg-violet-500', sub: 'Besoin confirmé' },
-  { n: 3, label: 'Proposition', color: 'bg-amber-500', sub: '→ relances J+3/7/14' },
-  { n: 4, label: 'Signé', color: 'bg-green-500', sub: '→ facture auto' },
-  { n: 5, label: 'Payé', color: 'bg-emerald-600', sub: '→ relances J+7/15/30' },
-]
-
-
-const comparison = [
-  { feature: 'Pipeline visuel', rf: true, hub: true, pipe: true },
-  { feature: 'Relances prospects auto', rf: true, hub: '💰 Cher', pipe: false },
-  { feature: 'Facturation intégrée', rf: true, hub: false, pipe: false },
-  { feature: 'Relances factures auto', rf: true, hub: false, pipe: false },
-  { feature: 'En français natif', rf: true, hub: false, pipe: false },
-  { feature: 'Paiement en ligne intégré', rf: true, hub: false, pipe: false },
-  { feature: 'Prix / mois', rf: 'dès 19 €', hub: '41 €', pipe: '20 €' },
-]
-
-// ─── page ─────────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white">
-      {/* NAV */}
+    <div className="rf-site">
       <SiteNav />
-
-      {/* HERO */}
-      <section id="main-content" className="relative bg-gradient-to-b from-ink-950 via-ink-900 to-ink-950 pt-20 pb-28 px-4 overflow-hidden">
-        {/* Brand orbs — scroll-linked parallax depth */}
-        <ParallaxOrbs />
-
-        {/* Subtle grid */}
-        <div className="absolute inset-0 bg-grid-dark" />
-
-        {/* Animated constellation network */}
-        <HeroNetworkCanvas />
-
-        <div className="mx-auto max-w-4xl text-center relative">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 backdrop-blur px-3 sm:px-4 py-1.5 text-xs sm:text-sm text-white/80 mb-8 max-w-[90vw]">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
-            <span className="truncate sm:whitespace-normal">
-              <span className="sm:hidden">Essai 30 j gratuits · Sans CB</span>
-              <span className="hidden sm:inline">Pour indépendants français · Essai gratuit 30 jours · Sans CB</span>
-            </span>
-          </div>
-
-          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-[1.05] tracking-tight text-balance">
-            Arrête de courir{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-fuchsia-300 to-brand-300">
-              après ton argent.
-            </span>
-          </h1>
-
-          <p className="mt-6 text-lg sm:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed text-pretty">
-            RelanceFlow relance tes factures impayées tout seul — séquences automatiques,
-            lien de paiement Stripe, mise en demeure légale prête à envoyer.{' '}
-            <strong className="text-white">Pensé pour les indépendants qui bossent seuls.</strong>
-          </p>
-
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Magnetic strength={0.3}>
-              <Link
-                href="/auth/register"
-                className="btn-shimmer group flex items-center gap-2 rounded-xl bg-brand-gradient text-white font-bold px-7 py-3.5 text-base transition-all shadow-xl shadow-brand-500/40 hover:shadow-2xl hover:scale-[1.02]"
-              >
-                Démarrer gratuitement — 30 jours
-                <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
+      <main id="main-content">
+        <section className="rf-hero">
+          <div className="rf-hero-copy">
+            <div className="rf-launch">
+              <span /> Pour les TPE qui ont plusieurs factures en retard
+            </div>
+            <h1>
+              Vos factures impayées,
+              <br />
+              <em>suivies et relancées.</em>
+            </h1>
+            <p>
+              Sans changer de logiciel de facturation. Exportez vos factures en
+              CSV et importez-les : Encair vous montre chaque jour qui relancer,
+              qui a promis de payer et quelles factures sont en litige.
+            </p>
+            <div className="rf-hero-actions">
+              <Link className="rf-button rf-button-dark" href="/auth/register">
+                {CTA_LABEL} <ArrowUpRight size={19} />
               </Link>
-            </Magnetic>
-            <a
-              href="#produit"
-              className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 backdrop-blur text-white/80 hover:text-white hover:border-white/40 font-medium px-6 py-3.5 text-base transition-all"
-            >
-              Voir le produit en 30 s
-              <ChevronRight className="h-5 w-5" />
-            </a>
+              <a href="#produit" className="rf-text-link">
+                Découvrir le produit <ArrowRight size={17} />
+              </a>
+            </div>
+            <div className="rf-hero-proof">
+              <span>
+                <Check size={15} />
+                {OFFER.trialDays} jours gratuits · {OFFER.trialInvoiceLimit} factures
+              </span>
+              <span>
+                <Check size={15} />
+                Sans carte bancaire · aucun prélèvement automatique
+              </span>
+            </div>
           </div>
-
-          <p className="mt-5 text-sm text-white/40">
-            Sans carte bancaire · Données hébergées en Europe · Annulation en 1 clic
-          </p>
-
-          {/* Hero product visual — 3D-tilt dashboard preview (static, no
-              idle float — removed per feedback: read as "jittery" rather
-              than premium). Purely illustrative, see hero-preview-card.tsx. */}
-          <div className="mt-14 flex justify-center px-4">
-            <TiltCard className="w-full max-w-md">
-              <div className="glow-border">
-                <HeroPreviewCard />
-              </div>
-            </TiltCard>
+          <div className="rf-hero-aside" aria-hidden="true">
+            <span className="rf-aside-line" />
+            <p>
+              Moins de « je vous relance ».
+              <br />
+              <b>Plus de factures payées.</b>
+            </p>
+            <CornerDownRight size={34} />
           </div>
-
-          {/* Mini stats — only what is verifiable about the product itself.
-              No fabricated "X% DSO observed on Y users" — those return when
-              measured on real, nameable customers. */}
-          <div className="mt-16 grid grid-cols-3 gap-px rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-px max-w-lg mx-auto overflow-hidden">
+        </section>
+        <section id="produit" className="rf-product-wrap">
+          <ProductPreview />
+        </section>
+        <div className="rf-principles">
+          <span>Votre logiciel de facturation reste le même.</span>
+          <span>
+            <ShieldCheck size={17} />
+            Vous gardez la main sur les envois.
+          </span>
+          <span>{OFFER.price} € HT/mois, sans engagement.</span>
+        </div>
+        <section id="fonctionnalites" className="rf-section">
+          <div className="rf-section-heading">
+            <div>
+              <span className="rf-eyebrow">DU FICHIER À L’ACTION</span>
+              <h2>
+                Du CSV à la relance,
+                <br />
+                en trois étapes.
+              </h2>
+            </div>
+            <p>
+              Finis les rappels éparpillés entre un tableur, une boîte mail et
+              votre mémoire.
+            </p>
+          </div>
+          <div className="rf-feature-grid">
             {[
-              { value: '< 60 s', label: 'pour créer une facture' },
-              { value: '100 %', label: 'français · RGPD · Europe' },
-              { value: 'dès 19 €', label: '/mois après 30 j gratuits' },
-            ].map((s) => (
-              <div key={s.label} className="text-center bg-ink-950/40 px-3 py-6">
-                <div className="font-display text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{s.value}</div>
-                <div className="text-xs text-white/50 mt-1.5 leading-tight">{s.label}</div>
+              {
+                n: '01',
+                icon: Upload,
+                title: 'Importez vos impayés.',
+                text: 'Importez l’export CSV de votre logiciel de facturation (ou un fichier Excel enregistré en CSV) et associez ses colonnes. Réimportez ensuite les soldes pour actualiser les factures existantes.',
+              },
+              {
+                n: '02',
+                icon: Mail,
+                title: 'Relancez avec vos propres modèles.',
+                text: 'Personnalisez vos modèles et choisissez un rythme de relance. Les emails partent à votre nom et l’historique des envois reste sur chaque facture.',
+              },
+              {
+                n: '03',
+                icon: ListChecks,
+                title: 'Promesses, acomptes, litiges : tout est suivi.',
+                text: 'Un règlement partiel, une promesse pour vendredi, une facture contestée : chaque situation reste visible et exploitable.',
+              },
+            ].map((f) => (
+              <article className="rf-feature" key={f.n}>
+                <div>
+                  <f.icon size={24} />
+                  <span>{f.n}</span>
+                </div>
+                <h3>{f.title}</h3>
+                <p>{f.text}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+        <section className="rf-control">
+          <div>
+            <span className="rf-eyebrow">AUCUNE RELANCE GÊNANTE</span>
+            <h2>
+              Des soldes vérifiés
+              <br />
+              avant de relancer.
+            </h2>
+            <p>
+              Actualisez les règlements reçus : Encair ne consulte pas votre banque. Sans solde confirmé depuis sept jours, rien ne part. Une promesse,
+              un litige ou un règlement complet enregistré mettent les envois en pause
+              automatiquement.
+            </p>
+            <Link href="/auth/register" className="rf-button rf-button-light">
+              {CTA_LABEL} <ArrowUpRight size={18} />
+            </Link>
+          </div>
+          <div className="rf-control-list">
+            {[
+              ['01', 'Paiement reçu', 'Le solde à zéro arrête les relances.'],
+              [
+                '02',
+                'Promesse enregistrée',
+                'La relance attend la date annoncée.',
+              ],
+              ['03', 'Facture contestée', 'Le litige suspend les envois.'],
+              [
+                '04',
+                'Solde à vérifier',
+                'Après sept jours, l’automatisation attend votre validation.',
+              ],
+            ].map(([n, title, text]) => (
+              <div key={n}>
+                <span>{n}</span>
+                <div>
+                  <h3>{title}</h3>
+                  <p>{text}</p>
+                </div>
+                <Check size={18} />
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* TRUST STRIP */}
-      <TrustStrip />
-
-      {/* PAIN POINTS */}
-      <section className="py-20 px-4 bg-gray-50">
-        <div className="mx-auto max-w-4xl">
-          <div className="flex flex-col items-center text-center mb-12">
-            <span className="section-eyebrow mb-4">Le problème</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight text-balance">
-              Tu gères ton business seul. C&apos;est là que ça coince.
+        </section>
+        <PricingSection />
+        <section className="rf-section rf-faq" aria-labelledby="fondateur">
+          <div>
+            <span className="rf-eyebrow">QUI EST DERRIÈRE</span>
+            <h2 id="fondateur">
+              Un fondateur,
+              <br />
+              joignable.
             </h2>
-            <p className="text-gray-500 mt-4 max-w-xl mx-auto text-pretty">
-              Sans outil dédié, les deals s&apos;accumulent dans ta tête, les factures traînent,
-              et les relances partent trop tard — ou pas du tout.
+          </div>
+          <div>
+            <p className="rf-lead">
+              Encair est conçu par {PUBLISHER.name}, alternant en cabinet
+              d’expertise comptable. J’y vois chaque semaine des petites
+              entreprises perdre du temps à relancer, faute de savoir qui a
+              promis quoi.
+            </p>
+            <p className="rf-lead">
+              Encair est en lancement : vous faites partie des premiers
+              utilisateurs, et je lis chaque retour.{' '}
+              {CONTACT_EMAIL ? (
+                <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+              ) : (
+                <Link href="/contact">Me poser une question</Link>
+              )}
             </p>
           </div>
-          <SpotlightGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {painPoints.map((p, i) => (
-              <div key={i} className="card-premium card-spotlight p-5 space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-red-100 mt-0.5">
-                    <X className="h-3.5 w-3.5 text-red-500" />
-                  </div>
-                  <p className="text-sm text-gray-400 line-through">{p.wrong}</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-green-100 mt-0.5">
-                    <CheckCircle className="h-3.5 w-3.5 text-green-600" />
-                  </div>
-                  <p className="text-sm font-semibold text-gray-800">{p.right}</p>
-                </div>
-              </div>
+        </section>
+        <section id="faq" className="rf-section rf-faq">
+          <div>
+            <span className="rf-eyebrow">EN TOUTE CLARTÉ</span>
+            <h2>
+              Avant de
+              <br />
+              vous lancer.
+            </h2>
+          </div>
+          <div>
+            {faq.map(([q, a]) => (
+              <details key={q}>
+                <summary>
+                  {q}
+                  <span>+</span>
+                </summary>
+                <p>{a}</p>
+              </details>
             ))}
-          </SpotlightGroup>
-        </div>
-      </section>
-
-      {/* PRODUCT TOUR — Le produit en 3 écrans */}
-      <Reveal><ProductTourSection /></Reveal>
-
-      {/* RESULTS — Avant/Après chiffrés */}
-      <Reveal><ResultsSection /></Reveal>
-
-      {/* HOW IT WORKS — La boucle complète */}
-      <section id="comment-ca-marche" className="py-20 px-4 bg-white">
-        <div className="mx-auto max-w-5xl">
-          <div className="flex flex-col items-center text-center mb-14">
-            <span className="section-eyebrow mb-4">La boucle complète</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight text-balance">
-              Du premier contact à l&apos;encaissement — sans intervention manuelle
-            </h2>
-            <p className="text-gray-500 mt-4 max-w-xl mx-auto text-pretty">
-              RelanceFlow connecte ton pipeline commercial, ta facturation et
-              tes relances impayées dans une seule interface — pensée pour les indépendants français.
-            </p>
           </div>
-
-          {/* Flow diagram */}
-          <div className="relative">
-            <div className="flex flex-col sm:flex-row items-stretch gap-0 rounded-2xl overflow-hidden shadow-elevated">
-              {steps.map((step, i) => (
-                <div
-                  key={step.n}
-                  className="flex-1 relative"
-                >
-                  <div className={`h-1.5 w-full ${step.color}`} />
-                  <div className="bg-white p-5">
-                    <div className={`inline-flex h-8 w-8 items-center justify-center rounded-full ${step.color} text-white text-sm font-bold mb-3`}>
-                      {step.n}
-                    </div>
-                    <p className="font-bold text-gray-900 text-sm">{step.label}</p>
-                    <p className="text-xs text-gray-400 mt-1 leading-tight">{step.sub}</p>
-                  </div>
-                  {i < steps.length - 1 && (
-                    <div className="hidden sm:flex absolute -right-3 top-1/2 -translate-y-1/2 z-10 h-6 w-6 items-center justify-center rounded-full bg-gray-100 border border-gray-200">
-                      <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Auto-trigger callouts */}
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 flex items-start gap-3">
-                <Bell className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-semibold text-amber-900">Relances prospects automatiques</p>
-                  <p className="text-xs text-amber-700 mt-0.5">
-                    Dès qu&apos;une proposition est envoyée → J+3, J+7, J+14. La séquence s&apos;arrête si le prospect répond.
-                  </p>
-                </div>
-              </div>
-              <div className="rounded-xl border border-green-200 bg-green-50 p-4 flex items-start gap-3">
-                <Euro className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-semibold text-green-900">Relances factures automatiques</p>
-                  <p className="text-xs text-green-700 mt-0.5">
-                    Facture impayée → relances à J+7, J+15, J+30 avec lien de paiement Stripe. Tu n&apos;as rien à faire.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FEATURES */}
-      <section id="fonctionnalites" className="py-20 px-4 bg-gray-50">
-        <div className="mx-auto max-w-6xl">
-          <div className="flex flex-col items-center text-center mb-14">
-            <span className="section-eyebrow mb-4">Fonctionnalités</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight text-balance">
-              Tout ce qu&apos;il faut, rien de superflu
-            </h2>
-            <p className="text-gray-500 mt-4 max-w-xl mx-auto text-pretty">
-              Conçu pour les consultants et coaches qui travaillent seuls et n&apos;ont pas de temps à perdre.
-            </p>
-          </div>
-          <SpotlightGroup className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((f) => {
-              const Icon = f.icon
-              return (
-                <div key={f.title} className="card-premium card-spotlight p-6 flex flex-col gap-4">
-                  <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl ring-1 ring-inset ring-black/5 ${f.color}`}>
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900 mb-1.5">{f.title}</h3>
-                    <p className="text-sm text-gray-500 leading-relaxed">{f.description}</p>
-                  </div>
-                </div>
-              )
-            })}
-          </SpotlightGroup>
-        </div>
-      </section>
-
-      {/* MOCKUP — Pipeline kanban */}
-      <section className="py-20 px-4 bg-white">
-        <div className="mx-auto max-w-5xl">
-          <div className="flex flex-col items-center text-center mb-12">
-            <span className="section-eyebrow mb-4">Le produit</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight text-balance">
-              Tous tes deals visibles en un coup d&apos;œil
-            </h2>
-            <p className="text-gray-500 mt-4 max-w-xl mx-auto text-pretty">
-              Ajoute un contact en moins de 60 secondes. Glisse-dépose les cartes d&apos;une colonne à l&apos;autre.
-            </p>
-          </div>
-
-          {/* Kanban mockup */}
-          <div className="relative rounded-2xl ring-1 ring-black/5 shadow-elevated overflow-hidden bg-gray-50">
-            {/* Window chrome */}
-            <div className="flex items-center gap-2 border-b bg-gray-100 px-4 py-2.5">
-              <div className="flex gap-1.5">
-                <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
-                <div className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
-                <div className="h-2.5 w-2.5 rounded-full bg-green-400" />
-              </div>
-              <div className="flex-1 mx-3">
-                <div className="rounded bg-white border px-3 py-1 text-xs text-gray-400 max-w-xs mx-auto text-center">
-                  relanceflow.fr/dashboard/pipeline
-                </div>
-              </div>
-            </div>
-
-            <div className="flex">
-              {/* Sidebar mock */}
-              <div className="w-44 bg-white border-r p-3 hidden sm:block flex-shrink-0">
-                <div className="flex items-center gap-2 mb-4 px-2">
-                  <div className="h-5 w-5 rounded bg-blue-600 flex-shrink-0" />
-                  <div className="h-3 w-20 bg-gray-200 rounded" />
-                </div>
-                {[
-                  { label: 'Tableau de bord', active: false },
-                  { label: 'Pipeline', active: true },
-                  { label: 'Factures', active: false },
-                  { label: 'Statistiques', active: false },
-                  { label: 'Paramètres', active: false },
-                ].map((item) => (
-                  <div key={item.label} className={`flex items-center gap-2 px-2 py-1.5 rounded mb-0.5 ${item.active ? 'bg-blue-600' : ''}`}>
-                    <div className={`h-3 w-3 rounded ${item.active ? 'bg-blue-400' : 'bg-gray-200'}`} />
-                    <div className={`h-2 rounded ${item.active ? 'bg-blue-400 w-16' : 'bg-gray-100 w-14'}`} />
-                  </div>
-                ))}
-              </div>
-
-              {/* Kanban columns */}
-              <div className="flex-1 p-4 overflow-x-auto">
-                <div className="flex gap-3 min-w-max">
-                  {[
-                    {
-                      label: 'Prospect', color: 'bg-blue-500', count: 3,
-                      cards: [
-                        { name: 'Marie Dupont', co: 'Coaching RH', tag: 'Coach', days: null },
-                        { name: 'Thomas L.', co: 'Indépendant', tag: 'Consultant', days: null },
-                      ],
-                    },
-                    {
-                      label: 'Qualifié', color: 'bg-violet-500', count: 2,
-                      cards: [
-                        { name: 'Acme Corp', co: 'Dir. Marketing', tag: '8 500 €', days: null },
-                      ],
-                    },
-                    {
-                      label: 'Proposition', color: 'bg-amber-500', count: 2,
-                      cards: [
-                        { name: 'TechStart', co: 'CEO', tag: '12 000 €', days: 'J+3 ✓' },
-                        { name: 'Nexus Agency', co: 'DRH', tag: '6 200 €', days: 'J+7 →' },
-                      ],
-                    },
-                    {
-                      label: 'Signé', color: 'bg-green-500', count: 1,
-                      cards: [
-                        { name: 'Innovatech', co: 'Fondateur', tag: '9 500 €', days: '📄 Facture' },
-                      ],
-                    },
-                  ].map((col) => (
-                    <div key={col.label} className="w-44 flex-shrink-0">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-1.5">
-                          <div className={`h-2 w-2 rounded-full ${col.color}`} />
-                          <span className="text-xs font-semibold text-gray-700">{col.label}</span>
-                        </div>
-                        <span className="text-xs text-gray-400 bg-gray-100 rounded-full px-1.5 py-0.5">{col.count}</span>
-                      </div>
-                      <div className="space-y-2">
-                        {col.cards.map((card) => (
-                          <div key={card.name} className="rounded-lg bg-white border p-2.5 shadow-sm">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-xs font-semibold text-gray-800 truncate">{card.name}</span>
-                            </div>
-                            <p className="text-xs text-gray-400 truncate">{card.co}</p>
-                            <div className="flex items-center justify-between mt-2">
-                              <span className={`text-xs font-medium rounded px-1.5 py-0.5 ${card.tag.includes('€') ? 'bg-green-50 text-green-700' : card.tag === '📄 Facture' ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
-                                {card.tag}
-                              </span>
-                              {card.days && (
-                                <span className={`text-xs font-medium ${card.days.includes('✓') ? 'text-amber-600' : 'text-amber-500'}`}>
-                                  {card.days}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                        <div className="rounded-lg border border-dashed border-gray-200 p-2 text-center">
-                          <span className="text-xs text-gray-300">+ Ajouter</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* COMPARISON */}
-      <Reveal><ComparisonSection /></Reveal>
-
-      {/* TESTIMONIALS */}
-      <Reveal><TestimonialsSection /></Reveal>
-
-      {/* PRICING */}
-      <Reveal><PricingSection /></Reveal>
-
-      {/* FAQ */}
-      <section id="faq" className="py-20 px-4 bg-white">
-        <div className="mx-auto max-w-3xl">
-          <FAQSection />
-        </div>
-      </section>
-
-      {/* FOUNDER CLOSE — humain, pas un 3ème CTA identique */}
-      <section className="py-24 px-4 bg-gradient-to-br from-ink-950 via-ink-900 to-ink-950">
-        <div className="mx-auto max-w-2xl text-center">
-          <div className="mb-8 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 text-2xl font-bold text-white">
-            M
-          </div>
-          <p className="text-lg sm:text-xl text-blue-100 leading-relaxed italic max-w-xl mx-auto">
-            &ldquo;Je l&apos;ai construit parce que j&apos;avais marre de perdre des deals par oubli —
-            et de passer mes soirées à relancer manuellement. Si tu te reconnais, l&apos;essai est gratuit.&rdquo;
-          </p>
-          <p className="mt-4 text-sm text-blue-300/70 font-semibold">
-            Maxence — créateur de RelanceFlow
-          </p>
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Magnetic strength={0.25}>
-              <Link
-                href="/auth/register"
-                className="group flex items-center gap-2 rounded-xl bg-brand-gradient text-white font-bold px-8 py-4 text-base transition-all shadow-xl shadow-brand-500/40 hover:scale-[1.02]"
-              >
-                Bloquer mon tarif fondateur
-                <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
-              </Link>
-            </Magnetic>
-            <a
-              href="mailto:hello@relanceflow.fr"
-              className="flex items-center gap-2 rounded-xl border border-white/20 text-white/70 hover:text-white hover:border-white/40 font-medium px-6 py-4 text-base transition-all"
-            >
-              Poser une question →
-            </a>
-          </div>
-          <p className="mt-4 text-sm text-blue-300/40">
-            Sans carte bancaire · Feedback bienvenu · à partir de 19 €/mois
-          </p>
-        </div>
-      </section>
-
-      {/* FOOTER */}
+        </section>
+        <section className="rf-final">
+          <span className="rf-eyebrow">VOTRE PROCHAINE ÉTAPE</span>
+          <h2>
+            Votre première facture suivie.
+            <br />
+            Dès aujourd’hui.
+          </h2>
+          <Link href="/auth/register" className="rf-button rf-button-dark">
+            {CTA_LABEL} <ArrowUpRight size={18} />
+          </Link>
+          <p>{TRIAL_LINE}</p>
+        </section>
+      </main>
       <SiteFooter />
-
-      {/* Sticky mobile CTA — appears past the hero, hides near the footer,
-          never alongside the cookie banner. See sticky-mobile-cta.tsx. */}
-      <StickyMobileCta />
     </div>
   )
 }

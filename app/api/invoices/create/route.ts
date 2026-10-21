@@ -1,7 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { assertActiveAccess } from '@/lib/access-control'
+import { validateManualInvoice } from '@/lib/manual-invoice-input'
+import { readJsonBody } from '@/lib/request-json'
 import { PLAN_LIMITS } from '@/lib/metrics'
-import { isValidEmail, isValidDate } from '@/lib/validation'
 import type { Profile } from '@/lib/database.types'
 
 export async function POST(request: Request) {
@@ -13,84 +15,37 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
 
-    const body = await request.json().catch(() => null)
-    if (!body) {
-      return NextResponse.json({ error: 'Corps de requête invalide' }, { status: 400 })
-    }
-
-    // --- Validation ---
-    const errors: Record<string, string> = {}
-
-    const clientName = String(body.client_name || '').trim()
-    if (!clientName) errors.client_name = 'Nom du client requis'
-    else if (clientName.length > 200) errors.client_name = 'Nom trop long (200 car. max)'
-
-    const clientEmail = String(body.client_email || '').trim().toLowerCase()
-    if (!clientEmail) errors.client_email = 'Email requis'
-    else if (!isValidEmail(clientEmail)) errors.client_email = 'Email invalide'
-
-    const invoiceNumber = String(body.invoice_number || '').trim()
-    if (!invoiceNumber) errors.invoice_number = 'Numéro de facture requis'
-    else if (invoiceNumber.length > 50) errors.invoice_number = 'Numéro trop long (50 car. max)'
-
-    const amountRaw = parseFloat(body.amount)
-    if (isNaN(amountRaw) || amountRaw <= 0) errors.amount = 'Montant invalide (doit être > 0)'
-    else if (amountRaw > 10_000_000) errors.amount = 'Montant trop élevé'
-
-    const dueDate = String(body.due_date || '').trim()
-    if (!dueDate) errors.due_date = "Date d'échéance requise"
-    else if (!isValidDate(dueDate)) errors.due_date = "Date d'échéance invalide"
-
-    const issuedDate = String(body.issued_date || new Date().toISOString().split('T')[0]).trim()
-    if (!isValidDate(issuedDate)) errors.issued_date = "Date d'émission invalide"
-
-    if (dueDate && issuedDate && isValidDate(dueDate) && isValidDate(issuedDate)) {
-      if (new Date(dueDate) < new Date(issuedDate)) {
-        errors.due_date = "L'échéance doit être après la date d'émission"
-      }
-    }
-
-    const clientAddress = String(body.client_address || '').trim() || null
-    const clientSiren = String(body.client_siren || '').replace(/\D/g, '').slice(0, 9) || null
-    if (clientSiren && clientSiren.length !== 9) errors.client_siren = 'SIREN invalide (9 chiffres)'
-
-    const notes = String(body.notes || '').trim().slice(0, 1000) || null
-    const description = String(body.description || '').trim().slice(0, 500) || null
-    if (!description) errors.description = 'Désignation de la prestation requise (mention légale obligatoire)'
-    const vatMention = String(body.vat_mention || 'TVA non applicable, art. 293B du CGI').trim().slice(0, 200)
-
-    if (Object.keys(errors).length > 0) {
-      return NextResponse.json({ error: 'Validation échouée', fields: errors }, { status: 422 })
-    }
+    const parsed = await readJsonBody(request, 32 * 1024)
+    if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: parsed.status })
+    if (!parsed.value || typeof parsed.value !== 'object' || Array.isArray(parsed.value))
+      return NextResponse.json({ error: 'Objet JSON requis.' }, { status: 400 })
+    const { invoice, fields } = validateManualInvoice(parsed.value as Record<string, unknown>)
+    if (!invoice) return NextResponse.json({ error: 'Validation échouée', fields }, { status: 422 })
 
     // --- Plan limit check ---
-    const { data: profileData } = await supabase
+    const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('plan, trial_ends_at')
       .eq('id', user.id)
       .single()
 
+    if (profileError) return NextResponse.json({ error: 'Profil momentanément indisponible.' }, { status: 503 })
     const profile = profileData as Pick<Profile, 'plan' | 'trial_ends_at'> | null
 
-    if (profile?.plan === 'free_trial' && profile?.trial_ends_at) {
-      if (new Date(profile.trial_ends_at) < new Date()) {
-        return NextResponse.json(
-          { error: "Période d'essai expirée. Passez à un plan payant." },
-          { status: 403 }
-        )
-      }
-    }
+    const access = assertActiveAccess(profile)
+    if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status })
 
     // Count invoices created this calendar month (exact, never drifts)
     const monthStart = new Date()
     monthStart.setUTCDate(1)
     monthStart.setUTCHours(0, 0, 0, 0)
-    const { count: currentCount } = await supabase
+    const { count: currentCount, error: countError } = await supabase
       .from('invoices')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id)
       .gte('created_at', monthStart.toISOString())
 
+    if (countError || currentCount === null) return NextResponse.json({ error: 'Quota momentanément indisponible.' }, { status: 503 })
     const limit = PLAN_LIMITS[profile?.plan ?? 'free_trial'] ?? PLAN_LIMITS.free_trial
 
     if ((currentCount ?? 0) >= limit) {
@@ -104,13 +59,14 @@ export async function POST(request: Request) {
     }
 
     // --- Check duplicate invoice number ---
-    const { data: existing } = await supabase
+    const { data: existing, error: duplicateError } = await supabase
       .from('invoices')
       .select('id')
       .eq('user_id', user.id)
-      .eq('invoice_number', invoiceNumber)
+      .eq('invoice_number', invoice.invoice_number)
       .maybeSingle()
 
+    if (duplicateError) return NextResponse.json({ error: 'Vérification de référence indisponible.' }, { status: 503 })
     if (existing) {
       return NextResponse.json(
         { error: 'Validation échouée', fields: { invoice_number: 'Ce numéro de facture existe déjà' } },
@@ -123,17 +79,8 @@ export async function POST(request: Request) {
       .from('invoices')
       .insert({
         user_id: user.id,
-        client_name: clientName,
-        client_email: clientEmail,
-        client_address: clientAddress,
-        client_siren: clientSiren,
-        invoice_number: invoiceNumber,
-        amount: amountRaw,
-        due_date: dueDate,
-        issued_date: issuedDate,
-        notes,
-        description,
-        vat_mention: vatMention,
+        ...invoice,
+        reminders_paused: true,
         status: 'pending',
       } as never)
       .select('id')
@@ -141,6 +88,7 @@ export async function POST(request: Request) {
 
     if (insertError) {
       console.error('Invoice insert error:', insertError)
+      if (insertError.code === '23505') return NextResponse.json({ error: 'Cette référence de facture existe déjà.', fields: { invoice_number: 'Référence déjà utilisée' } }, { status: 409 })
       // 23514 = check_violation raised by enforce_invoice_quota() — the atomic
       // DB-side safety net for concurrent creates racing the quota.
       if ((insertError as { code?: string }).code === '23514') {
@@ -160,6 +108,7 @@ export async function POST(request: Request) {
     // profiles.invoice_count_month is intentionally not updated — it is locked
     // for the authenticated role by migration 011 and no longer authoritative.
 
+    if (!inserted) return NextResponse.json({ error: 'Création non confirmée. Vérifiez la liste avant de réessayer.' }, { status: 503 })
     const row = inserted as unknown as { id: string }
     return NextResponse.json({ success: true, id: row.id }, { status: 201 })
   } catch (err) {

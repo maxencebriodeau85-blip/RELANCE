@@ -1,18 +1,15 @@
-import { createElement, type FunctionComponent } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { renderToBuffer } from '@react-pdf/renderer'
-import { InvoicePDF } from '@/lib/invoice-pdf'
+import { renderInvoicePDF } from '@/lib/invoice-pdf'
 import { sanitizeHeaderValue } from '@/lib/validation'
-import { getAppUrl } from '@/lib/app-url'
 import type { Invoice, Profile } from '@/lib/database.types'
 
-// Force Node.js runtime — @react-pdf/renderer is not edge-compatible.
+// PDF generation reads the bundled font in the Node.js runtime.
 export const runtime = 'nodejs'
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient()
@@ -27,7 +24,7 @@ export async function GET(
     const { data: invoiceData, error: invErr } = await supabase
       .from('invoices')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .eq('user_id', user.id)
       .single()
 
@@ -35,12 +32,13 @@ export async function GET(
       return NextResponse.json({ error: 'Facture introuvable' }, { status: 404 })
     }
 
-    const { data: profileData } = await supabase
+    const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('company_name, address, postal_code, city, siren, email, phone')
       .eq('id', user.id)
       .single()
 
+    if (profileError || !profileData) return NextResponse.json({ error: 'Profil indisponible pour le document.' }, { status: 503 })
     const invoice = invoiceData as Invoice
     const profile = (profileData as Pick<
       Profile,
@@ -55,27 +53,13 @@ export async function GET(
       phone: null,
     }
 
-    const appUrl = getAppUrl()
-    const paymentToken = (invoice as { payment_token?: string | null }).payment_token
-    const paymentUrl = paymentToken ? `${appUrl}/pay/${paymentToken}` : undefined
-
-    // @react-pdf and React have incompatible Style typings — cast through unknown.
-    type InvoicePDFProps = {
-      invoice: Invoice
-      profile: Pick<Profile, 'company_name' | 'address' | 'postal_code' | 'city' | 'siren' | 'email' | 'phone'>
-      paymentUrl?: string
-    }
-    const element = createElement(
-      InvoicePDF as unknown as FunctionComponent<InvoicePDFProps>,
-      { invoice, profile, paymentUrl }
-    )
-    const buffer = await renderToBuffer(element as unknown as Parameters<typeof renderToBuffer>[0])
+    const buffer = await renderInvoicePDF({ invoice, profile })
 
     return new NextResponse(buffer as unknown as BodyInit, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="facture-${sanitizeHeaderValue(invoice.invoice_number)}.pdf"`,
+        'Content-Disposition': `attachment; filename="suivi-${sanitizeHeaderValue(invoice.invoice_number)}.pdf"`,
         'Cache-Control': 'no-store',
       },
     })

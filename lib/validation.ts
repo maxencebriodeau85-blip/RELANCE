@@ -9,7 +9,7 @@ export function isValidEmail(s: string): boolean {
 }
 
 export function isValidDate(s: string): boolean {
-  return DATE_RE.test(s) && !isNaN(Date.parse(s))
+  return DATE_RE.test(s) && Number.isFinite(Date.parse(s)) && new Date(s).toISOString().slice(0,10) === s
 }
 
 // Escape user-controlled strings before inserting into HTML to prevent XSS.

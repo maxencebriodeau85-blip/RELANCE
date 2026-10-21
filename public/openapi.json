@@ -1,0 +1,238 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Encair API",
+    "version": "1.0.0",
+    "description": "Synchronisation de factures en EUR. Dates ISO. N’active jamais les relances. Clés créées dans le tableau de bord."
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "encair_<64 hex>"
+      }
+    },
+    "schemas": {
+      "InvoiceInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "external_id",
+          "expected_updated_at",
+          "invoice_number",
+          "client_name",
+          "amount",
+          "due_date"
+        ],
+        "properties": {
+          "external_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "expected_updated_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Null pour créer ; version renvoyée par GET pour actualiser."
+          },
+          "invoice_number": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "client_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "client_email": {
+            "type": ["string", "null"],
+            "format": "email"
+          },
+          "amount": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 10000000,
+            "multipleOf": 0.01
+          },
+          "remaining_amount": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10000000,
+            "multipleOf": 0.01
+          },
+          "due_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "issued_date": {
+            "type": ["string", "null"],
+            "format": "date"
+          },
+          "client_address": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "client_siren": {
+            "type": "string",
+            "pattern": "^[0-9]{9}$"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/v1/invoices": {
+      "get": {
+        "summary": "Lire les factures de son compte",
+        "description": "Permission invoices:read. Ordre stable par UUID. Utiliser next_cursor ; null termine la liste. Lecture possible après expiration de l’essai. La pagination ne constitue pas un instantané transactionnel.",
+        "parameters": [
+          {
+            "name": "after",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "invoices[] et next_cursor (UUID ou null)"
+          },
+          "400": {
+            "description": "Requête ou curseur invalide"
+          },
+          "401": {
+            "description": "Clé absente, révoquée ou expirée"
+          },
+          "403": {
+            "description": "Permission, abonnement ou quota insuffisant"
+          },
+          "409": {
+            "description": "Version, référence ou idempotence en conflit"
+          },
+          "413": {
+            "description": "Corps supérieur à 256 Kio"
+          },
+          "422": {
+            "description": "Données invalides ; aucune écriture"
+          },
+          "429": {
+            "description": "60 requêtes/minute/compte ; Retry-After en secondes"
+          },
+          "503": {
+            "description": "Service indisponible ; réessayer avec la même clé d’idempotence"
+          }
+        }
+      },
+      "post": {
+        "summary": "Importer ou actualiser un lot atomique",
+        "description": "Permission invoices:write et accès actif. Références externes uniques par compte et source. Version requise pour toute facture déjà présente, y compris importée par CSV. Le numéro et le montant initial sont immuables ; correction manuelle nécessaire en cas de conflit. Un email absent conserve une adresse connue. L’idempotence réussie est conservée au moins 30 jours, liée à la clé ; réutiliser exactement le même corps et la même clé après une panne. Le rejeu renvoie la réponse initiale, pas le solde courant. Au-delà, le contrôle de version reste applicable.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_.:-]{8,128}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["source", "invoices"],
+                "properties": {
+                  "source": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9_-]{1,50}$"
+                  },
+                  "invoices": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 100,
+                    "items": {
+                      "$ref": "#/components/schemas/InvoiceInput"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "imported, updated, unchanged, replayed et invoices[{id, external_id, invoice_number, updated_at, remaining_amount, reminders_paused}]"
+          },
+          "400": {
+            "description": "Requête ou curseur invalide"
+          },
+          "401": {
+            "description": "Clé absente, révoquée ou expirée"
+          },
+          "403": {
+            "description": "Permission, abonnement ou quota insuffisant"
+          },
+          "409": {
+            "description": "Version, référence ou idempotence en conflit"
+          },
+          "413": {
+            "description": "Corps supérieur à 256 Kio"
+          },
+          "422": {
+            "description": "Données invalides ; aucune écriture"
+          },
+          "429": {
+            "description": "60 requêtes/minute/compte ; Retry-After en secondes"
+          },
+          "503": {
+            "description": "Service indisponible ; réessayer avec la même clé d’idempotence"
+          }
+        }
+      }
+    }
+  }
+}

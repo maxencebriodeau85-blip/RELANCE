@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { ArrowLeft, Mail, MessageCircle, Send, CheckCircle, AlertCircle } from 'lucide-react'
 import { SiteFooter } from '@/components/landing/footer'
 import { Logo } from '@/components/brand/logo'
+import { CONTACT_EMAIL } from '@/lib/legal'
+import { CTA_LABEL } from '@/lib/plans'
 
 export default function ContactPage() {
   const [form, setForm] = useState({
@@ -62,7 +64,7 @@ export default function ContactPage() {
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Message envoyé !</h1>
             <p className="text-gray-600 text-sm mb-6">
-              Merci de nous avoir contactés. Nous répondons généralement sous 24 h ouvrées.
+              Merci pour votre message. Je réponds personnellement, en général sous 48 h ouvrées.
             </p>
             <Link
               href="/"
@@ -86,7 +88,7 @@ export default function ContactPage() {
             href="/auth/register"
             className="rounded-lg bg-brand-gradient text-white text-sm font-semibold px-4 py-2 transition-all hover:shadow-md hover:scale-[1.02]"
           >
-            Essai gratuit
+            {CTA_LABEL}
           </Link>
         </div>
       </div>
@@ -97,11 +99,11 @@ export default function ContactPage() {
             <MessageCircle className="h-7 w-7" />
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3">
-            Contactez-nous
+            Contact
           </h1>
           <p className="text-gray-600 max-w-xl mx-auto">
-            Une question, une suggestion ou un bug à signaler ? Vous parlez directement au
-            fondateur, pas à un chatbot.
+            Une question sur l’import de vos factures, une suggestion ou un bug à signaler ?
+            Votre message arrive directement au fondateur d’Encair.
           </p>
         </div>
 
@@ -161,7 +163,7 @@ export default function ContactPage() {
                 type="text"
                 value={form.subject}
                 onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                placeholder="Ex : Question sur le plan Pro"
+                placeholder="Ex : import de l’export CSV de mon logiciel"
                 className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 maxLength={200}
               />
@@ -191,6 +193,12 @@ export default function ContactPage() {
               </div>
             )}
 
+            <p className="text-[11px] text-gray-400">
+              Vos nom, email et message servent uniquement à vous répondre et sont conservés
+              3 ans après le dernier échange.{' '}
+              <Link href="/privacy" className="underline">Politique de confidentialité</Link>
+            </p>
+
             <button
               type="submit"
               disabled={sending}
@@ -212,15 +220,19 @@ export default function ContactPage() {
             <div className="rounded-2xl bg-white border border-gray-200 p-5 shadow-sm">
               <div className="flex items-center gap-2 mb-2">
                 <Mail className="h-4 w-4 text-blue-600" />
-                <h3 className="text-sm font-bold text-gray-900">Email direct</h3>
+                <h3 className="text-sm font-bold text-gray-900">Par email</h3>
               </div>
-              <a
-                href="mailto:hello@relanceflow.fr"
-                className="text-sm text-blue-600 hover:underline break-all"
-              >
-                hello@relanceflow.fr
-              </a>
-              <p className="text-xs text-gray-500 mt-2">Réponse sous 24 h ouvrées.</p>
+              {CONTACT_EMAIL ? (
+                <a
+                  href={`mailto:${CONTACT_EMAIL}`}
+                  className="text-sm text-blue-600 hover:underline break-all"
+                >
+                  {CONTACT_EMAIL}
+                </a>
+              ) : (
+                <p className="text-sm text-gray-600">Utilisez le formulaire ci-contre.</p>
+              )}
+              <p className="text-xs text-gray-500 mt-2">Réponse en général sous 48 h ouvrées.</p>
             </div>
 
             <div className="rounded-2xl bg-blue-50 border border-blue-100 p-5">

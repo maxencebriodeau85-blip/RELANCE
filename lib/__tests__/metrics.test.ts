@@ -116,29 +116,29 @@ describe('calculateDSO', () => {
     expect(calculateDSO([])).toBe(0)
   })
 
-  it('averages days-overdue when nothing has been paid yet', () => {
+  it('does not infer payment delays from unpaid invoices', () => {
     const invoices = [
       makeInvoice({ due_date: daysAgo(10), status: 'pending' }),
       makeInvoice({ due_date: daysAgo(20), status: 'pending' }),
     ]
-    expect(calculateDSO(invoices)).toBe(15)
+    expect(calculateDSO(invoices)).toBe(0)
   })
 
   it('averages issued-to-paid days when invoices have been paid', () => {
     const issued = daysAgo(40)
     const paid = daysAgo(20) // paid 20 days after issue -> updated_at
     const invoices = [
-      makeInvoice({ issued_date: issued, updated_at: paid, status: 'paid' }),
+      makeInvoice({ issued_date: issued, paid_at: paid, status: 'paid' }),
     ]
     expect(calculateDSO(invoices)).toBe(20)
   })
 })
 
 describe('getPlanLimit / PLAN_LIMITS', () => {
-  it('matches the limits enforced by migration 012 (enforce_invoice_quota)', () => {
+  it('matches the limits enforced by migration 015 (enforce_invoice_quota)', () => {
     expect(PLAN_LIMITS).toEqual({
       free_trial: 10,
-      starter: 30,
+      starter: 100,
       pro: 200,
       business: 1000,
     })
@@ -148,7 +148,7 @@ describe('getPlanLimit / PLAN_LIMITS', () => {
     expect(getPlanLimit('nonexistent-plan')).toBe(10)
   })
 
-  for (const [plan, limit] of Object.entries({ free_trial: 10, starter: 30, pro: 200, business: 1000 })) {
+  for (const [plan, limit] of Object.entries({ free_trial: 10, starter: 100, pro: 200, business: 1000 })) {
     it(`returns ${limit} for plan "${plan}"`, () => {
       expect(getPlanLimit(plan)).toBe(limit)
     })

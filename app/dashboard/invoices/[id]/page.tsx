@@ -1,13 +1,17 @@
 'use client'
 
+import { CollectionControls } from '@/components/invoices/collection-controls'
+import { reminderBlock } from '@/lib/collection'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { ReminderReview } from '@/components/invoices/reminder-review'
 import { Header } from '@/components/dashboard/header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { StatusBadge } from '@/components/invoices/status-badge'
 import { formatEuro, formatDate, getDaysOverdue } from '@/lib/metrics'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { applyInvoiceAction } from '@/lib/invoice-actions'
 import { useToast } from '@/hooks/use-toast'
 import {
   ArrowLeft,
@@ -35,13 +39,14 @@ const reminderTypeLabel: Record<string, string> = {
 }
 
 const reminderTypeTone: Record<string, string> = {
-  email_1: 'Ton cordial',
-  email_2: 'Ton ferme',
-  email_3: 'Ton pré-contentieux',
+  email_1: 'Modèle personnalisable',
+  email_2: 'Modèle personnalisable',
+  email_3: 'Modèle personnalisable',
   formal_notice: 'Légal',
 }
 
 const reminderStatusConfig: Record<string, { label: string; color: string; dot: string }> = {
+  pending: { label: 'Envoi à vérifier', color: 'text-amber-700', dot: 'bg-amber-500' },
   sent: { label: 'Envoyé', color: 'text-brand-600', dot: 'bg-blue-500' },
   delivered: { label: 'Délivré', color: 'text-green-600', dot: 'bg-green-500' },
   opened: { label: 'Ouvert', color: 'text-emerald-600', dot: 'bg-emerald-500' },
@@ -58,12 +63,12 @@ function formatTime(s: string): string {
   })
 }
 
-function getNextReminderType(reminders: Reminder[]): 'email_1' | 'email_2' | 'email_3' | 'formal_notice' {
-  const sent = new Set(reminders.map((r) => r.type))
+function getNextReminderType(reminders: Reminder[]): 'email_1' | 'email_2' | 'email_3' {
+  const sent = new Set(reminders.filter(r=>r.status!=='failed').map((r) => r.type))
   if (!sent.has('email_1')) return 'email_1'
   if (!sent.has('email_2')) return 'email_2'
   if (!sent.has('email_3')) return 'email_3'
-  return 'formal_notice'
+  return 'email_3'
 }
 
 export default function InvoiceDetailPage() {
@@ -74,20 +79,22 @@ export default function InvoiceDetailPage() {
 
   const [invoice, setInvoice] = useState<Invoice | null>(null)
   const [reminders, setReminders] = useState<Reminder[]>([])
+  const [loadError, setLoadError] = useState('')
   const [loading, setLoading] = useState(true)
-  const [sending, setSending] = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  const [selectedReminderType, setSelectedReminderType] = useState<'email_1' | 'email_2' | 'email_3' | 'formal_notice'>('email_1')
+  const [selectedReminderType, setSelectedReminderType] = useState<'email_1' | 'email_2' | 'email_3'>('email_1')
   const [showReminderPicker, setShowReminderPicker] = useState(false)
   const [copySuccess, setCopySuccess] = useState(false)
 
   const loadData = useCallback(async () => {
     setLoading(true)
+    setLoadError('')
     try {
       const { createClient } = await import('@/lib/supabase/client')
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError && (!authError.status || authError.status >= 500)) throw authError
       if (!user) {
         // Full navigation through /auth/clear-session (not a client-side
         // router.push to /auth/login) — the invalid session's cookie may
@@ -98,78 +105,46 @@ export default function InvoiceDetailPage() {
         return
       }
 
-      const { data: inv } = await supabase
+      const { data: inv, error: invoiceError } = await supabase
         .from('invoices')
         .select('*')
         .eq('id', id)
         .eq('user_id', user.id)
-        .single()
+        .maybeSingle()
 
+      if (invoiceError) throw invoiceError
       if (!inv) { setInvoice(null); setLoading(false); return }
 
       setInvoice(inv as Invoice)
 
-      const { data: rem } = await supabase
+      const { data: rem, error: historyError } = await supabase
         .from('reminders')
         .select('*')
         .eq('invoice_id', id)
-        .order('sent_at', { ascending: false })
+        .order('created_at', { ascending: false })
 
+      if (historyError) throw historyError
       const remList = (rem as Reminder[]) || []
       setReminders(remList)
       setSelectedReminderType(getNextReminderType(remList))
     } catch {
-      setInvoice(null)
+      setLoadError('Impossible de charger la facture et son historique. Réessayez.')
     } finally {
       setLoading(false)
     }
-  }, [id, router])
+  }, [id])
 
   useEffect(() => { loadData() }, [loadData])
-
-  const handleSendReminder = async () => {
-    if (!invoice) return
-    setSending(true)
-    try {
-      const response = await fetch(`/api/invoices/${id}/remind`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: selectedReminderType }),
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        toast({
-          title: 'Relance envoyée !',
-          description: `${reminderTypeLabel[selectedReminderType]} envoyée à ${invoice.client_email}`,
-        })
-        await loadData()
-      } else {
-        toast({
-          title: 'Erreur',
-          description: data.error || "Impossible d'envoyer la relance",
-          variant: 'destructive',
-        })
-      }
-    } catch {
-      toast({ title: 'Erreur', description: 'Impossible d\'envoyer la relance', variant: 'destructive' })
-    } finally {
-      setSending(false)
-    }
-  }
 
   const handleMarkAsPaid = async () => {
     if (!invoice) return
     setUpdatingStatus(true)
     try {
-      const { createClient } = await import('@/lib/supabase/client')
-      const supabase = createClient()
-      await supabase.from('invoices').update({ status: 'paid' } as never).eq('id', invoice.id)
-      setInvoice({ ...invoice, status: 'paid' })
+      await applyInvoiceAction('paid', [invoice])
+      await loadData()
       toast({ title: 'Facture marquée comme payée', description: `${invoice.invoice_number} clôturée.` })
-    } catch {
-      toast({ title: 'Erreur', description: 'Impossible de mettre à jour le statut.', variant: 'destructive' })
+    } catch (error) {
+      toast({ title: 'Erreur', description: error instanceof Error ? error.message : 'Impossible de mettre à jour le statut.', variant: 'destructive' })
     } finally {
       setUpdatingStatus(false)
     }
@@ -179,13 +154,11 @@ export default function InvoiceDetailPage() {
     if (!invoice) return
     setUpdatingStatus(true)
     try {
-      const { createClient } = await import('@/lib/supabase/client')
-      const supabase = createClient()
-      await supabase.from('invoices').update({ status: 'disputed' } as never).eq('id', invoice.id)
-      setInvoice({ ...invoice, status: 'disputed' })
+      await applyInvoiceAction('disputed', [invoice])
+      await loadData()
       toast({ title: 'Facture marquée comme litigieuse', description: `${invoice.invoice_number} mise en litige.` })
-    } catch {
-      toast({ title: 'Erreur', description: 'Impossible de mettre à jour le statut.', variant: 'destructive' })
+    } catch (error) {
+      toast({ title: 'Erreur', description: error instanceof Error ? error.message : 'Impossible de mettre à jour le statut.', variant: 'destructive' })
     } finally {
       setUpdatingStatus(false)
     }
@@ -196,13 +169,11 @@ export default function InvoiceDetailPage() {
     if (!confirm(`Supprimer définitivement la facture ${invoice.invoice_number} ? Cette action est irréversible.`)) return
     setDeleting(true)
     try {
-      const { createClient } = await import('@/lib/supabase/client')
-      const supabase = createClient()
-      await supabase.from('invoices').delete().eq('id', invoice.id)
+      await applyInvoiceAction('delete', [invoice])
       toast({ title: 'Facture supprimée', description: `${invoice.invoice_number} supprimée.` })
       router.push('/dashboard/invoices')
-    } catch {
-      toast({ title: 'Erreur', description: 'Impossible de supprimer la facture.', variant: 'destructive' })
+    } catch (error) {
+      toast({ title: 'Erreur', description: error instanceof Error ? error.message : 'Impossible de supprimer la facture.', variant: 'destructive' })
       setDeleting(false)
     }
   }
@@ -237,6 +208,8 @@ export default function InvoiceDetailPage() {
     )
   }
 
+  if (loadError) return <div className="p-6"><p role="alert" className="mb-4 text-red-700">{loadError}</p><Button onClick={loadData}>Réessayer</Button></div>
+
   if (!invoice) {
     return (
       <div className="p-6 max-w-lg">
@@ -261,7 +234,7 @@ export default function InvoiceDetailPage() {
   const canSendReminder = invoice.status !== 'paid' && invoice.status !== 'disputed'
   const paymentToken = (invoice as any).payment_token as string | null
   const appOrigin = typeof window !== 'undefined' ? window.location.origin : ''
-  const paymentLink = paymentToken ? `${appOrigin}/pay/${paymentToken}` : null
+  const paymentLink: string | null = null
 
   return (
     <div>
@@ -279,7 +252,7 @@ export default function InvoiceDetailPage() {
             <Button variant="outline" size="sm" asChild>
               <a href={`/api/invoices/${invoice.id}/pdf`} target="_blank" rel="noopener noreferrer">
                 <FileDown className="mr-2 h-4 w-4" />
-                Télécharger PDF
+                Fiche de suivi PDF
               </a>
             </Button>
             {paymentLink && (
@@ -328,7 +301,7 @@ export default function InvoiceDetailPage() {
             <AlertDescription className="text-red-700">
               Échéance dépassée depuis le {formatDate(invoice.due_date)}.{' '}
               {invoice.status === 'pending' && 'Envoyez une 1ère relance dès maintenant.'}
-              {invoice.status === 'reminded' && 'Passez à la 2ème relance ou à la mise en demeure.'}
+              {invoice.status === 'reminded' && 'Consultez l’historique avant votre prochain échange.'}
             </AlertDescription>
           </Alert>
         )}
@@ -354,6 +327,7 @@ export default function InvoiceDetailPage() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Left: invoice + client info */}
           <div className="lg:col-span-2 space-y-4">
+            <CollectionControls key={invoice.updated_at} invoice={invoice} onSaved={loadData} />
             {/* Invoice details */}
             <Card>
               <CardHeader>
@@ -397,6 +371,7 @@ export default function InvoiceDetailPage() {
                     <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Mention TVA</div>
                     <div className="text-sm text-gray-600 italic">{invoice.vat_mention}</div>
                   </div>
+                  <Link href={`/dashboard/clients/${invoice.id}`} className="mb-3 block text-sm text-brand-700 underline">Voir toutes les factures de ce client →</Link>
                   {invoice.notes && (
                     <div className="col-span-2">
                       <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Notes internes</div>
@@ -441,10 +416,10 @@ export default function InvoiceDetailPage() {
                 </div>
                 <div>
                   <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Email</div>
-                  <a href={`mailto:${invoice.client_email}`} className="flex items-center gap-1 text-brand-600 hover:underline text-sm">
+                  {invoice.client_email ? <a href={`mailto:${invoice.client_email}`} className="flex items-center gap-1 text-brand-600 hover:underline text-sm">
                     <Mail className="h-3.5 w-3.5 text-gray-400" />
                     {invoice.client_email}
-                  </a>
+                  </a> : <span className="text-sm text-amber-700">Email à compléter dans le suivi ci-dessous</span>}
                 </div>
                 {invoice.client_address && (
                   <div className="col-span-2">
@@ -472,9 +447,10 @@ export default function InvoiceDetailPage() {
                   <CardDescription>Choisissez le type de relance adapté à la situation</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
+                  {reminderBlock(invoice) && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">{reminderBlock(invoice)}</p>}
                   {/* Type picker */}
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                    {(['email_1', 'email_2', 'email_3', 'formal_notice'] as const).map((t) => {
+                    {(['email_1', 'email_2', 'email_3'] as const).map((t) => {
                       const sent = reminders.some((r) => r.type === t)
                       return (
                         <button
@@ -497,24 +473,8 @@ export default function InvoiceDetailPage() {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <Button onClick={handleSendReminder} disabled={sending} className="flex-1 sm:flex-none">
-                      <Send className="mr-2 h-4 w-4" />
-                      {sending ? 'Envoi en cours…' : `Envoyer — ${reminderTypeLabel[selectedReminderType]}`}
-                    </Button>
-                    {selectedReminderType === 'formal_notice' && (
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/dashboard/mise-en-demeure?invoice=${invoice.id}`}>
-                          <ExternalLink className="mr-2 h-3.5 w-3.5" />
-                          Version avancée
-                        </Link>
-                      </Button>
-                    )}
+                    <ReminderReview ids={[invoice.id]} type={selectedReminderType} disabled={!!reminderBlock(invoice) || reminders.some(r => r.type === selectedReminderType && r.status !== 'failed')} onSent={loadData} />
                   </div>
-                  {selectedReminderType === 'formal_notice' && (
-                    <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2">
-                      La mise en demeure a une valeur légale. Elle inclut automatiquement les pénalités de retard (3× taux légal) et l&apos;indemnité forfaitaire de 40 €.
-                    </p>
-                  )}
                 </CardContent>
               </Card>
             )}
@@ -529,7 +489,7 @@ export default function InvoiceDetailPage() {
                   Historique des relances
                 </CardTitle>
                 <CardDescription>
-                  {reminders.length === 0 ? 'Aucune relance envoyée' : `${reminders.length} relance${reminders.length > 1 ? 's' : ''} envoyée${reminders.length > 1 ? 's' : ''}`}
+                  {reminders.length === 0 ? 'Aucune relance envoyée' : `${reminders.length} tentative${reminders.length > 1 ? 's' : ''} enregistrée${reminders.length > 1 ? 's' : ''}`}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -555,7 +515,7 @@ export default function InvoiceDetailPage() {
                           complained_at?: string | null
                         }
                         const events = [
-                          { label: 'Envoyé', at: reminder.sent_at, dot: 'bg-blue-500' },
+                          { label: ['pending','failed'].includes(reminder.status) ? 'Tentative enregistrée' : 'Envoyé', at: ['pending','failed'].includes(reminder.status) ? reminder.created_at : reminder.sent_at, dot: 'bg-blue-500' },
                           r.delivered_at && { label: 'Délivré', at: r.delivered_at, dot: 'bg-green-500' },
                           r.opened_at && { label: 'Ouvert', at: r.opened_at, dot: 'bg-emerald-500' },
                           r.clicked_at && { label: 'Cliqué', at: r.clicked_at, dot: 'bg-purple-500' },
