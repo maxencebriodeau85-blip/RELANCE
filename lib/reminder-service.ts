@@ -1,6 +1,7 @@
 import { createAdminClient } from './supabase/server'
 import { reminderContent, validReminderConfirmation } from './reminder-confirmation'
 import { assertActiveAccess } from './access-control'
+import { serviceCapabilities } from './service-capabilities'
 import { reminderBlock, outstanding } from './collection'
 import type { Invoice, Profile, ReminderType } from './database.types'
 
@@ -32,15 +33,13 @@ export async function sendReminder(
     return { status: 409, error: 'Les relances automatiques sont désactivées.' }
   const blocked = reminderBlock(invoice)
   if (blocked) return { status: 409, error: blocked }
-  if (
-    !process.env.RESEND_FROM_EMAIL ||
-    !process.env.RESEND_API_KEY ||
-    process.env.RESEND_API_KEY.includes('placeholder')
-  )
+  // Signed delivery callbacks are required for tracking and pending-send reconciliation.
+  // Refuse before reserving a reminder when this configuration is incomplete.
+  if (!serviceCapabilities().emailAvailable)
     return {
       status: 503,
       error:
-        'Le service email n’est pas configuré. Aucun message n’a été envoyé.',
+        'Le service email et son suivi ne sont pas configurés. Aucun message n’a été envoyé.',
     }
   const { data: recent, error: recentError } = await db
     .from('reminders')
