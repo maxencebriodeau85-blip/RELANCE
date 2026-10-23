@@ -40,6 +40,7 @@ beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(now)
   vi.stubEnv('RESEND_API_KEY', 'test-only'); vi.stubEnv('RESEND_FROM_EMAIL', 'sender@example.invalid')
   vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'qa-only-secret')
+  vi.stubEnv('RESEND_WEBHOOK_SECRET', 'whsec_test-only')
   vi.stubGlobal('fetch', mock.fetch)
   mock.invoice.mockResolvedValue({ data: invoice, error: null })
   mock.profile.mockResolvedValue({ data: profile, error: null })
@@ -51,6 +52,23 @@ beforeEach(() => {
 afterEach(() => { vi.useRealTimers(); vi.unstubAllEnvs(); vi.unstubAllGlobals() })
 
 describe('Dispatch after review and reservation', () => {
+  it.each(['manual', 'automatic'] as const)('refuses %s delivery before reservation when callbacks cannot be verified', async source => {
+    vi.stubEnv('RESEND_WEBHOOK_SECRET', '')
+    const response = source === 'manual' ? await run() : await sendReminder(invoice.id, profile.id, 'email_1', 'automatic')
+    expect(response.status).toBe(503)
+    expect(mock.history).not.toHaveBeenCalled()
+    expect(mock.rpc).not.toHaveBeenCalled()
+    expect(mock.fetch).not.toHaveBeenCalled()
+    expect(mock.write).not.toHaveBeenCalled()
+  })
+
+  it.each(['', '  ', 're_your-key', 'placeholder'])('refuses unconfigured sending credentials %j', async key => {
+    vi.stubEnv('RESEND_API_KEY', key)
+    expect((await run()).status).toBe(503)
+    expect(mock.rpc).not.toHaveBeenCalled()
+    expect(mock.fetch).not.toHaveBeenCalled()
+  })
+
   it('sends the reviewed partial balance once with a stable idempotency key', async () => {
     expect((await run()).status).toBe(200)
     expect(mock.fetch).toHaveBeenCalledTimes(1)
