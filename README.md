@@ -10,6 +10,10 @@ Encair suit les factures déjà émises : import CSV, soldes restant dus, relanc
 - Tarif public envisagé : 29 € HT/mois, pas un ancien prix barré.
 - Les anciens abonnements Stripe restent inchangés tant que le client ne demande pas explicitement un changement. Le code `starter` est conservé pour compatibilité.
 
+## Organisation GitHub
+
+Consulter [le guide de contribution et de publication](docs/GITHUB_WORKFLOW.md) pour les branches, les contrôles CI, les pull requests et la documentation de référence.
+
 ## Développement
 
 Node.js 22 ou supérieur.
