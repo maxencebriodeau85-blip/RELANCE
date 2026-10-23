@@ -24,6 +24,18 @@ describe('collection safeguards', () => {
       75.08,
     )
   })
+  it('never claims the original amount after a partial payment', () => {
+    const partial = { ...invoice, amount: 2869.66, amount_paid: 506.51 } as Invoice
+    expect(outstanding(partial)).toBe(2363.15)
+    expect(reminderBlock(partial, now)).toBeNull()
+  })
+  it('blocks fully settled and overpaid invoices before dispatch', () => {
+    const settled = { ...invoice, amount: 2869.66, amount_paid: 2869.66 } as Invoice
+    const overpaid = { ...invoice, amount: 2869.66, amount_paid: 2869.67 } as Invoice
+    expect(outstanding(settled)).toBe(0)
+    expect(reminderBlock(settled, now)).not.toBeNull()
+    expect(reminderBlock(overpaid, now)).not.toBeNull()
+  })
   it('allows an overdue, verified and unpaused invoice', () =>
     expect(reminderBlock(invoice, now)).toBeNull())
   for (const patch of [
