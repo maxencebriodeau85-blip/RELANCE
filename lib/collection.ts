@@ -12,12 +12,13 @@ export function outstanding(
   invoice: Pick<Invoice, 'amount' | 'status'> & { amount_paid?: number },
 ): number {
   if (invoice.status === 'paid') return 0
-  return Math.max(
-    0,
-    Math.round(
-      (Number(invoice.amount) - Number(invoice.amount_paid || 0)) * 100,
-    ) / 100,
-  )
+  // Round each ledger amount to cents before subtraction; never round
+  // the floating-point difference between two monetary values.
+  const originalCents = Math.round(Number(invoice.amount) * 100)
+  const paidCents = Math.round(Number(invoice.amount_paid || 0) * 100)
+  if (!Number.isSafeInteger(originalCents) || !Number.isSafeInteger(paidCents))
+    return Number.NaN
+  return Math.max(0, originalCents - paidCents) / 100
 }
 export function reminderBlock(
   invoice: Invoice,
