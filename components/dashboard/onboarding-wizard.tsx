@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { CheckCircle, ArrowRight, X, Building2, FileText, Zap, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { completeOnboarding } from '@/lib/onboarding'
 
 const STEPS = [
   {
@@ -44,6 +44,8 @@ export function OnboardingWizard({ initialStep = 1 }: { initialStep?: number }) 
   const router = useRouter()
   const [step, setStep] = useState(initialStep)
   const [closing, setClosing] = useState(false)
+  const [dismissed, setDismissed] = useState(false)
+  const [error, setError] = useState('')
 
   // Idempotent welcome-email trigger — fires once on first wizard mount.
   // No-op if already sent (route is idempotent).
@@ -55,15 +57,20 @@ export function OnboardingWizard({ initialStep = 1 }: { initialStep?: number }) 
   const Icon = current.icon
   const isLast = step === STEPS.length
 
-  const close = async () => {
+  const close = async (destination?: string) => {
     if (closing) return
     setClosing(true)
+    setError('')
     try {
-      await fetch('/api/profile/onboarding', { method: 'POST' })
-    } catch {
-      // non-blocking
+      await completeOnboarding()
+      setDismissed(true)
+      if (destination) router.push(destination)
+      else router.refresh()
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Le démarrage n’a pas pu être enregistré. Réessayez.')
+    } finally {
+      setClosing(false)
     }
-    router.refresh()
   }
 
   const next = () => {
@@ -74,11 +81,14 @@ export function OnboardingWizard({ initialStep = 1 }: { initialStep?: number }) 
     setStep(step + 1)
   }
 
+  if (dismissed) return null
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4">
       <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden">
         <button
-          onClick={close}
+          onClick={() => void close()}
+          disabled={closing}
           aria-label="Fermer"
           className="absolute top-4 right-4 z-10 flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
         >
@@ -129,23 +139,24 @@ export function OnboardingWizard({ initialStep = 1 }: { initialStep?: number }) 
             )}
           </div>
 
+          {error && <p role="alert" className="text-sm text-red-700 mb-4">{error}</p>}
+
           <div className="flex items-center justify-between gap-3 mt-4">
             <button
-              onClick={close}
+              onClick={() => void close()}
+              disabled={closing}
               className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
             >
               Passer
             </button>
 
             {'href' in current && current.href ? (
-              <Button asChild className="bg-brand-600 hover:bg-brand-700">
-                <Link href={current.href} onClick={() => close()}>
-                  {current.cta}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+              <Button disabled={closing} onClick={() => void close(current.href)} className="bg-brand-600 hover:bg-brand-700">
+                {closing ? 'Enregistrement…' : current.cta}
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             ) : (
-              <Button onClick={next} className="bg-brand-600 hover:bg-brand-700">
+              <Button disabled={closing} onClick={next} className="bg-brand-600 hover:bg-brand-700">
                 {current.cta}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
