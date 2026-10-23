@@ -13,7 +13,7 @@ beforeEach(()=>{
   mock.user.mockResolvedValue({data:{user:{id:'owner'}}})
   mock.read.mockResolvedValue({data:{auto_reminders:false,active_scenario:'standard',plan:'starter'},error:null})
   mock.saved.mockResolvedValue({data:{auto_reminders:false,active_scenario:'firm'},error:null})
-  vi.stubEnv('RESEND_API_KEY','re_valid');vi.stubEnv('RESEND_FROM_EMAIL','relances@example.test');vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY','valid');vi.stubEnv('CRON_SECRET','valid')
+  vi.stubEnv('RESEND_API_KEY','re_valid');vi.stubEnv('RESEND_FROM_EMAIL','relances@example.test');vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY','valid');vi.stubEnv('CRON_SECRET','valid');vi.stubEnv('RESEND_WEBHOOK_SECRET','whsec_qa-only')
 })
 afterEach(()=>vi.unstubAllEnvs())
 describe('Reliable reminder settings',()=>{
@@ -42,6 +42,13 @@ describe('Reliable reminder settings',()=>{
     expect((await send({auto_reminders:true})).status).toBe(503)
     expect(mock.write).not.toHaveBeenCalled()
     expect((await (await GET()).json()).capabilities.automationAvailable).toBe(false)
+  })
+  it('does not enable automation without signed email callbacks, but still allows stopping',async()=>{
+    vi.stubEnv('RESEND_WEBHOOK_SECRET','')
+    expect((await send({auto_reminders:true})).status).toBe(503)
+    expect(mock.write).not.toHaveBeenCalled()
+    expect((await (await GET()).json()).capabilities).toEqual({emailAvailable:false,automationAvailable:false})
+    expect((await send({auto_reminders:false})).status).toBe(200)
   })
   it('lets an expired account stop automatic sends, but not enable them',async()=>{
     mock.read.mockResolvedValue({data:{plan:'free_trial',trial_ends_at:'2020-01-01T00:00:00Z'},error:null})

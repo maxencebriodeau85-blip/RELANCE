@@ -7,6 +7,28 @@
 - Côté exploitant, consulter `collection_worker` via l’accès d’administration Supabase : `started_at`, `completed_at`, `lease_until`, `last_result.ok` et compteurs. Aucun corps d’email ou secret n’est journalisé dans ce suivi.
 - Déclencher une alerte d’exploitation si le dernier traitement réussi dépasse la cadence attendue, si `last_result.ok=false`, ou si une réservation dépasse 120 secondes. Le raccordement à un service d’alerte externe n’est pas configuré par ce code.
 
+## Raccordement email : trois chaînes distinctes
+
+La présence de variables n’atteste ni la validité des clés, ni la vérification du domaine, ni la réception. Une publication du code ne configure aucun prestataire.
+
+| Usage | Configuration à préparer | Preuve de recette attendue |
+| --- | --- | --- |
+| Relances Encair, manuelles et automatiques | `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `RESEND_WEBHOOK_SECRET`, `SUPABASE_SERVICE_ROLE_KEY` ; `CRON_SECRET` en plus pour le cron | Demande acceptée puis événement signé enregistré dans l’historique |
+| Bienvenue et formulaire de contact | `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `SUPPORT_EMAIL` ; accès Auth/base pour la bienvenue | Réception sur une adresse de recette et réponse vers la boîte support |
+| Confirmation d’inscription et récupération du mot de passe | SMTP personnalisé dans Supabase Auth, expéditeur vérifié et URLs de retour correctes | Réception du lien puis ouverture de la session / réinitialisation |
+
+Procédure opérateur, à exécuter uniquement avec les accès et autorisations nécessaires :
+
+1. Choisir un domaine d’envoi possédé et le faire vérifier par Resend avec les enregistrements DNS fournis pour ce domaine. Ne pas déduire la vérification d’un simple nom d’expéditeur.
+2. Injecter les variables d’envoi côté serveur de l’environnement cible via son gestionnaire de secrets. Ne jamais placer une clé dans `NEXT_PUBLIC_*`, le dépôt ou un ticket.
+3. Créer le webhook vers `<origine Encair>/api/webhooks/resend` et conserver son secret de signature dans `RESEND_WEBHOOK_SECRET`. Abonner `email.sent`, `email.delivered`, `email.opened`, `email.clicked`, `email.bounced`, `email.complained`, `email.failed` et `email.suppressed`. Le code refuse une signature absente/invalide et demande une nouvelle livraison si l’écriture échoue.
+4. Configurer séparément le SMTP Supabase Auth : hôte `smtp.resend.com`, port 465, utilisateur `resend`, mot de passe = clé API Resend, expéditeur du domaine vérifié. Les variables Vercel ne mettent pas à jour ces réglages Supabase. Reprendre aussi les URLs et modèles Auth de `DEPLOYMENT.md`.
+5. Contrôler `/api/health` : `resend`, `emailSender`, `resendWebhook`, `supportEmail` sont des présences ; `reminderEmailConfigured` exige la chaîne de suivi des relances. `false` bloque les nouvelles relances avant réservation. Aucun de ces booléens ne vérifie le SMTP, les DNS ou la livraison.
+6. Dans une recette autorisée, utiliser des comptes et destinataires possédés par l’opérateur. Vérifier inscription, récupération du mot de passe, bienvenue, contact, puis relance et événement signé. `email.sent` signifie demande acceptée ; `email.delivered` signifie remise au serveur du destinataire, pas lecture ni placement garanti en boîte principale. Confirmer aussi l’absence de doublon et la conservation des envois ambigus en attente.
+7. Conserver les relances automatiques désactivées tant que cette recette n’est pas attestée. Relever l’environnement, le commit, les dates et les identifiants de recette, sans corps d’email ni secret.
+
+Références techniques consultées le 23 octobre 2026 : [signature des webhooks](https://resend.com/docs/webhooks/verify-webhooks-requests), [événements Resend](https://resend.com/docs/webhooks/event-types), [SMTP Resend pour Supabase](https://resend.com/docs/send-with-supabase-smtp). Les tests du dépôt utilisent de faux services ; aucune configuration distante ou réception réelle n’est attestée par ces tests.
+
 ## Progression et capacité
 
 Un verrou avec bail de 120 secondes empêche deux traitements simultanés. Le cron parcourt les factures éligibles par UUID, conserve le dernier identifiant examiné et reprend au passage suivant. Il passe les factures déjà traitées ou bloquées, et avance après un échec prestataire afin de ne pas bloquer tous les autres comptes. En fin de liste, le curseur revient au début. L’historique est chargé par lot.
