@@ -1,0 +1,110 @@
+name: Surveillance de la production Encair
+
+# Toutes les heures : le site répond, la configuration attendue est présente,
+# la base répond, et les relances ne sont ni bloquées ni en échec.
+# En cas de problème : le job échoue (email GitHub) et une issue « Alerte Encair »
+# est ouverte ou complétée. Elle se referme seule quand tout redevient normal.
+#
+# Secret : PROD_DB_URL (le même que pour la sauvegarde).
+# Variables (Settings > Secrets and variables > Actions > Variables) :
+#   PROD_URL         ex. https://relance-teal.vercel.app, puis https://encair.fr
+#   EXPECTED_CONFIG  clés de /api/health qui doivent valoir true, séparées par
+#                    des virgules (défaut : authReady,supabaseServiceRole,cronSecret ;
+#                    ajouter resend,emailSender,billingReady une fois branchés).
+#
+# Effet secondaire voulu : la requête horaire empêche la mise en pause
+# automatique d'une base Supabase gratuite.
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: monitor
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PROD_URL: ${{ vars.PROD_URL }}
+      EXPECTED_CONFIG: ${{ vars.EXPECTED_CONFIG || 'authReady,supabaseServiceRole,cronSecret' }}
+      PROD_DB_URL: ${{ secrets.PROD_DB_URL }}
+      GH_TOKEN: ${{ github.token }}
+      ALERT_TITLE: 'Alerte Encair : production à vérifier'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Contrôler le site et la base
+        id: checks
+        run: |
+          problems=problems.txt; : > "$problems"
+          test -n "$PROD_URL" || echo "critique|Variable PROD_URL manquante." >> "$problems"
+          test -n "$PROD_DB_URL" || echo "critique|Secret PROD_DB_URL manquant." >> "$problems"
+
+          if [ -n "$PROD_URL" ]; then
+            code=$(curl -sS -o health.json -w '%{http_code}' --max-time 20 "$PROD_URL/api/health" || echo 000)
+            if [ "$code" != "200" ]; then
+              echo "critique|Le site ne répond pas correctement ($PROD_URL/api/health : HTTP $code)." >> "$problems"
+            else
+              IFS=',' read -ra keys <<< "$EXPECTED_CONFIG"
+              for key in "${keys[@]}"; do
+                key=$(echo "$key" | xargs)
+                [ -z "$key" ] && continue
+                if [ "$(jq -r --arg k "$key" '.config[$k] // false' health.json)" != "true" ]; then
+                  echo "critique|Configuration de production incomplète : $key est absent." >> "$problems"
+                fi
+              done
+            fi
+          fi
+
+          if [ -n "$PROD_DB_URL" ]; then
+            if ! psql "$PROD_DB_URL" -Atq -v ON_ERROR_STOP=1 \
+                 -f scripts/ops/health-checks.sql >> "$problems" 2> db-error.txt; then
+              echo "critique|La base de production ne répond pas : $(head -c 300 db-error.txt | tr '\n' ' ')" >> "$problems"
+            fi
+          fi
+
+          {
+            echo "### Surveillance du $(date -u '+%d/%m/%Y %H:%M') UTC"
+            if [ -s "$problems" ]; then
+              sed -E 's/^critique\|/- 🔴 /; s/^attention\|/- 🟠 /' "$problems"
+            else
+              echo "- ✅ Tout est normal."
+            fi
+          } | tee report.md >> "$GITHUB_STEP_SUMMARY"
+
+          if grep -q '^critique|' "$problems"; then echo "level=critique" >> "$GITHUB_OUTPUT"
+          elif [ -s "$problems" ]; then echo "level=attention" >> "$GITHUB_OUTPUT"
+          else echo "level=ok" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Ouvrir ou compléter l'alerte
+        if: steps.checks.outputs.level != 'ok'
+        run: |
+          existing=$(gh issue list --state open --search "in:title \"$ALERT_TITLE\"" --json number --jq '.[0].number')
+          body="$(cat report.md)
+
+          Détail : ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          if [ -n "$existing" ]; then
+            # Un seul commentaire par changement d'état, pour ne pas inonder l'issue.
+            last=$(gh issue view "$existing" --json body,comments --jq '(.comments[-1].body // .body)' | grep '^- ' || true)
+            [ "$last" = "$(grep '^- ' report.md)" ] || gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$ALERT_TITLE" --body "$body"
+          fi
+
+      - name: Refermer l'alerte
+        if: steps.checks.outputs.level == 'ok'
+        run: |
+          existing=$(gh issue list --state open --search "in:title \"$ALERT_TITLE\"" --json number --jq '.[0].number')
+          [ -z "$existing" ] || gh issue close "$existing" --comment "Retour à la normale : ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+      - name: Échouer en cas de problème critique
+        if: steps.checks.outputs.level == 'critique'
+        run: exit 1
