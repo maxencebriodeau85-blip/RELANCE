@@ -6,26 +6,46 @@ import { getDaysOverdue } from '@/lib/metrics'
 import type { Invoice, Profile } from '@/lib/database.types'
 import { serviceCapabilities } from '@/lib/service-capabilities'
 export const maxDuration = 60
+// Best-effort trace of a blocked run; never masks the original response.
+async function recordBlocked(
+  reason: 'automation_not_configured' | 'claim_failed',
+  client?: Awaited<ReturnType<typeof createAdminClient>>,
+) {
+  if (
+    !client &&
+    (!process.env.NEXT_PUBLIC_SUPABASE_URL ||
+      !process.env.SUPABASE_SERVICE_ROLE_KEY)
+  )
+    return
+  try {
+    const db = client ?? (await createAdminClient())
+    await db.rpc('record_collection_worker_attempt', { p_reason: reason })
+  } catch {}
+}
 export async function GET(request: Request) {
   if (
     !process.env.CRON_SECRET ||
     request.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`
   )
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
-  if (!serviceCapabilities().automationAvailable)
+  if (!serviceCapabilities().automationAvailable) {
+    await recordBlocked('automation_not_configured')
     return NextResponse.json(
       { error: 'Service de relance non configuré.', sent: 0 },
       { status: 503 },
     )
+  }
   const db = await createAdminClient()
   const { data: claim, error: claimError } = await db.rpc(
     'claim_collection_worker',
   )
-  if (claimError)
+  if (claimError) {
+    await recordBlocked('claim_failed', db)
     return NextResponse.json(
       { error: 'Réservation du traitement impossible.' },
       { status: 503 },
     )
+  }
   if (!claim) return NextResponse.json({ busy: true, sent: 0 }, { status: 202 })
   let cursor: string | null = claim.cursor_id,
     sent = 0,

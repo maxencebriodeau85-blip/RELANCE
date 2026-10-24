@@ -39,6 +39,8 @@ export function GET() {
       supportEmail: has(process.env.SUPPORT_EMAIL),
       // Configuration only: does not verify domain ownership, credentials or delivery.
       reminderEmailConfigured: serviceCapabilities().emailAvailable,
+      // Same gate as /api/cron/reminders: false means the daily run answers 503.
+      automationReady: serviceCapabilities().automationAvailable,
       appUrl: has(process.env.NEXT_PUBLIC_APP_URL),
       // /api/cron/reminders fails closed: without CRON_SECRET it answers 401
       // BEFORE opening a DB connection. That failure is silent (Vercel does not
