@@ -80,7 +80,7 @@ Les changements de ce chantier doivent passer par PR et vérifications CI avant 
    - Deux réponses 500 sont corrigées : client inconnu d'Encair avec un prix étranger, session Checkout non créée par Encair. Stripe les aurait relivrées pendant 3 jours et aurait pu désactiver l'endpoint.
    - 30 tests de cycle de vie sont ajoutés : essai, checkout, 3DS, renouvellement, `past_due`, `unpaid`, annulation, pause et reprise, livraisons en double ou désordonnées.
    - Un script de recette manuelle est rédigé en mode test, avec horloges de test Stripe.
-5. **Sauvegardes et alertes** : refonte de la PR #13 (voir la section dédiée de `docs/exploitation.md` une fois intégrée).
+5. **Sauvegardes et alertes** (`.github/workflows/backup.yml`, `monitor.yml`, `docs/exploitation.md`) : refonte des PR #5/#13. Les jobs échouent bruyamment tant que le dépôt est public. La restauration se fait dans une pile PG17 vide. Actions épinglées par SHA, secrets limités aux étapes qui les utilisent, aucun comptage ni erreur brute dans les journaux publics. Alertes : worker absent, en échec ou au-delà de 26 h, `/api/cron/status`, sauvegarde vérifiée de plus de 26 h, relances sans accusé Resend. Ping externe optionnel. **Non exécutés à ce jour** : seul un passage sur `main` d’un dépôt privé les prouvera.
 
 Vérifications locales : `npm run typecheck`, `npm test` (373 tests), `npm run lint`. Les migrations sont testées dans PGlite. **Rien n'a été appliqué en production.**
 
