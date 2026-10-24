@@ -30,6 +30,8 @@ concurrency:
 
 jobs:
   check:
+    # Fail closed before any runner, secret, production read or external alert.
+    if: github.event.repository.private == true
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
