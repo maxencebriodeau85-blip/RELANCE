@@ -12,6 +12,7 @@ import { Logo } from '@/components/brand/logo'
 import { consumeAuthLink } from '@/lib/auth-link'
 import { supabaseAuthError } from '@/lib/auth-errors'
 import { Eye, EyeOff, AlertCircle } from 'lucide-react'
+import { checkNewPassword } from './actions'
 
 type Mode = 'loading' | 'form' | 'error'
 
@@ -57,6 +58,8 @@ export default function ResetPasswordPage() {
 
     setLoading(true)
     try {
+      const compromised = await checkNewPassword(password).catch(() => null)
+      if (compromised) throw new Error(compromised)
       const { error: updateError } = await createClient().auth.updateUser({ password })
       if (updateError) throw new Error(supabaseAuthError(updateError.message, updateError.status))
       window.location.replace('/dashboard')
