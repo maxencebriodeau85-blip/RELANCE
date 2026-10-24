@@ -37,6 +37,20 @@ Chaque passage examine au plus 100 candidats et tente au plus 25 envois dans un 
 
 En cas d’arrêt brutal, le bail expire ; les réservations d’envoi protègent les messages déjà tentés. Ne jamais effacer leurs traces pour « débloquer » un envoi sans vérifier le statut chez Resend.
 
+## Surveillance du worker de relances
+
+Les journaux Vercel Hobby ne sont conservés qu’une heure : un cron qui échoue chaque jour peut passer inaperçu. Lorsqu’un passage autorisé est bloqué, `/api/cron/reminders` répond toujours 503 mais inscrit désormais dans `collection_worker` la date (`last_attempt_at`) et la cause (`last_blocked_reason`) : `automation_not_configured` (variables Resend, service role ou `CRON_SECRET` absentes) ou `claim_failed` (réservation impossible en base). Cette trace est au mieux : sans `SUPABASE_SERVICE_ROLE_KEY`, rien ne peut être écrit. Une réservation réussie efface la cause. Un 401 (secret absent ou faux) n’ouvre aucune connexion et ne laisse donc aucune trace : c’est la sonde ci-dessous qui le révèle.
+
+Consulter l’état, sur le domaine canonique (une redirection peut retirer l’en-tête) :
+
+```bash
+curl -sS -H "Authorization: Bearer $CRON_SECRET" https://<domaine>/api/cron/status
+```
+
+Réponse, sans donnée client : `configured` (même condition que le cron), `last_attempt_at`, `last_blocked_reason`, `started_at`, `completed_at` (dernière fin de passage), `last_ok` (le dernier passage a-t-il tout traité sans erreur), `last_sent` (envois du dernier passage), `stale` (`true` si aucun passage terminé depuis 26 heures, ou jamais). Le seuil de 26 heures couvre le cron quotidien de 08:00 UTC avec une marge. Code HTTP : 200 si tout va bien ; 503 si `stale`, si `configured` est faux, si le dernier passage a échoué (`last_ok: false`) ou si l’état est illisible ; 401 si le secret est faux. Un passage incomplet reprend au suivant, mais il alerte pour être examiné. `/api/health` expose aussi `automationReady` (booléen, sans appel base).
+
+Brancher une sonde externe qui alerte sur toute réponse différente de 200 : workflow GitHub Actions planifié (`schedule`) appelant l’URL avec le secret stocké en secret de dépôt, ou moniteur HTTP UptimeRobot avec en-tête personnalisé `Authorization: Bearer …`. Une vérification par jour, après 08:00 UTC, suffit. Une alerte 401 indique soit un secret de sonde différent de celui de Vercel, soit un `CRON_SECRET` absent en production, qui bloque aussi le cron : vérifier `cronSecret` dans `/api/health`.
+
 ## Protection des API
 
 Les clés API v1 sont aléatoires (256 bits), hachées SHA-256, affichées une fois, expirent après un an et sont révocables. Le stockage serveur est inaccessible aux rôles navigateur. Le propriétaire est déduit de la clé. Droits lecture et écriture distincts. La révocation et l’écriture sont sérialisées en base.

@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAuthError } from '@/lib/auth-errors'
 import { TERMS_VERSION } from '@/lib/legal'
+import { COMPROMISED_PASSWORD_MESSAGE, isPasswordCompromised } from '@/lib/password-security'
 
 export type RegisterState = {
   error?: string
@@ -47,6 +48,10 @@ export async function registerAction(
   if (!z.string().email().max(254).safeParse(email).success || companyName.length > 200 || password.length > 128) {
     return { error: 'Vérifiez votre adresse email et la longueur des champs.' }
   }
+  if (await isPasswordCompromised(password)) {
+    return { error: COMPROMISED_PASSWORD_MESSAGE }
+  }
+
   const appUrl = getAppUrl()
 
   let data
