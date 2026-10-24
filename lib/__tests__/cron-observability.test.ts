@@ -128,6 +128,13 @@ describe('Worker status', () => {
     expect(response.status).toBe(503)
     expect(await response.json()).toMatchObject({ stale: true, last_ok: true })
   })
+  it('alerts when the last recent run failed', async () => {
+    const recent = row(hoursAgo(1))
+    mocks.worker.mockResolvedValue({ ...recent, data: { ...recent.data, last_result: { ok: false, sent: 0, attempted: 1 } } })
+    const response = await call(status, 'Bearer test')
+    expect(response.status).toBe(503)
+    expect(await response.json()).toMatchObject({ stale: false, last_ok: false })
+  })
   it('alerts when automation is not configured and exposes the blocked reason', async () => {
     mocks.automation = false
     mocks.worker.mockResolvedValue({

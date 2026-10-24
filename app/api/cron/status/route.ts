@@ -54,7 +54,8 @@ export async function GET(request: Request) {
     ...(readable ? {} : { error: 'Suivi du traitement illisible.' }),
   }
   return NextResponse.json(body, {
-    status: configured && !stale && readable ? 200 : 503,
+    // finish_collection_worker stamps completed_at even for a failed run.
+    status: configured && !stale && readable && body.last_ok !== false ? 200 : 503,
     headers,
   })
 }
