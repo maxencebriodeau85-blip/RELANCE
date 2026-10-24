@@ -92,18 +92,11 @@ async function syncSubscriptionStatus(
   }
 
   if (!['active', 'trialing'].includes(subscription.status)) return
-  const priceId = subscription.items.data[0]?.price.id
-  const plan = getPlanFromPriceId(priceId)
 
-  if (!plan) {
-    console.error(
-      `Stripe webhook: unrecognized price ID "${priceId}" for Stripe customer ` +
-        `${customerId} — plan left unchanged. Check STRIPE_STARTER_PRICE_ID / ` +
-        'STRIPE_FOUNDER_PRICE_ID / STRIPE_PRO_PRICE_ID / STRIPE_BUSINESS_PRICE_ID against the Stripe dashboard.',
-    )
-    throw new Error('Unrecognized subscription price')
-  }
-
+  // Resolve the owner BEFORE validating the price: a subscription that does
+  // not belong to an Encair profile (another product on the same Stripe
+  // account) must be acknowledged, not answered with a 500 that Stripe would
+  // retry for days and that can get the endpoint disabled.
   const { data: profile, error: readError } = await supabase
     .from('profiles')
     .select('id, stripe_subscription_id')
@@ -116,6 +109,18 @@ async function syncSubscriptionStatus(
     profile.stripe_subscription_id !== subscription.id
   )
     return
+
+  const priceId = subscription.items.data[0]?.price.id
+  const plan = getPlanFromPriceId(priceId)
+
+  if (!plan) {
+    console.error(
+      `Stripe webhook: unrecognized price ID "${priceId}" for Stripe customer ` +
+        `${customerId} — plan left unchanged. Check STRIPE_STARTER_PRICE_ID / ` +
+        'STRIPE_FOUNDER_PRICE_ID / STRIPE_PRO_PRICE_ID / STRIPE_BUSINESS_PRICE_ID against the Stripe dashboard.',
+    )
+    throw new Error('Unrecognized subscription price')
+  }
 
   // Single UPDATE by stripe_customer_id — no N+1 loop
   let update = supabase
@@ -177,6 +182,17 @@ export async function POST(request: Request) {
           // Legacy payments reached the platform, not the creditor. Reconcile manually.
           console.warn(
             'Legacy invoice payment requires manual reconciliation:',
+            session.id,
+          )
+          break
+        }
+
+        // Sessions not created by /api/stripe/checkout (Payment Links,
+        // dashboard tests, other products) carry no Encair user: acknowledge
+        // them instead of throwing, which would make Stripe retry for days.
+        if (session.mode !== 'subscription' || !session.metadata?.userId) {
+          console.warn(
+            'Stripe webhook: checkout session without Encair user ignored:',
             session.id,
           )
           break
