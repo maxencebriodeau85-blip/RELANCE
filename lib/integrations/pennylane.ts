@@ -110,7 +110,7 @@ export async function fetchInvoices(
   return res.json()
 }
 
-// Map a Pennylane invoice to RelanceFlow invoice insert shape
+// Map a Pennylane invoice to Encair invoice insert shape
 export function mapPennylaneInvoice(inv: PennylaneInvoice, userId: string) {
   const address = inv.customer.billing_address
     ? [

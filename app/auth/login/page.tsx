@@ -6,25 +6,17 @@ import Link from 'next/link'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Eye, EyeOff, AlertCircle, Loader2, CheckCircle, Kanban, FileText, Bell } from 'lucide-react'
+import { Eye, EyeOff, AlertCircle, Loader2, CheckCircle } from 'lucide-react'
 import { Logo } from '@/components/brand/logo'
 import { AuthConfigNotice } from '@/components/auth/config-notice'
-import { createClient } from '@/lib/supabase/client'
-import { supabaseAuthError } from '@/lib/auth-errors'
-
-const sideFeatures = [
-  { icon: Kanban, label: 'Pipeline kanban', sub: 'Tous tes deals en un coup d\'œil' },
-  { icon: Bell, label: 'Relances automatiques', sub: 'Prospects et factures — sans intervention' },
-  { icon: FileText, label: 'Facturation intégrée', sub: 'De la proposition signée à l\'encaissement' },
-]
+import { AuthSidePanel } from '@/components/auth/auth-side-panel'
+import { safeRedirect } from '@/lib/auth-navigation'
+import { CTA_LABEL } from '@/lib/plans'
 
 function LoginForm() {
   const searchParams = useSearchParams()
   const rawRedirect = searchParams.get('redirectedFrom') ?? ''
-  // Only same-origin absolute paths. Reject protocol-relative (//evil.com)
-  // AND backslash tricks (/\evil.com, which some browsers normalise to //).
-  const redirectTo =
-    /^\/[^/\\]/.test(rawRedirect) ? rawRedirect : '/dashboard'
+  const redirectTo = safeRedirect(rawRedirect)
 
   const [error, setError] = useState<string | null>(searchParams.get('error'))
   const [loading, setLoading] = useState(false)
@@ -40,91 +32,22 @@ function LoginForm() {
     const password = form.get('password') as string
 
     try {
-      const supabase = createClient()
-      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
-
-      if (signInError) {
-        setError(supabaseAuthError(signInError.message, signInError.status))
-        setLoading(false)
-        return
-      }
-
-      window.location.href = redirectTo
+      const response = await fetch('/api/auth/login', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, redirectTo }),
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'La connexion a échoué.')
+      window.location.assign(safeRedirect(result.redirectTo))
     } catch (err) {
-      // Distinguish the real cause instead of a useless catch-all. The #1
-      // reason a fresh deploy "can't log in" is missing Supabase env vars.
-      const msg = err instanceof Error ? err.message : ''
-      if (/Missing NEXT_PUBLIC_SUPABASE/i.test(msg)) {
-        setError(
-          "Service d'authentification non configuré : les variables Supabase manquent sur le serveur. " +
-            'Si tu es l’administrateur, ajoute NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY dans Vercel puis redéploie.'
-        )
-      } else if (/failed to fetch|networkerror|network request failed/i.test(msg)) {
-        setError('Impossible de joindre le serveur d’authentification. Vérifie ta connexion et réessaie.')
-      } else {
-        setError('Une erreur est survenue. Veuillez réessayer.')
-      }
+      setError(err instanceof Error ? err.message : 'La connexion est indisponible. Réessayez.')
       setLoading(false)
     }
   }
 
   return (
     <div className="min-h-screen flex">
-      {/* Left — branding */}
-      <div className="hidden lg:flex lg:w-5/12 flex-col justify-between bg-gradient-to-br from-ink-950 via-ink-900 to-ink-950 p-10 relative overflow-hidden">
-        <div className="brand-orb bg-brand-500/40 h-[300px] w-[300px] -top-20 -left-20" />
-        <div className="brand-orb bg-fuchsia-500/30 h-[400px] w-[400px] bottom-0 -right-40" />
-        <div className="relative">
-          <Logo variant="mono-white" size="md" />
-        </div>
-
-        <div className="space-y-8">
-          <div>
-            <h2 className="font-display text-3xl font-extrabold text-white leading-tight tracking-tight">
-              Arrête de courir après ton argent.
-            </h2>
-            <p className="text-white/70 mt-3 text-sm leading-relaxed">
-              Relances automatiques, mise en demeure légale, paiement Stripe intégré —
-              le logiciel français pour indépendants qui bossent seuls.
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            {sideFeatures.map((f) => {
-              const Icon = f.icon
-              return (
-                <div key={f.label} className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-white/10">
-                    <Icon className="h-4 w-4 text-blue-300" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-white">{f.label}</p>
-                    <p className="text-xs text-blue-300/60">{f.sub}</p>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-
-          {/* Testimonial */}
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-            <p className="text-sm text-blue-100/80 italic leading-relaxed">
-              &quot;La facture part toute seule depuis le deal signé. Et si pas payée, la relance aussi. J&apos;ai récupéré 8 000 € en deux semaines.&quot;
-            </p>
-            <div className="mt-3 flex items-center gap-2.5">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-500 text-white text-xs font-bold">L</div>
-              <div>
-                <p className="text-xs font-semibold text-white">Lucie M.</p>
-                <p className="text-xs text-blue-300/60">Coach certifiée — Lyon</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <p className="text-xs text-blue-300/40">
-          Données hébergées en Europe · Conforme RGPD · 15 €/mois après l&apos;essai
-        </p>
-      </div>
+      <AuthSidePanel />
 
       {/* Right — form. Extra bottom padding on mobile so the vertically
           centered form clears the fixed cookie banner (which otherwise
@@ -137,13 +60,13 @@ function LoginForm() {
           </div>
 
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">Bon retour 👋</h1>
-            <p className="text-gray-500 mt-1 text-sm">Connecte-toi à ton espace RelanceFlow</p>
+            <h1 className="text-2xl font-bold text-gray-900">Connexion</h1>
+            <p className="text-gray-500 mt-1 text-sm">Accédez à votre espace Encair</p>
           </div>
 
           <AuthConfigNotice />
 
-          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+          <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <Alert variant="destructive" className="py-3">
                 <AlertCircle className="h-4 w-4" />
@@ -159,7 +82,7 @@ function LoginForm() {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="toi@exemple.fr"
+                placeholder="vous@entreprise.fr"
                 required
                 autoComplete="email"
                 autoFocus
@@ -193,7 +116,7 @@ function LoginForm() {
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  tabIndex={-1}
+                  aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -216,16 +139,17 @@ function LoginForm() {
             </button>
           </form>
 
+          <p className="mt-4 text-center text-xs"><Link href="/auth/resend" className="text-brand-700 underline">Email de confirmation non reçu ?</Link></p>
           <p className="mt-6 text-center text-sm text-gray-500">
             Pas encore de compte ?{' '}
             <Link href="/auth/register" className="font-semibold text-blue-600 hover:underline">
-              Essai gratuit 30 jours
+              {CTA_LABEL}
             </Link>
           </p>
 
           <div className="mt-6 flex items-center justify-center gap-4 text-xs text-gray-400">
             <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3 text-green-500" />Sans carte bancaire</span>
-            <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3 text-green-500" />RGPD</span>
+            <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3 text-green-500" />Sans engagement</span>
           </div>
         </div>
       </div>

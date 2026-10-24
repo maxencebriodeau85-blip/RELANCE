@@ -22,15 +22,10 @@ export function AuthConfigNotice() {
       <div className="flex items-start gap-3">
         <AlertTriangle className="h-5 w-5 flex-shrink-0 text-amber-600 mt-0.5" />
         <div className="text-sm text-amber-900">
-          <p className="font-semibold">Service d’authentification non configuré</p>
+          <p className="font-semibold">Connexion momentanément indisponible</p>
           <p className="mt-1 text-amber-800 leading-relaxed">
-            Les variables Supabase manquent sur ce déploiement — la connexion ne
-            peut pas fonctionner tant qu’elles ne sont pas ajoutées.
-          </p>
-          <p className="mt-2 text-xs text-amber-700">
-            Administrateur ? Ajoute <code className="font-mono">NEXT_PUBLIC_SUPABASE_URL</code> et{' '}
-            <code className="font-mono">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> dans Vercel, puis
-            redéploie. Diagnostic complet sur <code className="font-mono">/api/health</code>.
+            La création de compte et la connexion ne sont pas disponibles pour le
+            moment. Réessayez un peu plus tard.
           </p>
         </div>
       </div>

@@ -1,5 +1,7 @@
 'use server'
 
+import { safeRedirect } from '@/lib/auth-navigation'
+import { supabaseAuthError } from '@/lib/auth-errors'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
@@ -22,21 +24,7 @@ export async function loginAction(
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithPassword({ email, password })
 
-  if (error) {
-    if (
-      error.message.includes('Invalid login credentials') ||
-      error.message.includes('invalid_credentials')
-    ) {
-      return { error: 'Email ou mot de passe incorrect.' }
-    }
-    if (error.message.includes('Email not confirmed')) {
-      return {
-        error:
-          "Votre email n'est pas encore confirmé. Vérifiez votre boîte de réception et vos spams.",
-      }
-    }
-    return { error: error.message }
-  }
+  if (error) return { error: supabaseAuthError(error.message, error.status) }
 
-  redirect(redirectTo)
+  redirect(safeRedirect(redirectTo))
 }

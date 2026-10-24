@@ -1,4 +1,5 @@
 import type { Invoice } from './database.types'
+import { outstanding, businessDate } from './collection'
 
 export interface AgingBucket {
   label: string
@@ -26,39 +27,11 @@ export interface DashboardMetrics {
   }
 }
 
+/** Historical function name retained for compatibility: mean time to recorded settlement, not DSO. */
 export function calculateDSO(invoices: Invoice[]): number {
-  if (invoices.length === 0) return 0
-
-  // DSO = (Encours clients / CA TTC) × Nombre de jours de la période
-  // Simplified: average days to collect (or if unpaid, days outstanding)
-  const paidInvoices = invoices.filter((inv) => inv.status === 'paid')
-  const today = new Date()
-
-  if (paidInvoices.length === 0) {
-    // If no paid invoices, calculate average days overdue for unpaid ones
-    const overdueInvoices = invoices.filter((inv) => {
-      const dueDate = new Date(inv.due_date)
-      return dueDate < today && inv.status !== 'paid'
-    })
-    if (overdueInvoices.length === 0) return 0
-
-    const totalDays = overdueInvoices.reduce((sum, inv) => {
-      const dueDate = new Date(inv.due_date)
-      const days = Math.max(0, Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)))
-      return sum + days
-    }, 0)
-    return Math.round(totalDays / overdueInvoices.length)
-  }
-
-  // For paid invoices: measure from issued_date to updated_at (proxy for payment date)
-  const totalDays = paidInvoices.reduce((sum, inv) => {
-    const issuedDate = new Date(inv.issued_date)
-    const paidDate = new Date(inv.updated_at)
-    const days = Math.max(0, Math.floor((paidDate.getTime() - issuedDate.getTime()) / (1000 * 60 * 60 * 24)))
-    return sum + days
-  }, 0)
-
-  return Math.round(totalDays / paidInvoices.length)
+  const paid = invoices.filter(i => i.status === 'paid' && i.paid_at && i.issued_date)
+  if (!paid.length) return 0
+  return Math.round(paid.reduce((sum,i) => sum + Math.max(0, Math.floor((Date.parse(i.paid_at!) - Date.parse(i.issued_date!)) / 86400000)),0) / paid.length)
 }
 
 export function calculateRecoveryRate(invoices: Invoice[]): number {
@@ -83,10 +56,8 @@ export function calculateRecoveryRate(invoices: Invoice[]): number {
 }
 
 export function getDaysOverdue(invoice: Invoice): number {
-  const today = new Date()
-  const dueDate = new Date(invoice.due_date)
-  if (dueDate >= today) return 0
-  return Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24))
+  if (outstanding(invoice) === 0) return 0
+  return Math.max(0, Math.round((Date.parse(businessDate()) - Date.parse(invoice.due_date)) / 86400000))
 }
 
 export function calculateAgingBuckets(invoices: Invoice[]): AgingBucket[] {
@@ -103,7 +74,7 @@ export function calculateAgingBuckets(invoices: Invoice[]): AgingBucket[] {
 
   for (const invoice of activeInvoices) {
     const dueDate = new Date(invoice.due_date)
-    const daysDiff = Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24))
+    const daysDiff = getDaysOverdue(invoice)
 
     let bucket: AgingBucket | undefined
 
@@ -121,7 +92,7 @@ export function calculateAgingBuckets(invoices: Invoice[]): AgingBucket[] {
 
     if (bucket) {
       bucket.count++
-      bucket.amount += invoice.amount
+      bucket.amount += outstanding(invoice)
     }
   }
 
@@ -132,14 +103,14 @@ export function calculateDashboardMetrics(invoices: Invoice[]): DashboardMetrics
   const today = new Date()
   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
 
-  const activeInvoices = invoices.filter((inv) => inv.status !== 'paid' && inv.status !== 'disputed')
+  const activeInvoices = invoices.filter((inv) => inv.status !== 'paid')
   const overdueInvoices = activeInvoices.filter((inv) => new Date(inv.due_date) < today)
 
-  const totalReceivables = activeInvoices.reduce((sum, inv) => sum + inv.amount, 0)
-  const totalOverdue = overdueInvoices.reduce((sum, inv) => sum + inv.amount, 0)
+  const totalReceivables = activeInvoices.reduce((sum, inv) => sum + outstanding(inv), 0)
+  const totalOverdue = overdueInvoices.reduce((sum, inv) => sum + outstanding(inv), 0)
 
   const paidThisMonth = invoices
-    .filter((inv) => inv.status === 'paid' && new Date(inv.updated_at) >= startOfMonth)
+    .filter((inv) => inv.status === 'paid' && inv.paid_at && new Date(inv.paid_at) >= startOfMonth)
     .reduce((sum, inv) => sum + inv.amount, 0)
 
   const createdThisMonth = invoices.filter(
@@ -172,12 +143,12 @@ export function formatEuro(amount: number): string {
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency: 'EUR',
-    minimumFractionDigits: 0,
+    minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount)
 }
 
-export function formatDate(dateString: string): string {
+export function formatDate(dateString: string | null): string {
   if (!dateString) return ''
   try {
     const date = new Date(dateString)
@@ -191,7 +162,7 @@ export function formatDate(dateString: string): string {
   }
 }
 
-export function formatDateLong(dateString: string): string {
+export function formatDateLong(dateString: string | null): string {
   if (!dateString) return ''
   try {
     const date = new Date(dateString)
@@ -205,12 +176,8 @@ export function formatDateLong(dateString: string): string {
   }
 }
 
-export const PLAN_LIMITS: Record<string, number> = {
-  free_trial: 10,
-  starter: 30,
-  pro: 200,
-  business: 1000,
-}
+export { PLAN_LIMITS } from './plans'
+import { PLAN_LIMITS } from './plans'
 
 export function getPlanLimit(plan: string): number {
   return PLAN_LIMITS[plan] || 10

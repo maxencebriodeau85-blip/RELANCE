@@ -4,13 +4,16 @@ import { ArrowLeft, Clock, Calendar, ChevronRight, BookOpen } from 'lucide-react
 import type { Metadata } from 'next'
 import { GUIDES } from '@/lib/guides-content'
 import { SiteFooter } from '@/components/landing/footer'
+import { CTA_LABEL } from '@/lib/plans'
+import { PUBLISHER } from '@/lib/legal'
 
 export async function generateStaticParams() {
   return GUIDES.map((g) => ({ slug: g.slug }))
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const guide = GUIDES.find((g) => g.slug === params.slug)
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const {slug}=await params
+  const guide = GUIDES.find((g) => g.slug === slug)
   if (!guide) return { title: 'Guide introuvable' }
   return {
     title: guide.metaTitle,
@@ -21,12 +24,14 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       description: guide.metaDescription,
       type: 'article',
       publishedTime: guide.publishedAt,
+      modifiedTime: guide.updatedAt,
     },
   }
 }
 
-export default function GuideArticlePage({ params }: { params: { slug: string } }) {
-  const guide = GUIDES.find((g) => g.slug === params.slug)
+export default async function GuideArticlePage({ params }: { params: Promise<{ slug: string }> }) {
+  const {slug}=await params
+  const guide = GUIDES.find((g) => g.slug === slug)
   if (!guide) notFound()
 
   // Related guides — other entries in the same category (or any other guide
@@ -46,11 +51,12 @@ export default function GuideArticlePage({ params }: { params: { slug: string } 
     headline: guide.title,
     description: guide.metaDescription,
     datePublished: guide.publishedAt,
-    author: { '@type': 'Organization', name: 'RelanceFlow' },
+    dateModified: guide.updatedAt,
+    author: { '@type': 'Person', name: PUBLISHER.name },
     publisher: {
       '@type': 'Organization',
-      name: 'RelanceFlow',
-      logo: { '@type': 'ImageObject', url: '/icon.png' },
+      name: 'Encair',
+      logo: { '@type': 'ImageObject', url: '/icon.svg' },
     },
   }
 
@@ -75,12 +81,13 @@ export default function GuideArticlePage({ params }: { params: { slug: string } 
             href="/auth/register"
             className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 transition-colors"
           >
-            Essai gratuit 30 j
+            {CTA_LABEL}
           </Link>
         </div>
       </div>
 
       <article className="mx-auto max-w-3xl px-4 py-12">
+        <aside className="mb-6 rounded border border-blue-100 bg-blue-50 p-4 text-sm">Ce guide donne des repères généraux ; il ne remplace pas l’examen de votre contrat et de votre situation. Encair assure le suivi amiable : il ne fournit ni acte juridique validé ni représentation en justice. Pour une procédure, vérifiez les règles et formulaires sur <a className="underline" href="https://entreprendre.service-public.gouv.fr/">Service Public</a>.</aside>
         {/* Article header */}
         <div className="mb-10">
           <div className="flex items-center gap-3 text-xs text-gray-500 mb-4">
@@ -92,7 +99,8 @@ export default function GuideArticlePage({ params }: { params: { slug: string } 
             </span>
             <span className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
-              {new Date(guide.publishedAt).toLocaleDateString('fr-FR', {
+              Mis à jour le{' '}
+              {new Date(guide.updatedAt).toLocaleDateString('fr-FR', {
                 day: 'numeric',
                 month: 'long',
                 year: 'numeric',
@@ -103,6 +111,11 @@ export default function GuideArticlePage({ params }: { params: { slug: string } 
             {guide.title}
           </h1>
           <p className="text-lg text-gray-600 leading-relaxed">{guide.intro}</p>
+          <p className="mt-4 text-xs text-gray-500">
+            Par {PUBLISHER.name}, fondateur d’Encair, alternant en cabinet d’expertise comptable.
+            Ce guide donne des repères généraux et ne remplace pas un conseil juridique adapté à
+            votre situation.
+          </p>
         </div>
 
         {/* Body */}
@@ -122,6 +135,14 @@ export default function GuideArticlePage({ params }: { params: { slug: string } 
               )}
             </section>
           ))}
+
+          {guide.slug === 'penalites-retard-calcul' && (
+            <p className="text-[15px]">
+              <Link href="/calculateur-penalites" className="font-semibold text-blue-700 underline">
+                Calculer les pénalités d’une facture avec notre calculateur gratuit →
+              </Link>
+            </p>
+          )}
 
           <div className="rounded-2xl border border-blue-200 bg-blue-50/60 p-6 mt-10">
             <h2 className="text-lg font-bold text-gray-900 mb-2">En résumé</h2>
@@ -167,15 +188,16 @@ export default function GuideArticlePage({ params }: { params: { slug: string } 
         <div className="rounded-2xl bg-brand-gradient text-white p-8 mt-12 text-center shadow-xl shadow-brand-500/30 relative overflow-hidden">
           <div className="brand-orb bg-fuchsia-400/30 h-[200px] w-[200px] -bottom-10 -right-10" />
           <div className="relative">
-            <h3 className="text-xl font-bold mb-2">Automatisez tout ce que vous venez de lire</h3>
+            <h3 className="text-xl font-bold mb-2">Suivez vos impayés sans tableur</h3>
             <p className="text-white/80 text-sm mb-5">
-              RelanceFlow gère relances, mise en demeure et paiement en ligne — sans intervention manuelle.
+              Encair rassemble vos impayés importés par CSV, prépare vos relances email et suit
+              promesses, paiements partiels et litiges.
             </p>
             <Link
               href="/auth/register"
               className="inline-flex items-center gap-2 rounded-xl bg-white text-brand-700 font-bold px-6 py-3 hover:bg-brand-50 transition-colors"
             >
-              Démarrer 30 jours gratuits
+              {CTA_LABEL}
               <ChevronRight className="h-4 w-4" />
             </Link>
           </div>

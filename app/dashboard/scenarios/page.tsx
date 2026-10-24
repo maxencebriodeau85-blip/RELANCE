@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import { Header } from '@/components/dashboard/header'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -16,8 +17,6 @@ import {
   Zap,
   Info,
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
-import type { Profile } from '@/lib/database.types'
 
 interface ScenarioStep {
   day: number
@@ -42,20 +41,19 @@ const SCENARIOS: Scenario[] = [
     name: 'Standard',
     badge: 'Recommandé',
     badgeColor: 'bg-blue-100 text-brand-700',
-    description: 'Couverture complète de J+7 à J+45. Convient à 80 % des situations — passe de cordial à ferme puis pré-contentieux.',
+    description: 'Trois rappels à J+7, J+15 et J+30. Les pauses et les promesses sont respectées.',
     steps: [
       { day: 7,  type: 'email_1', subject: 'Rappel amiable — Facture {n°}', tone: 'cordial', channel: 'email' },
       { day: 15, type: 'email_2', subject: 'Relance — Facture {n°} en retard', tone: 'ferme', channel: 'email' },
-      { day: 30, type: 'email_2', subject: '2ème relance — Action requise', tone: 'ferme', channel: 'email' },
-      { day: 45, type: 'email_3', subject: 'Dernière relance avant mise en demeure', tone: 'precontentieux', channel: 'email' },
+      { day: 30, type: 'email_3', subject: 'Troisième rappel — Facture en attente', tone: 'precontentieux', channel: 'email' },
     ],
   },
   {
     id: 'soft',
-    name: 'Soft',
+    name: 'Espacé',
     badge: 'Clients fidèles',
     badgeColor: 'bg-green-100 text-green-700',
-    description: 'Deux rappels doux espacés. Pour les bons payeurs habituels — préserve la relation commerciale.',
+    description: 'Deux rappels à J+7 et J+21 pour laisser plus de temps entre les échanges.',
     steps: [
       { day: 7,  type: 'email_1', subject: 'Petit rappel — Facture {n°}', tone: 'cordial', channel: 'email' },
       { day: 21, type: 'email_2', subject: 'Rappel — Facture {n°} toujours en attente', tone: 'cordial', channel: 'email' },
@@ -63,15 +61,14 @@ const SCENARIOS: Scenario[] = [
   },
   {
     id: 'firm',
-    name: 'Ferme',
-    badge: 'Mauvais payeurs',
+    name: 'Rapproché',
+    badge: 'Suivi rapproché',
     badgeColor: 'bg-orange-100 text-orange-700',
-    description: 'Escalade rapide avec mise en demeure. Pour les clients avec historique de retard ou montants importants.',
+    description: 'Trois rappels rapprochés à J+3, J+10 et J+20, sans mise en demeure automatique.',
     steps: [
-      { day: 7,  type: 'email_1', subject: 'Relance — Facture {n°} impayée', tone: 'ferme', channel: 'email' },
-      { day: 15, type: 'email_2', subject: '2ème relance ferme — Facture {n°}', tone: 'ferme', channel: 'email' },
-      { day: 30, type: 'email_3', subject: 'Ultime rappel avant procédure', tone: 'precontentieux', channel: 'email' },
-      { day: 45, type: 'formal_notice', subject: 'MISE EN DEMEURE — Facture {n°}', tone: 'formal_notice', channel: 'email' },
+      { day: 3,  type: 'email_1', subject: 'Relance — Facture {n°} impayée', tone: 'ferme', channel: 'email' },
+      { day: 10, type: 'email_2', subject: '2ème relance ferme — Facture {n°}', tone: 'ferme', channel: 'email' },
+      { day: 20, type: 'email_3', subject: 'Ultime rappel avant procédure', tone: 'precontentieux', channel: 'email' },
     ],
   },
 ]
@@ -94,69 +91,47 @@ export default function ScenariosPage() {
   const { toast } = useToast()
   const [activeScenarioId, setActiveScenarioId] = useState<string>('standard')
   const [initialScenarioId, setInitialScenarioId] = useState<string>('standard')
-  const [autoReminders, setAutoReminders] = useState(true)
+  const [autoReminders, setAutoReminders] = useState(false)
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
+  const [automationAvailable, setAutomationAvailable] = useState(false)
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const supabase = createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
-
-        const { data } = await supabase
-          .from('profiles')
-          .select('auto_reminders')
-          .eq('id', user.id)
-          .single()
-
-        if (data) {
-          setAutoReminders((data as any).auto_reminders ?? true)
-          const saved = (data as any).active_scenario
-          if (saved && SCENARIOS.find((s) => s.id === saved)) {
-            setActiveScenarioId(saved)
-            setInitialScenarioId(saved)
-          }
-        }
-      } catch { /* silent */ } finally {
-        setLoading(false)
-      }
-    }
-    load()
+  const loadSettings = useCallback(async () => {
+    setLoading(true)
+    setLoadError('')
+    try {
+      const response = await fetch('/api/profile/reminders', { cache: 'no-store' })
+      const result = await response.json()
+      if (!response.ok || !result.settings) throw new Error(result.error || 'Chargement impossible.')
+      setAutoReminders(result.settings.auto_reminders)
+      setActiveScenarioId(result.settings.active_scenario)
+      setInitialScenarioId(result.settings.active_scenario)
+      setAutomationAvailable(result.capabilities.automationAvailable)
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : 'Chargement impossible.')
+    } finally { setLoading(false) }
   }, [])
 
-  const handleSelectScenario = async (id: string) => {
-    setActiveScenarioId(id)
-    try {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        await supabase.from('profiles').update({ active_scenario: id } as never).eq('id', user.id)
-      }
-    } catch { /* silent — scenario still applied locally */ }
-  }
+  useEffect(() => { void loadSettings() }, [loadSettings])
 
-  const handleToggleAutoReminders = async () => {
-    const next = !autoReminders
+  const saveSettings = async (change: { auto_reminders?: boolean; active_scenario?: string }) => {
     setSaving(true)
     try {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error()
-      await supabase.from('profiles').update({ auto_reminders: next } as never).eq('id', user.id)
-      setAutoReminders(next)
-      toast({
-        title: next ? 'Relances automatiques activées' : 'Relances automatiques désactivées',
-        description: next
-          ? 'Le cron quotidien à 8h00 appliquera le scénario actif.'
-          : 'Plus aucune relance ne partira automatiquement.',
+      const response = await fetch('/api/profile/reminders', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(change),
       })
-    } catch {
-      toast({ title: 'Erreur', description: 'Impossible de sauvegarder.', variant: 'destructive' })
-    } finally {
-      setSaving(false)
-    }
+      const result = await response.json()
+      if (!response.ok || !result.settings) throw new Error(result.error || 'Enregistrement impossible.')
+      setAutoReminders(result.settings.auto_reminders)
+      setActiveScenarioId(result.settings.active_scenario)
+      setAutomationAvailable(result.capabilities.automationAvailable)
+      toast({ title: 'Réglages enregistrés', description: change.auto_reminders === false
+        ? 'Les prochaines relances automatiques sont suspendues. Un envoi déjà en cours peut encore aboutir.'
+        : 'Le scénario sera appliqué aux prochaines relances des factures vérifiées et actives.' })
+    } catch (error) {
+      toast({ title: 'Réglages non enregistrés', description: error instanceof Error ? error.message : 'Réessayez.', variant: 'destructive' })
+    } finally { setSaving(false) }
   }
 
   const activeScenario = SCENARIOS.find((s) => s.id === activeScenarioId) ?? SCENARIOS[0]
@@ -169,31 +144,39 @@ export default function ScenariosPage() {
       />
 
       <div className="p-6 space-y-6 max-w-5xl">
+        {loading && <p role="status" className="text-sm text-gray-500">Chargement de vos réglages…</p>}
+        {loadError && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          <p>{loadError}</p><Button className="mt-3" variant="outline" onClick={loadSettings}>Réessayer</Button>
+        </div>}
+        {!loading && !loadError && !automationAvailable && <div role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <p className="font-semibold">L’envoi automatique n’est pas encore disponible.</p>
+          <p className="mt-1">Vos factures restent accessibles. Vous pouvez actualiser les soldes et préparer votre scénario.</p>
+        </div>}
         {/* Automation status banner */}
-        <div className={`flex items-center justify-between rounded-xl border p-4 ${autoReminders ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
+        <div className={`flex items-center justify-between rounded-xl border p-4 ${autoReminders && automationAvailable ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
           <div className="flex items-center gap-3">
-            <div className={`flex h-9 w-9 items-center justify-center rounded-full ${autoReminders ? 'bg-green-100' : 'bg-gray-200'}`}>
-              {autoReminders
+            <div className={`flex h-9 w-9 items-center justify-center rounded-full ${autoReminders && automationAvailable ? 'bg-green-100' : 'bg-gray-200'}`}>
+              {autoReminders && automationAvailable
                 ? <Bell className="h-4 w-4 text-green-600" />
                 : <BellOff className="h-4 w-4 text-gray-400" />
               }
             </div>
             <div>
-              <p className={`text-sm font-semibold ${autoReminders ? 'text-green-800' : 'text-gray-600'}`}>
-                {autoReminders ? 'Relances automatiques activées' : 'Relances automatiques désactivées'}
+              <p className={`text-sm font-semibold ${autoReminders && automationAvailable ? 'text-green-800' : 'text-gray-600'}`}>
+                {loading || loadError ? 'État non vérifié' : !automationAvailable ? 'Automatisation indisponible' : autoReminders ? 'Relances automatiques activées' : 'Relances automatiques désactivées'}
               </p>
-              <p className={`text-xs mt-0.5 ${autoReminders ? 'text-green-600' : 'text-gray-400'}`}>
-                {autoReminders
+              <p className={`text-xs mt-0.5 ${autoReminders && automationAvailable ? 'text-green-600' : 'text-gray-400'}`}>
+                {autoReminders && automationAvailable
                   ? `Scénario "${activeScenario.name}" actif · Envoi quotidien à 8h00 UTC`
-                  : 'Vous devez déclencher les relances manuellement depuis chaque facture'}
+                  : 'Choisissez un scénario et vérifiez vos soldes avant tout envoi'}
               </p>
             </div>
           </div>
           <Button
             variant={autoReminders ? 'outline' : 'default'}
             size="sm"
-            onClick={handleToggleAutoReminders}
-            disabled={saving || loading}
+            onClick={() => saveSettings({ auto_reminders: !autoReminders })}
+            disabled={saving || loading || Boolean(loadError) || (!autoReminders && !automationAvailable)}
             className={autoReminders ? 'border-green-300 text-green-700 hover:bg-green-100' : ''}
           >
             {saving ? '…' : autoReminders ? 'Désactiver' : 'Activer'}
@@ -207,12 +190,13 @@ export default function ScenariosPage() {
             <div>
               <p className="text-sm font-semibold text-amber-800">Changement de scénario — effet futur uniquement</p>
               <p className="text-xs text-amber-700 mt-0.5 leading-relaxed">
-                Le nouveau scénario s&apos;applique aux relances à venir. Les factures déjà en cours de traitement continueront sur l&apos;ancien rythme jusqu&apos;à leur prochain envoi.
+                Le nouveau calendrier s&apos;applique à toutes vos factures actives dès le prochain passage. Les étapes déjà envoyées ne sont pas répétées ; les pauses, litiges et promesses restent respectés.
               </p>
             </div>
           </div>
         )}
 
+        <p className="text-sm text-gray-600">Le scénario fixe les dates d’envoi. Le contenu de chaque étape se règle dans <Link href="/dashboard/templates" className="font-medium text-brand-700 underline">vos modèles email</Link>.</p>
         {/* Scenario picker */}
         <div>
           <h2 className="text-sm font-semibold text-gray-700 mb-3">Scénario actif</h2>
@@ -222,8 +206,10 @@ export default function ScenariosPage() {
               return (
                 <button
                   key={scenario.id}
-                  onClick={() => handleSelectScenario(scenario.id)}
-                  className={`relative text-left rounded-xl border-2 p-4 transition-all ${
+                  onClick={() => saveSettings({ active_scenario: scenario.id })}
+                  disabled={saving || loading || Boolean(loadError)}
+                  aria-pressed={isActive}
+                  className={`relative text-left rounded-xl border-2 p-4 transition-all disabled:opacity-50 disabled:cursor-wait ${
                     isActive
                       ? 'border-blue-500 bg-blue-50 shadow-sm'
                       : 'border-gray-200 bg-white hover:border-gray-300'
@@ -275,7 +261,7 @@ export default function ScenariosPage() {
               <div className="absolute left-4 top-0 bottom-0 w-px bg-gray-100" />
               <div className="space-y-4">
                 {activeScenario.steps.map((step, i) => {
-                  const tone = toneConfig[step.tone]
+                  const tone = toneConfig.cordial
                   return (
                     <div key={i} className="relative flex gap-4">
                       {/* Day bubble */}
@@ -293,14 +279,14 @@ export default function ScenariosPage() {
                             J+{step.day} — {stepTypeLabel[step.type]}
                           </span>
                           <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${tone.color}`}>
-                            {tone.label}
+                            Modèle personnalisable
                           </span>
                           <span className="flex items-center gap-1 text-xs text-gray-400">
                             <Mail className="h-3 w-3" />
                             {step.channel === 'email' ? 'Email' : step.channel === 'sms' ? 'SMS' : 'Courrier LRAR'}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500 italic">{step.subject}</p>
+                        <p className="text-xs text-gray-500 italic">Contenu enregistré dans vos modèles email</p>
                       </div>
                     </div>
                   )
@@ -321,18 +307,18 @@ export default function ScenariosPage() {
               {[
                 {
                   icon: Clock,
-                  title: 'Chaque matin à 8h00',
-                  body: "Un job automatique analyse toutes vos factures impayées et déclenche les relances dues selon le scénario actif.",
+                  title: 'Un passage chaque jour',
+                  body: "Lorsque le service est disponible, les relances dues sont traitées chaque jour à 8h UTC (10h en été, 9h en hiver en France).",
                 },
                 {
                   icon: Mail,
-                  title: 'Zéro doublon',
+                  title: 'Envois protégés',
                   body: "Si une relance d'un type donné a déjà été envoyée pour une facture, elle ne sera jamais renvoyée automatiquement.",
                 },
                 {
                   icon: CheckCircle,
                   title: 'Vous restez maître',
-                  body: "Vous pouvez envoyer une relance manuellement à tout moment depuis la page facture, indépendamment du cron.",
+                  body: "Une relance manuelle respecte aussi les pauses, les litiges, les promesses et le délai minimum de 24 heures entre deux envois.",
                 },
               ].map((item) => {
                 const Icon = item.icon

@@ -7,18 +7,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { registerAction } from './actions'
-import {
-  Eye, EyeOff, AlertCircle, CheckCircle,
-  Kanban, Bell, FileText, Loader2,
-} from 'lucide-react'
+import { Eye, EyeOff, AlertCircle, CheckCircle, Loader2 } from 'lucide-react'
 import { Logo } from '@/components/brand/logo'
 import { AuthConfigNotice } from '@/components/auth/config-notice'
-
-const sideFeatures = [
-  { icon: Kanban, label: 'Pipeline kanban', sub: 'Tous tes deals en un coup d\'œil' },
-  { icon: Bell, label: 'Relances automatiques', sub: 'Prospects et factures — sans intervention' },
-  { icon: FileText, label: 'Facturation intégrée', sub: 'De la proposition signée à l\'encaissement' },
-]
+import { AuthSidePanel } from '@/components/auth/auth-side-panel'
+import { ResendForm } from '@/components/auth/resend-form'
+import { OFFER } from '@/lib/plans'
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -34,7 +28,7 @@ function SubmitButton() {
           Création du compte…
         </>
       ) : (
-        'Créer mon compte gratuit'
+        'Créer mon compte'
       )}
     </button>
   )
@@ -66,64 +60,6 @@ function PasswordStrength({ password }: { password: string }) {
   )
 }
 
-function LeftPanel() {
-  return (
-    <div className="hidden lg:flex lg:w-5/12 flex-col justify-between bg-gradient-to-br from-ink-950 via-ink-900 to-ink-950 p-10 relative overflow-hidden">
-      <div className="brand-orb bg-brand-500/40 h-[300px] w-[300px] -top-20 -left-20" />
-      <div className="brand-orb bg-fuchsia-500/30 h-[400px] w-[400px] bottom-0 -right-40" />
-      <div className="relative">
-        <Logo variant="mono-white" size="md" />
-      </div>
-
-      <div className="space-y-8">
-        <div>
-          <h2 className="font-display text-3xl font-extrabold text-white leading-tight tracking-tight">
-            Arrête de courir après ton argent.
-          </h2>
-          <p className="text-white/70 mt-3 text-sm leading-relaxed">
-            Relances automatiques, mise en demeure légale, paiement Stripe intégré —
-            le logiciel français pour indépendants qui bossent seuls.
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          {sideFeatures.map((f) => {
-            const Icon = f.icon
-            return (
-              <div key={f.label} className="flex items-center gap-3">
-                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-white/10">
-                  <Icon className="h-4 w-4 text-blue-300" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-white">{f.label}</p>
-                  <p className="text-xs text-blue-300/60">{f.sub}</p>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-          <p className="text-sm text-blue-100/80 italic leading-relaxed">
-            &quot;La facture part toute seule depuis le deal signé. Et si pas payée, la relance aussi. J&apos;ai récupéré 8 000 € en deux semaines.&quot;
-          </p>
-          <div className="mt-3 flex items-center gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-500 text-white text-xs font-bold">L</div>
-            <div>
-              <p className="text-xs font-semibold text-white">Lucie M.</p>
-              <p className="text-xs text-blue-300/60">Coach certifiée — Lyon</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <p className="text-xs text-blue-300/40">
-        Données hébergées en Europe · Conforme RGPD · 15 €/mois après l&apos;essai
-      </p>
-    </div>
-  )
-}
-
 export default function RegisterPage() {
   const [state, formAction] = useFormState(registerAction, null)
   const [showPassword, setShowPassword] = useState(false)
@@ -133,22 +69,23 @@ export default function RegisterPage() {
   if (state?.success) {
     return (
       <div className="min-h-screen flex">
-        <LeftPanel />
+        <AuthSidePanel />
         <div className="flex-1 flex items-center justify-center p-6 bg-white">
           <div className="w-full max-w-sm text-center space-y-5">
             <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Vérifie ton email</h2>
+              <h2 className="text-2xl font-bold text-gray-900">Vérifiez votre email</h2>
               <p className="text-gray-500 mt-2 text-sm">
                 Un email de confirmation a été envoyé à{' '}
-                <strong className="text-gray-800">{state.email}</strong>. Clique sur le lien pour activer ton compte.
+                <strong className="text-gray-800">{state.email}</strong>. Cliquez sur le lien pour activer votre compte.
               </p>
               <p className="text-gray-400 mt-2 text-xs">
-                Pense à vérifier tes spams si tu ne le vois pas dans les 2 minutes.
+                Pensez à vérifier vos spams s’il n’arrive pas dans les 2 minutes.
               </p>
             </div>
+            <ResendForm email={state.email} />
             <Link
               href="/auth/login"
               className="inline-block w-full h-11 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-colors leading-[44px]"
@@ -163,7 +100,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex">
-      <LeftPanel />
+      <AuthSidePanel />
 
       {/* Right — form (bottom clearance for the fixed cookie banner on mobile) */}
       <div className="flex-1 flex items-center justify-center p-6 pb-28 sm:pb-6 bg-white overflow-y-auto">
@@ -174,8 +111,10 @@ export default function RegisterPage() {
           </div>
 
           <div className="mb-7">
-            <h1 className="text-2xl font-bold text-gray-900">Ton essai gratuit t&apos;attend ✨</h1>
-            <p className="text-gray-500 mt-1 text-sm">30 jours · Sans carte bancaire · Annulable à tout moment</p>
+            <h1 className="text-2xl font-bold text-gray-900">Créer votre espace Encair</h1>
+            <p className="text-gray-500 mt-1 text-sm">
+              Essai {OFFER.trialDays} jours, jusqu’à {OFFER.trialInvoiceLimit} factures · Sans carte bancaire · Aucun prélèvement automatique
+            </p>
           </div>
 
           <AuthConfigNotice />
@@ -195,7 +134,7 @@ export default function RegisterPage() {
               <Input
                 id="companyName"
                 name="companyName"
-                placeholder="Jean Martin Conseil"
+                placeholder="Bureau d’études Martin"
                 required
                 autoFocus
                 className="h-11"
@@ -210,7 +149,7 @@ export default function RegisterPage() {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="toi@exemple.fr"
+                placeholder="vous@entreprise.fr"
                 required
                 autoComplete="email"
                 className="h-11"
@@ -228,6 +167,8 @@ export default function RegisterPage() {
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Minimum 8 caractères"
                   required
+                  minLength={8}
+                  maxLength={128}
                   autoComplete="new-password"
                   className="h-11 pr-10"
                   value={password}
@@ -237,7 +178,7 @@ export default function RegisterPage() {
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  tabIndex={-1}
+                  aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -265,12 +206,32 @@ export default function RegisterPage() {
               )}
             </div>
 
-            <p className="text-xs text-gray-400">
-              En créant un compte, tu acceptes nos{' '}
-              <Link href="/cgu" className="underline text-blue-600">CGU</Link>{' '}
-              et notre{' '}
-              <Link href="/privacy" className="underline text-blue-600">politique de confidentialité</Link>.
-            </p>
+            <div className="space-y-2.5">
+              <label className="flex items-start gap-2.5 text-xs text-gray-600 leading-relaxed">
+                <input
+                  type="checkbox"
+                  name="acceptTerms"
+                  required
+                  className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-gray-300"
+                />
+                <span>
+                  J’accepte les{' '}
+                  <Link href="/cgu" className="underline text-blue-600">conditions générales (CGU/CGV)</Link>{' '}
+                  et l’<Link href="/dpa" className="underline text-blue-600">accord de sous-traitance</Link>, et je reconnais
+                  avoir pris connaissance de la{' '}
+                  <Link href="/privacy" className="underline text-blue-600">politique de confidentialité</Link>.
+                </span>
+              </label>
+              <label className="flex items-start gap-2.5 text-xs text-gray-600 leading-relaxed">
+                <input
+                  type="checkbox"
+                  name="professionalUse"
+                  required
+                  className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-gray-300"
+                />
+                <span>J’utilise Encair dans le cadre de mon activité professionnelle.</span>
+              </label>
+            </div>
 
             <SubmitButton />
           </form>
@@ -284,7 +245,7 @@ export default function RegisterPage() {
 
           <div className="mt-6 flex items-center justify-center gap-4 text-xs text-gray-400">
             <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3 text-green-500" />Sans carte bancaire</span>
-            <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3 text-green-500" />RGPD</span>
+            <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3 text-green-500" />Sans engagement</span>
           </div>
         </div>
       </div>
