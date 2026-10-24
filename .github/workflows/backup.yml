@@ -1,111 +1,225 @@
 name: Sauvegarde quotidienne Encair
 
 # Sauvegarde la base de production chaque nuit, la chiffre, puis la restaure
-# dans une base jetable pour prouver qu'elle est exploitable.
+# dans une base jetable pour prouver qu'elle est exploitable. Voir docs/exploitation.md.
 #
-# Secrets à créer (Settings > Secrets and variables > Actions) :
-#   PROD_DB_URL        Chaîne « Session pooler » de la base de production
-#                      (Supabase > Connect), mot de passe inclus.
-#   BACKUP_PASSPHRASE  Phrase de chiffrement des sauvegardes. À garder aussi
-#                      dans un gestionnaire de mots de passe : sans elle, une
-#                      sauvegarde téléchargée est illisible.
+# Le job « gate » refuse de travailler sur un dépôt public : il échoue (rouge,
+# email GitHub) au lieu d'être ignoré en silence, et rien d'autre ne s'exécute.
+#
+# Secrets (Settings > Secrets and variables > Actions) :
+#   PROD_DB_URL                  Chaîne « Session pooler » de la base de production
+#                                (Supabase > Connect), mot de passe inclus.
+#   BACKUP_PASSPHRASE            Phrase de chiffrement, 32 caractères minimum, sur une
+#                                seule ligne. À garder aussi dans un gestionnaire de mots
+#                                de passe : sans elle, une sauvegarde est illisible.
+#   HEALTHCHECK_BACKUP_PING_URL  Facultatif : URL de ping (healthchecks.io) appelée après
+#                                une sauvegarde vérifiée. À défaut, HEALTHCHECK_PING_URL.
 
 on:
   schedule:
     - cron: '30 2 * * *' # 02:30 UTC, hors des envois de relances (08:00 UTC)
   workflow_dispatch:
 
-permissions:
-  contents: read
-  issues: write
+permissions: {}
 
 concurrency:
   group: backup
   cancel-in-progress: false
 
 jobs:
+  gate:
+    name: Dépôt privé obligatoire
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: read
+    outputs:
+      private: ${{ steps.visibility.outputs.private }}
+    steps:
+      - name: Refuser un dépôt public
+        id: visibility
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          private=$(gh api "repos/$GITHUB_REPOSITORY" --jq .private) || {
+            echo "::error::Visibilité du dépôt illisible : sauvegarde de production refusée."
+            exit 1
+          }
+          echo "private=$private" >> "$GITHUB_OUTPUT"
+          if [ "$private" != "true" ]; then
+            echo "::error::Dépôt public : la sauvegarde de production est refusée. Passer le dépôt en privé (Settings > General > Danger Zone > Change visibility), puis relancer."
+            exit 1
+          fi
+          echo "Dépôt privé : sauvegarde autorisée."
+
   backup:
-    # Fail closed before any runner, secret, production read or external alert.
-    if: github.event.repository.private == true
+    needs: gate
+    if: needs.gate.outputs.private == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    env:
-      PROD_DB_URL: ${{ secrets.PROD_DB_URL }}
-      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+    permissions:
+      contents: read
+      issues: write
+    defaults:
+      run:
+        shell: bash # -eo pipefail : un gpg ou un psql en échec dans un pipe fait échouer l'étape
     steps:
       - name: Vérifier les secrets
+        env:
+          PROD_DB_URL: ${{ secrets.PROD_DB_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
         run: |
           test -n "$PROD_DB_URL" || { echo "::error::Secret PROD_DB_URL manquant"; exit 1; }
           test -n "$BACKUP_PASSPHRASE" || { echo "::error::Secret BACKUP_PASSPHRASE manquant"; exit 1; }
+          if [ "${#BACKUP_PASSPHRASE}" -lt 32 ]; then
+            echo "::error::BACKUP_PASSPHRASE trop courte : 32 caractères minimum."
+            exit 1
+          fi
+          case "$BACKUP_PASSPHRASE" in
+            *$'\n'*|*$'\r'*) echo "::error::BACKUP_PASSPHRASE doit tenir sur une seule ligne."; exit 1 ;;
+          esac
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - uses: supabase/setup-cli@v1
+      - uses: supabase/setup-cli@1dedf2c611547ede7232d26866dd3c56ab903bbb # v1.7.3
         with:
-          version: latest
+          version: 2.120.0 # même version que la devDependency « supabase » de package.json
 
+      # Lancé depuis la racine du dépôt : la CLI lit supabase/config.toml
+      # (major_version = 17, comme la production) pour choisir l'image pg_dump.
       - name: Exporter rôles, schéma et données
+        env:
+          PROD_DB_URL: ${{ secrets.PROD_DB_URL }}
         run: |
           mkdir -p dump
-          supabase db dump --db-url "$PROD_DB_URL" -f dump/roles.sql --role-only
-          supabase db dump --db-url "$PROD_DB_URL" -f dump/schema.sql
-          supabase db dump --db-url "$PROD_DB_URL" -f dump/data.sql --use-copy --data-only \
+          sb() { supabase --workdir "$GITHUB_WORKSPACE" "$@"; }
+          sb db dump --db-url "$PROD_DB_URL" -f dump/roles.sql --role-only
+          sb db dump --db-url "$PROD_DB_URL" -f dump/schema.sql
+          sb db dump --db-url "$PROD_DB_URL" -f dump/data.sql --use-copy --data-only \
             -x "storage.buckets_vectors" -x "storage.vector_indexes"
-          supabase db dump --db-url "$PROD_DB_URL" -f dump/history_schema.sql --schema supabase_migrations
-          supabase db dump --db-url "$PROD_DB_URL" -f dump/history_data.sql --use-copy --data-only --schema supabase_migrations
+          sb db dump --db-url "$PROD_DB_URL" -f dump/history_schema.sql --schema supabase_migrations
+          sb db dump --db-url "$PROD_DB_URL" -f dump/history_data.sql --use-copy --data-only --schema supabase_migrations
 
+      # Les comptages restent dans l'archive chiffrée : seul leur nombre est affiché.
       - name: Compter les lignes de référence
+        env:
+          PROD_DB_URL: ${{ secrets.PROD_DB_URL }}
         run: |
           command -v psql >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client; }
-          psql "$PROD_DB_URL" -Atq -v ON_ERROR_STOP=1 -f scripts/ops/backup-counts.sql > dump/counts.txt
-          cat dump/counts.txt
+          if ! psql "$PROD_DB_URL" -Atq -v ON_ERROR_STOP=1 -f scripts/ops/backup-counts.sql > dump/counts.txt 2> /dev/null; then
+            echo "::error::Comptage de référence impossible sur la production (détail non publié)."
+            exit 1
+          fi
+          test -s dump/counts.txt || { echo "::error::Comptage de référence vide."; exit 1; }
+          echo "Comptages de référence : $(wc -l < dump/counts.txt) table(s) (valeurs non affichées)."
 
       - name: Chiffrer
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
         run: |
           tar -C dump -czf encair-backup.tar.gz .
-          gpg --batch --yes --pinentry-mode loopback --passphrase "$BACKUP_PASSPHRASE" \
-            --symmetric --cipher-algo AES256 -o "encair-backup-$(date -u +%Y%m%d-%H%M).tar.gz.gpg" encair-backup.tar.gz
-          rm -f encair-backup.tar.gz
+          gpg --batch --yes --pinentry-mode loopback --passphrase-fd 3 \
+            --symmetric --cipher-algo AES256 \
+            -o "encair-backup-$(date -u +%Y%m%d-%H%M).tar.gz.gpg" encair-backup.tar.gz 3<<<"$BACKUP_PASSPHRASE"
+          # Plus aucune copie en clair : la restauration ci-dessous part de l'archive chiffrée.
+          rm -rf encair-backup.tar.gz dump
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: encair-backup-${{ github.run_id }}
           path: encair-backup-*.tar.gz.gpg
           retention-days: 14
           if-no-files-found: error
+          overwrite: true
 
       # ── Exercice de restauration ────────────────────────────────────────
-      # La sauvegarde est restaurée dans une pile Supabase locale et jetable,
-      # puis les comptages sont comparés à ceux de la production.
-      - name: Démarrer une base Supabase jetable
+      # Pile Supabase locale et jetable, créée dans un dossier vide : les
+      # migrations et le seed du dépôt ne doivent PAS y être appliqués, sinon
+      # la restauration entre en collision (COPY, CREATE POLICY…).
+      - name: Démarrer une base Supabase jetable (PostgreSQL 17)
         run: |
-          supabase init --force >/dev/null
+          mkdir -p "$RUNNER_TEMP/stack" && cd "$RUNNER_TEMP/stack"
+          supabase init < /dev/null > /dev/null
+          sed -i -E 's/^major_version = [0-9]+$/major_version = 17/' supabase/config.toml
+          grep -qx 'major_version = 17' supabase/config.toml || { echo "::error::major_version introuvable dans la configuration générée."; exit 1; }
+          if find supabase -name '*.sql' | grep -q .; then
+            echo "::error::La pile jetable contient des fichiers SQL : elle doit rester vide avant restauration."
+            exit 1
+          fi
           supabase start -x studio,imgproxy,mailpit,realtime,storage-api,edge-runtime,logflare,vector,supavisor,postgres-meta,kong,postgrest
           echo "LOCAL_DB_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres" >> "$GITHUB_ENV"
 
       - name: Restaurer la sauvegarde
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
         run: |
           mkdir -p restore
-          gpg --batch --yes --pinentry-mode loopback --passphrase "$BACKUP_PASSPHRASE" \
-            -d encair-backup-*.tar.gz.gpg | tar -C restore -xzf -
+          gpg --batch --pinentry-mode loopback --passphrase-fd 3 \
+            -d encair-backup-*.tar.gz.gpg 3<<<"$BACKUP_PASSPHRASE" | tar -C restore -xzf -
           # Rôles réservés de la plateforme : ignorés en local.
           sed -i -E '/cli_login_postgres|supabase_admin/s/^/-- /' restore/roles.sql
-          sed -i -E '/OWNER TO "?supabase_admin"?/s/^/-- /' restore/schema.sql
-          psql "$LOCAL_DB_URL" --single-transaction -v ON_ERROR_STOP=1 -q \
+          sed -i -E '/OWNER TO "?supabase_admin"?/s/^/-- /' restore/schema.sql restore/history_schema.sql
+
+          # Les messages d'erreur complets de psql peuvent citer des données de
+          # production (DETAIL, CONTEXT) : seul le début du message est affiché.
+          fail() {
+            local reason
+            reason=$(grep -m1 -oE 'ERROR: +[A-Za-z ]+' restore/psql-errors.txt || true)
+            echo "::error::$1 ${reason:-(aucun détail)}"
+            exit 1
+          }
+          psql "$LOCAL_DB_URL" --single-transaction -v ON_ERROR_STOP=1 -v VERBOSITY=terse -v SHOW_CONTEXT=never -q \
             --file restore/roles.sql \
             --file restore/schema.sql \
             --command 'SET session_replication_role = replica' \
-            --file restore/data.sql
+            --file restore/data.sql 2> restore/psql-errors.txt || fail "Restauration des données impossible :"
 
+          # Historique des migrations : la pile jetable n'en a aucun, on repart d'un schéma vide.
+          psql "$LOCAL_DB_URL" -v ON_ERROR_STOP=1 -q \
+            --command 'DROP SCHEMA IF EXISTS supabase_migrations CASCADE' 2> restore/psql-errors.txt \
+            || fail "Préparation de l'historique impossible :"
+          psql "$LOCAL_DB_URL" --single-transaction -v ON_ERROR_STOP=1 -v VERBOSITY=terse -v SHOW_CONTEXT=never -q \
+            --file restore/history_schema.sql \
+            --file restore/history_data.sql 2> restore/psql-errors.txt || fail "Restauration de l'historique des migrations impossible :"
+
+      # Seuls les noms des tables divergentes sont affichés, jamais les volumes.
       - name: Comparer avec la production
         run: |
-          psql "$LOCAL_DB_URL" -Atq -v ON_ERROR_STOP=1 -f scripts/ops/backup-counts.sql > restore/counts-restored.txt
-          if diff -u restore/counts.txt restore/counts-restored.txt; then
-            echo "Restauration vérifiée : comptages identiques."
-          else
-            echo "::error::La sauvegarde restaurée ne correspond pas à la production."
+          if ! psql "$LOCAL_DB_URL" -Atq -v ON_ERROR_STOP=1 -f scripts/ops/backup-counts.sql > restore/counts-restored.txt 2> /dev/null; then
+            echo "::error::Comptage impossible sur la base restaurée."
             exit 1
           fi
+          if cmp -s restore/counts.txt restore/counts-restored.txt; then
+            echo "Restauration vérifiée : comptages identiques sur $(wc -l < restore/counts.txt) table(s)."
+          else
+            tables=$(diff restore/counts.txt restore/counts-restored.txt | sed -nE 's/^[<>] ([^|]*)\|.*/\1/p' | sort -u | paste -sd, - || true)
+            echo "::error::La sauvegarde restaurée ne correspond pas à la production. Tables concernées : ${tables:-inconnues}."
+            exit 1
+          fi
+
+      # Preuve lue par la surveillance horaire (monitor.yml) : sans artefact
+      # backup-verified-* de moins de 26 h, une alerte critique est levée.
+      - name: Attester la restauration vérifiée
+        run: date -u +%Y-%m-%dT%H:%M:%SZ > "$RUNNER_TEMP/backup-verified.txt"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: backup-verified-${{ github.run_id }}
+          path: ${{ runner.temp }}/backup-verified.txt
+          retention-days: 14
+          if-no-files-found: error
+          overwrite: true
+
+      - name: Prévenir le contrôle externe (facultatif)
+        env:
+          PING_URL: ${{ secrets.HEALTHCHECK_BACKUP_PING_URL || secrets.HEALTHCHECK_PING_URL }}
+        run: |
+          if [ -z "$PING_URL" ]; then
+            echo "::notice::Aucune URL de ping configurée : contrôle externe ignoré."
+            exit 0
+          fi
+          curl -fsS --max-time 10 --retry 3 -o /dev/null "$PING_URL" 2> /dev/null \
+            || echo "::warning::Le ping du contrôle externe a échoué."
 
       - name: Signaler l'échec
         if: failure()
