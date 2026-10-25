@@ -68,14 +68,13 @@ jobs:
     permissions:
       contents: read
       issues: write
-      actions: read # lister les artefacts backup-verified-*
+      actions: read # vérifier workflow, exécution et artefacts de sauvegarde
     defaults:
       run:
         shell: bash
     env:
       PROD_URL: ${{ vars.PROD_URL }}
       EXPECTED_CONFIG: ${{ vars.EXPECTED_CONFIG || 'authReady,supabaseServiceRole,cronSecret,resend,resendWebhook,emailSender,automationReady' }}
-      BACKUP_MAX_AGE_HOURS: '26'
       ALERT_TITLE: 'Alerte Encair : production à vérifier'
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -141,20 +140,14 @@ jobs:
             fi
           fi
 
-          # Dernière restauration de contrôle réussie (artefact backup-verified-* de backup.yml).
-          if latest=$(gh api --paginate "repos/$GITHUB_REPOSITORY/actions/artifacts?per_page=100" \
-                --jq '.artifacts[] | select(.expired | not) | select(.name | startswith("backup-verified-")) | .created_at' \
-                | sort | tail -n 1); then
+          # Preuve liée au workflow officiel, sur main, terminé avec succès.
+          # Le marqueur et l'archive chiffrée doivent appartenir au même run.
+          if latest=$(python3 scripts/ops/verified_backup.py); then
             if [ -z "$latest" ]; then
-              critique "Sauvegarde : aucune restauration de contrôle réussie disponible (artefact backup-verified-* absent ou expiré)."
-            else
-              age_h=$(( ( $(date -u +%s) - $(date -u -d "$latest" +%s) ) / 3600 ))
-              if [ "$age_h" -ge "$BACKUP_MAX_AGE_HOURS" ]; then
-                critique "Sauvegarde : dernière restauration de contrôle réussie il y a ${age_h} h (seuil ${BACKUP_MAX_AGE_HOURS} h)."
-              fi
+              critique "Sauvegarde : aucune attestation récente issue du workflow officiel sur main avec archive disponible."
             fi
           else
-            critique "Sauvegarde : impossible de lister les artefacts GitHub pour vérifier la dernière sauvegarde."
+            critique "Sauvegarde : impossible de vérifier la provenance de la dernière attestation GitHub."
           fi
 
           {

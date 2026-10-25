@@ -147,7 +147,8 @@ class ProductionWorkflowPrivacy(unittest.TestCase):
         scripts = run_scripts(check)
         self.assertNotIn('db-error.txt', scripts)
         self.assertNotIn('|| echo 000', scripts)
-        self.assertIn('startswith("backup-verified-")', scripts)
+        self.assertIn('python3 scripts/ops/verified_backup.py', scripts)
+        self.assertNotIn('actions/artifacts?per_page=100', scripts)
         self.assertIn('/api/cron/status', scripts)
         self.assertIn('automationReady', check['env']['EXPECTED_CONFIG'])
 
