@@ -90,11 +90,12 @@ Vérifications locales : `npm run typecheck`, `npm test` (373 tests), `npm run l
 | --- | --- | --- |
 | P0 | Passer le dépôt GitHub en **privé** avant de créer tout secret de sauvegarde. | `gh api repos/<owner>/RELANCE --jq .private` vaut `true`. |
 | P0 | Mettre à niveau `encair-test` avec les migrations du dépôt (`supabase db push` sur la base de recette, ou application par l'assistant avec votre confirmation). | Les 29 migrations sont présentes et les advisors sont propres sur `encair-test`. |
-| P0 | Vérifier un domaine d'envoi dans Resend, puis ajouter en **production** `RESEND_API_KEY`, `RESEND_FROM_EMAIL` et `RESEND_WEBHOOK_SECRET`, et créer le webhook Resend de production. | `/api/health` renvoie `automationReady: true`. |
+| P0 | **Acquérir un domaine d'envoi.** `encair.fr` est déclaré dans Resend (statut *failed*) mais n'appartient pas à l'exploitant, et la production n'a que `relance-teal.vercel.app`. Au 25 octobre, `encair.fr` et `encair.com` sont disponibles à l'enregistrement. Décision reportée par l'exploitant. Tant qu'aucun domaine n'est vérifié, **aucune relance ne peut partir vers des clients**. | Domaine acheté et vérifié dans Resend (DKIM, SPF `send`, MX `send`). |
+| P0 | Une fois le domaine vérifié : ajouter en **production** `RESEND_API_KEY`, `RESEND_FROM_EMAIL` et `RESEND_WEBHOOK_SECRET`, et créer le webhook Resend de production. | `/api/health` renvoie `automationReady: true`. |
 | P0 | Appliquer en production les deux migrations du 24 octobre **avant** de déployer le code (sinon `/api/cron/status` répond 503). | `collection_worker` possède `last_attempt_at`. |
 | P0 | Dérouler `docs/RECETTE-STRIPE.md` en mode test, puis la mise en production Stripe (section 5). | Preuves archivées pour chaque étape. |
 | P0 | Recette des relances sur préversion avec un destinataire possédé, sans facture réelle éligible. | `last_result.ok=true`, un email reçu, aucun doublon. |
 | P1 | Brancher une surveillance externe sur `/api/cron/status` (en-tête `Authorization: Bearer …`) et sur `/api/health`. | Une alerte est reçue lors d'un test volontaire. |
 | P1 | Passer Supabase en offre Pro avant le lancement commercial : protection native des mots de passe, sauvegardes gérées et PITR. Sur Free, la sauvegarde GitHub est la seule existante. | Advisor `auth_leaked_password_protection` résolu. |
 | P1 | Décider du délai de grâce `past_due`, et régler Stripe « après échec de toutes les relances » sur *Annuler* ou *Marquer impayé*. | Réglage noté dans `RECETTE-STRIPE.md`. |
-| P2 | Remplacer `maxence.briodeau85@gmail.com` par `contact@encair.fr` dans `SUPPORT_EMAIL` et `NEXT_PUBLIC_CONTACT_EMAIL`, comme l'indique le commentaire de la variable. | Adresse professionnelle affichée. |
+| P2 | Remplacer `maxence.briodeau85@gmail.com` par une adresse du futur domaine dans `SUPPORT_EMAIL` et `NEXT_PUBLIC_CONTACT_EMAIL`. | Adresse professionnelle affichée. |
