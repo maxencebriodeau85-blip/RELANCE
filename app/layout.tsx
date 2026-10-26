@@ -1,7 +1,7 @@
 import { getAppUrl } from '@/lib/app-url'
 import { OFFER } from '@/lib/plans'
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import localFont from 'next/font/local'
 import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
 import { CookieBanner } from '@/components/cookie-banner'
@@ -11,11 +11,13 @@ import { ScrollProgress } from '@/components/effects/scroll-progress'
 
 // DA 2026-07 : Inter unique, graisses 400/500/600/700.
 // La même variable alimente --font-body ET --font-display (globals.css).
-const inter = Inter({
-  subsets: ['latin'],
+// Police embarquée (Inter variable, sous-ensemble latin, licence OFL dans
+// app/fonts) : le build ne dépend plus du téléchargement Google Fonts.
+const inter = localFont({
+  src: './fonts/inter-latin-variable.woff2',
   variable: '--font-body',
   display: 'swap',
-  weight: ['400', '500', '600', '700'],
+  weight: '400 700',
 })
 
 // Canonical URLs follow the configured, owned deployment domain.
