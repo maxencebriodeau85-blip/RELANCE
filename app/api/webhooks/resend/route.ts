@@ -99,7 +99,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
     }
 
-    const event = JSON.parse(rawBody) as ResendEvent
+    let event: ResendEvent
+    try {
+      event = JSON.parse(rawBody) as ResendEvent
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 })
+    }
     if (typeof event?.type !== 'string' || typeof event?.data?.email_id !== 'string' || !event.data.email_id || event.data.email_id.length > 200 || !Number.isFinite(Date.parse(event.created_at))) {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
     }
