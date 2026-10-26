@@ -39,6 +39,11 @@ export function supabaseAuthError(message: string, status?: number): string {
     return 'Le nouveau mot de passe doit être différent de l’ancien.'
   }
 
+  // Returned by Supabase once leaked password protection is enabled.
+  if (m.includes('known to be weak') || m.includes('weak_password') || m.includes('pwned')) {
+    return 'Ce mot de passe figure dans des fuites de données connues. Choisissez-en un autre.'
+  }
+
   if (m.includes('password should be') || m.includes('password is too short')) {
     return 'Le mot de passe doit contenir au moins 8 caractères.'
   }

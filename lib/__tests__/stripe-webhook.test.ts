@@ -139,9 +139,38 @@ describe('Stripe lifecycle delivery', () => {
       id: 'cs_test',
       mode: 'subscription',
       payment_status: 'paid',
+      metadata: { userId: 'user_owner' },
     }
     await send('checkout.session.async_payment_succeeded', session)
     expect(mocks.checkout).toHaveBeenCalledWith(session)
+  })
+  it.each([
+    { id: 'cs_link', mode: 'subscription', metadata: {} },
+    { id: 'cs_payment', mode: 'payment', metadata: { userId: 'user_owner' } },
+  ])(
+    'acknowledges a checkout session Encair did not create ($id)',
+    async (session) => {
+      expect((await send('checkout.session.completed', session)).status).toBe(
+        200,
+      )
+      expect(mocks.checkout).not.toHaveBeenCalled()
+      expect(mocks.write).not.toHaveBeenCalled()
+    },
+  )
+  it('acknowledges a foreign subscription instead of retrying on its unknown price', async () => {
+    mocks.plan.mockReturnValue(null)
+    mocks.read.mockResolvedValue({ data: null, error: null })
+    expect((await send('customer.subscription.updated', current)).status).toBe(
+      200,
+    )
+    expect(mocks.write).not.toHaveBeenCalled()
+  })
+  it('still retries an unknown price for an Encair customer (misconfigured env)', async () => {
+    mocks.plan.mockReturnValue(null)
+    expect((await send('customer.subscription.updated', current)).status).toBe(
+      500,
+    )
+    expect(mocks.write).not.toHaveBeenCalled()
   })
   it('rejects an invalid signature before accessing the database', async () => {
     mocks.event.mockImplementationOnce(() => {

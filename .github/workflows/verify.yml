@@ -20,6 +20,7 @@ jobs:
         with:
           node-version: '22'
           cache: npm
+      - run: node --check scripts/smoke-public.mjs
       - run: npm ci
       - run: npm run typecheck
       - run: npm test

@@ -1,0 +1,205 @@
+name: Surveillance de la production Encair
+
+# Toutes les heures : le site répond, la configuration attendue est présente,
+# le cron des relances est à jour, la base répond, les relances ne sont ni
+# bloquées ni en échec, et une sauvegarde a été restaurée avec succès il y a
+# moins de 26 h. Voir docs/exploitation.md.
+# En cas de problème : le job échoue (email GitHub) et une issue « Alerte Encair »
+# est ouverte ou complétée. Elle se referme seule quand tout redevient normal.
+#
+# Le job « gate » refuse de travailler sur un dépôt public : il échoue (rouge,
+# email GitHub) au lieu d'être ignoré en silence, et rien d'autre ne s'exécute.
+#
+# Secrets :
+#   PROD_DB_URL           le même que pour la sauvegarde.
+#   CRON_SECRET           facultatif : le CRON_SECRET de Vercel, pour lire /api/cron/status.
+#   HEALTHCHECK_PING_URL  facultatif : URL de ping (healthchecks.io) appelée après
+#                         chaque surveillance sans problème critique.
+# Variables (Settings > Secrets and variables > Actions > Variables) :
+#   PROD_URL         ex. https://relance-teal.vercel.app, puis https://encair.fr
+#   EXPECTED_CONFIG  clés de /api/health qui doivent valoir true, séparées par
+#                    des virgules (défaut ci-dessous).
+#
+# Effet secondaire voulu : la requête horaire empêche la mise en pause
+# automatique d'une base Supabase gratuite.
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: monitor
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: Dépôt privé obligatoire
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: read
+    outputs:
+      private: ${{ steps.visibility.outputs.private }}
+    steps:
+      - name: Refuser un dépôt public
+        id: visibility
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          private=$(gh api "repos/$GITHUB_REPOSITORY" --jq .private) || {
+            echo "::error::Visibilité du dépôt illisible : surveillance de production refusée."
+            exit 1
+          }
+          echo "private=$private" >> "$GITHUB_OUTPUT"
+          if [ "$private" != "true" ]; then
+            echo "::error::Dépôt public : la surveillance de production est refusée. Passer le dépôt en privé (Settings > General > Danger Zone > Change visibility), puis relancer."
+            exit 1
+          fi
+          echo "Dépôt privé : surveillance autorisée."
+
+  check:
+    needs: gate
+    if: needs.gate.outputs.private == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+      actions: read # vérifier workflow, exécution et artefacts de sauvegarde
+    defaults:
+      run:
+        shell: bash
+    env:
+      PROD_URL: ${{ vars.PROD_URL }}
+      EXPECTED_CONFIG: ${{ vars.EXPECTED_CONFIG || 'authReady,supabaseServiceRole,cronSecret,resend,resendWebhook,emailSender,automationReady' }}
+      ALERT_TITLE: 'Alerte Encair : production à vérifier'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Contrôler le site, le cron, la base et la sauvegarde
+        id: checks
+        env:
+          PROD_DB_URL: ${{ secrets.PROD_DB_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          problems=problems.txt; : > "$problems"
+          critique() { echo "critique|$*" >> "$problems"; }
+
+          # Code HTTP de la requête, « 000 » si aucune réponse (réseau, délai).
+          http_code() {
+            local out=$1 url=$2 code; shift 2
+            code=$(curl -sS -o "$out" -w '%{http_code}' --max-time 20 "$@" "$url" 2> /dev/null || true)
+            echo "${code:-000}"
+          }
+
+          test -n "$PROD_URL" || critique "Variable PROD_URL manquante."
+          test -n "$PROD_DB_URL" || critique "Secret PROD_DB_URL manquant."
+
+          if [ -n "$PROD_URL" ]; then
+            code=$(http_code health.json "$PROD_URL/api/health")
+            if [ "$code" != "200" ]; then
+              critique "Le site ne répond pas correctement ($PROD_URL/api/health : HTTP $code)."
+            else
+              IFS=',' read -ra keys <<< "$EXPECTED_CONFIG"
+              for key in "${keys[@]}"; do
+                key=$(echo "$key" | xargs)
+                [ -z "$key" ] && continue
+                if [ "$(jq -r --arg k "$key" '.config[$k] // false' health.json 2> /dev/null)" != "true" ]; then
+                  critique "Configuration de production incomplète : $key est absent."
+                fi
+              done
+            fi
+
+            # Suivi du cron des relances (dernier passage, tentatives refusées).
+            # Le secret passe par l'entrée standard, jamais sur la ligne de commande.
+            if [ -z "$CRON_SECRET" ]; then
+              echo "::notice::Secret CRON_SECRET absent : contrôle de /api/cron/status ignoré."
+            else
+              code=$(http_code /dev/null "$PROD_URL/api/cron/status" -H @- <<< "Authorization: Bearer $CRON_SECRET")
+              case "$code" in
+                200) ;;
+                401) critique "Cron des relances : CRON_SECRET du dépôt refusé par /api/cron/status (HTTP 401), le mettre à jour." ;;
+                503) critique "Cron des relances : passage en retard, refusé ou non configuré (/api/cron/status : HTTP 503)." ;;
+                *)   critique "Cron des relances : /api/cron/status ne répond pas correctement (HTTP $code)." ;;
+              esac
+            fi
+          fi
+
+          # Les erreurs psql brutes peuvent contenir des détails de connexion :
+          # elles ne sont publiées ni dans le journal ni dans l'issue.
+          if [ -n "$PROD_DB_URL" ]; then
+            if psql "$PROD_DB_URL" -Atq -v ON_ERROR_STOP=1 \
+                 -f scripts/ops/health-checks.sql > db-checks.txt 2> /dev/null; then
+              cat db-checks.txt >> "$problems"
+            else
+              critique "La base de production ne répond pas ou un contrôle SQL a échoué (détail non publié : voir Supabase > Logs)."
+            fi
+          fi
+
+          # Preuve liée au workflow officiel, sur main, terminé avec succès.
+          # Le marqueur et l'archive chiffrée doivent appartenir au même run.
+          if latest=$(python3 scripts/ops/verified_backup.py); then
+            if [ -z "$latest" ]; then
+              critique "Sauvegarde : aucune attestation récente issue du workflow officiel sur main avec archive disponible."
+            fi
+          else
+            critique "Sauvegarde : impossible de vérifier la provenance de la dernière attestation GitHub."
+          fi
+
+          {
+            echo "### Surveillance du $(date -u '+%d/%m/%Y %H:%M') UTC"
+            if [ -s "$problems" ]; then
+              sed -E 's/^critique\|/- 🔴 /; s/^attention\|/- 🟠 /' "$problems"
+            else
+              echo "- ✅ Tout est normal."
+            fi
+          } | tee report.md >> "$GITHUB_STEP_SUMMARY"
+
+          if grep -q '^critique|' "$problems"; then echo "level=critique" >> "$GITHUB_OUTPUT"
+          elif [ -s "$problems" ]; then echo "level=attention" >> "$GITHUB_OUTPUT"
+          else echo "level=ok" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Ouvrir ou compléter l'alerte
+        if: steps.checks.outputs.level != 'ok'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          existing=$(gh issue list --state open --search "in:title \"$ALERT_TITLE\"" --json number --jq '.[0].number')
+          body="$(cat report.md)
+
+          Détail : ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          if [ -n "$existing" ]; then
+            # Un seul commentaire par changement d'état, pour ne pas inonder l'issue.
+            last=$(gh issue view "$existing" --json body,comments --jq '(.comments[-1].body // .body)' | grep '^- ' || true)
+            [ "$last" = "$(grep '^- ' report.md)" ] || gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$ALERT_TITLE" --body "$body"
+          fi
+
+      - name: Refermer l'alerte
+        if: steps.checks.outputs.level == 'ok'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          existing=$(gh issue list --state open --search "in:title \"$ALERT_TITLE\"" --json number --jq '.[0].number')
+          [ -z "$existing" ] || gh issue close "$existing" --comment "Retour à la normale : ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+      - name: Échouer en cas de problème critique
+        if: steps.checks.outputs.level == 'critique'
+        run: exit 1
+
+      # N'est atteint que si aucun problème critique n'a été trouvé.
+      - name: Prévenir le contrôle externe (facultatif)
+        env:
+          PING_URL: ${{ secrets.HEALTHCHECK_PING_URL }}
+        run: |
+          if [ -z "$PING_URL" ]; then
+            echo "::notice::Secret HEALTHCHECK_PING_URL absent : contrôle externe ignoré."
+            exit 0
+          fi
+          curl -fsS --max-time 10 --retry 3 -o /dev/null "$PING_URL" 2> /dev/null \
+            || echo "::warning::Le ping du contrôle externe a échoué."
