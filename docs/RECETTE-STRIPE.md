@@ -79,6 +79,8 @@ Vérifier dans *Catalogue de produits* que le prix Fondateur test existe (lookup
 - Activer les nouvelles tentatives (Smart Retries ou calendrier personnalisé). Noter la durée choisie : c'est le **délai de grâce** pendant lequel un abonné `past_due` garde l'accès.
 - **Statut après échec de toutes les tentatives : « Annuler l'abonnement » ou « Marquer l'abonnement comme impayé ».** Ne **jamais** choisir « Laisser l'abonnement en retard de paiement » : le code ne retire l'accès qu'aux statuts `unpaid`/`canceled`, un abonnement laissé `past_due` garderait l'accès indéfiniment.
 
+**Décision retenue (26 octobre 2026)** : Smart Retries avec la fenêtre par défaut de Stripe (8 tentatives sur 2 semaines), puis **« Annuler l'abonnement »**. Un abonné en échec de paiement garde donc l'accès 2 semaines au plus ; à l'annulation, ses factures et son historique de relances sont conservés (retour à l'essai, sans perte de données). Activer aussi les e-mails Stripe au client en cas d'échec de paiement, pour qu'il soit prévenu sans dépendre d'Encair.
+
 ### 2.4 Portail client
 *Paramètres → Billing → Portail client* (configuration du mode test) : historique des factures, mise à jour du moyen de paiement, **résiliation en fin de période**, et autoriser la reprise d'un abonnement dont la résiliation est programmée. URL de retour gérée par le code (`/subscription`).
 

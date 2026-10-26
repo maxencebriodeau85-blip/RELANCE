@@ -4,10 +4,10 @@ const cspHeader = [
   "default-src 'self'",
   // Next.js inline scripts + Stripe.js
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://checkout.stripe.com https://va.vercel-scripts.com",
-  // Styles: inline (Next.js) + Google Fonts
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  // Fonts
-  "font-src 'self' https://fonts.gstatic.com data:",
+  // Styles: inline (Next.js). La police Inter est servie par le site.
+  "style-src 'self' 'unsafe-inline'",
+  // Fonts (Inter embarquée dans app/fonts)
+  "font-src 'self' data:",
   // Images: self, Supabase storage, Stripe, data URIs
   "img-src 'self' data: blob: https://*.supabase.co https://q.stripe.com",
   // Fetch/XHR: self + Supabase API + Stripe API + Vercel analytics

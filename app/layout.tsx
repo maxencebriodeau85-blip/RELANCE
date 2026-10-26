@@ -109,7 +109,6 @@ export default function RootLayout({
     <html lang="fr" className={inter.variable} suppressHydrationWarning>
       <head>
         {/* Stripe n'est chargé que sur la page d'abonnement : pas de preconnect global. */}
-        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
