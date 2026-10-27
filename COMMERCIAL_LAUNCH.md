@@ -10,7 +10,7 @@ Ce document est une **checklist de mise en production**, pas une attestation de 
 - [x] Paiement partiel : email et mise en demeure affichent exclusivement le solde restant dû ; paiement intégral stoppe les envois. *Preuve : contrôles 04, 06, 16, 17 et 40 de `recette-base.sql`, tests `collection` et `reminder-service` (2 869,66 − 506,51 = 2 363,15 €).*
 - [ ] Litige, promesse, pause et changement de destinataire suspendent les relances comme prévu.
 - [ ] Réessais et webhooks Resend : aucun double envoi lors de requêtes concurrentes ou de réponses ambiguës. *Base prouvée le 27/10/2026 (contrôles 32 à 38) ; reste un envoi réel signé Resend, qui attend le domaine.*
-- [ ] Cron et erreurs d'envoi surveillés ; procédure écrite pour traiter les envois `pending`.
+- [ ] Cron et erreurs d'envoi surveillés ; procédure écrite pour traiter les envois `pending`. *27/10/2026 : procédure et requêtes écrites (`docs/INCIDENTS.md` cas 2, `scripts/ops/envois-en-attente.sql`, vérifiées sur RECOUVREMENT). Reste : la surveillance horaire tourne dès que le dépôt est privé avec ses secrets.*
 
 ## Bloquants — parcours client et paiement
 - [ ] Inscription, confirmation d'email, mot de passe oublié et reconnexion testés sur mobile.
@@ -24,7 +24,7 @@ Ce document est une **checklist de mise en production**, pas une attestation de 
 - [ ] Domaine et disponibilité de la marque Encair vérifiés ; URL canonique et TLS opérationnels.
 - [ ] Mentions légales, CGU, politique de confidentialité et accord de sous-traitance RGPD revus pour l'entité exploitante.
 - [ ] Durée de conservation, suppression de compte, export des données et demandes RGPD testés. *27/10/2026 : export en libre-service (tests `account-export`), suppression en cascade prouvée (bloc 3 de `recette-base.sql`), procédure et requête de conservation dans `scripts/ops/suppression-compte.sql`. Reste : un export réel depuis l'interface, connecté.*
-- [ ] Support opérationnel : adresse de contact, délai de réponse annoncé et procédure d'incident.
+- [x] Support opérationnel : adresse de contact, délai de réponse annoncé et procédure d'incident. *Preuve 27/10/2026 : formulaire et adresse de contact, réponse sous 48 h ouvrées annoncée, `docs/INCIDENTS.md` (gravité, interrupteur d'urgence des envois, 5 cas types dont fuite de données et notification CNIL). L'adresse passera à `contact@encair.fr` avec le domaine.*
 - [ ] Surveillance des erreurs, sauvegardes, rotation des secrets et alerte en cas d'échec cron configurées.
 - [x] Aucun secret exposé au navigateur ou au dépôt ; audit des dépendances et analyse des risques documentés. *Preuve 27/10/2026 : `docs/SECURITE.md` (historique des 21 branches sans secret, faille critique Next.js corrigée en 15.5.28, test `security-config`).*
 

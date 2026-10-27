@@ -1,5 +1,7 @@
 # Exploiter Encair
 
+En cas d'incident (envois erronés ou bloqués, site arrêté, Stripe, fuite possible) : **`docs/INCIDENTS.md`**, avec l'interrupteur d'urgence qui coupe tous les envois.
+
 ## Contrôles quotidiens
 
 - `/api/health` indique la présence de configuration, pas une preuve de réception ou de paiement.

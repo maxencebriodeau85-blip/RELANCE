@@ -36,7 +36,7 @@ Tester le checkout, le portail, l'annulation et les webhooks en mode test. Véri
 
 Aucune relance réelle n'est envoyée par les tests. Pour une facture de test : confirmer le solde, lever la pause, envoyer une première étape et vérifier Resend ainsi que l'historique Encair. Le refus d'une seconde étape dans les 24 heures est attendu.
 
-Un statut `pending` peut signifier que le fournisseur a accepté l'email sans que l'application ait reçu de confirmation. Chercher la requête dans Resend avec la clé d'idempotence `reminder-<invoiceId>-<type>`. S'il a été accepté, compléter l'historique avec l'identifiant et le statut correspondant. Ne remettre en `failed` qu'après confirmation de non-envoi. Ne jamais supprimer une réservation pour forcer un renvoi incertain. Cette réconciliation est une opération d'administration ; il n'existe pas encore d'écran opérateur dédié.
+Un statut `pending` peut signifier que le fournisseur a accepté l'email sans que l'application ait reçu de confirmation. Chercher la requête dans Resend avec la clé d'idempotence `reminder-<invoiceId>-<type>`. S'il a été accepté, compléter l'historique avec l'identifiant et le statut correspondant. Ne remettre en `failed` qu'après confirmation de non-envoi. Ne jamais supprimer une réservation pour forcer un renvoi incertain. Cette réconciliation est une opération d'administration : suivre `docs/INCIDENTS.md` (cas 2) avec les requêtes de `scripts/ops/envois-en-attente.sql`.
 
 Les anciens paiements de factures reçus sur le compte Stripe plateforme doivent être identifiés et traités manuellement. Ils ne marquent plus automatiquement une dette fournisseur comme réglée.
 
