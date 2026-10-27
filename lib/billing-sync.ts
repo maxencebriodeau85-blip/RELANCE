@@ -64,6 +64,7 @@ export async function syncCheckout(
       plan,
       stripe_customer_id: customerId,
       stripe_subscription_id: subscriptionId,
+      subscription_status: subscription.status,
     } as never)
     .eq('id', userId)
     .select('id')

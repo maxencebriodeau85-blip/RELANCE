@@ -299,8 +299,26 @@ describe('Renewal and failed payments', () => {
     setStatus('sub_1', 'past_due')
     await deliver('invoice.payment_failed', renewalInvoice('sub_1'))
     await deliver('customer.subscription.updated', state.subs.get('sub_1'))
-    expect(profile()).toMatchObject({ plan: 'starter', stripe_subscription_id: 'sub_1' })
+    expect(profile()).toMatchObject({ plan: 'starter', stripe_subscription_id: 'sub_1', subscription_status: 'past_due' })
     expect(access().ok).toBe(true)
+  })
+
+  it('records the failed payment for the in-app warning, then clears it once the card works again', async () => {
+    await activate()
+    expect(profile().subscription_status).toBe('active')
+    setStatus('sub_1', 'past_due')
+    await deliver('invoice.payment_failed', renewalInvoice('sub_1'))
+    expect(profile()).toMatchObject({ plan: 'starter', subscription_status: 'past_due' })
+    setStatus('sub_1', 'active')
+    await deliver('invoice.paid', renewalInvoice('sub_1'))
+    expect(profile()).toMatchObject({ plan: 'starter', subscription_status: 'active' })
+  })
+
+  it('never flags a failed payment on a subscription that is not the recorded one', async () => {
+    await activate()
+    subscription('sub_other', 'past_due')
+    await deliver('customer.subscription.updated', state.subs.get('sub_other'))
+    expect(profile()).toMatchObject({ stripe_subscription_id: 'sub_1', subscription_status: 'active' })
   })
 
   it('revokes access when retries are exhausted and the subscription becomes unpaid, then restores it once paid', async () => {
@@ -309,7 +327,7 @@ describe('Renewal and failed payments', () => {
     await deliver('invoice.payment_failed', renewalInvoice('sub_1'))
     setStatus('sub_1', 'unpaid')
     await deliver('customer.subscription.updated', state.subs.get('sub_1'))
-    expect(profile()).toMatchObject({ plan: 'free_trial', stripe_subscription_id: null })
+    expect(profile()).toMatchObject({ plan: 'free_trial', stripe_subscription_id: null, subscription_status: null })
     expect(access()).toMatchObject({ ok: false, status: 403 })
 
     // Customer updates the card in the portal and the open invoice is paid.

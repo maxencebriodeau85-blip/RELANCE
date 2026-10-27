@@ -24,7 +24,7 @@ export type ExportSource = {
 }
 
 export const ACCOUNT_EXPORT_SOURCES: readonly ExportSource[] = [
-  { key: 'profil', table: 'profiles', scope: 'id', single: true, columns: 'id, email, company_name, siren, address, postal_code, city, phone, plan, trial_ends_at, auto_reminders, active_scenario, onboarding_completed_at, signup_terms_version, signup_terms_recorded_at, signup_professional_use, created_at, updated_at' },
+  { key: 'profil', table: 'profiles', scope: 'id', single: true, columns: 'id, email, company_name, siren, address, postal_code, city, phone, plan, subscription_status, trial_ends_at, auto_reminders, active_scenario, onboarding_completed_at, signup_terms_version, signup_terms_recorded_at, signup_professional_use, created_at, updated_at' },
   { key: 'factures', table: 'invoices', columns: '*' },
   { key: 'relances', table: 'reminders', columns: 'id, invoice_id, type, channel, status, subject, content, sent_at, delivered_at, opened_at, clicked_at, bounced_at, complained_at, created_at' },
   { key: 'notifications', table: 'notifications', columns: 'id, type, title, body, read, action_url, created_at' },

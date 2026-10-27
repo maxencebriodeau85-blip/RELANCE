@@ -18,6 +18,7 @@ export type Database = {
           plan: 'starter' | 'pro' | 'business' | 'free_trial'
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
+          subscription_status: string | null
           invoice_count_month: number
           trial_ends_at: string | null
           auto_reminders: boolean
@@ -39,6 +40,7 @@ export type Database = {
           plan?: 'starter' | 'pro' | 'business' | 'free_trial'
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
+          subscription_status?: string | null
           invoice_count_month?: number
           trial_ends_at?: string | null
           auto_reminders?: boolean
@@ -60,6 +62,7 @@ export type Database = {
           plan?: 'starter' | 'pro' | 'business' | 'free_trial'
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
+          subscription_status?: string | null
           invoice_count_month?: number
           trial_ends_at?: string | null
           auto_reminders?: boolean

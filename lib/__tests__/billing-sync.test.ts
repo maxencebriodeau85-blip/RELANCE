@@ -84,6 +84,7 @@ describe('Verified payment activation', () => {
       plan: 'starter',
       stripe_customer_id: 'cus_1',
       stripe_subscription_id: 'sub_1',
+      subscription_status: 'active',
     })
   })
 })

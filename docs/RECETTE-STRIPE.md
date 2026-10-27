@@ -145,7 +145,7 @@ Les horloges de test ne s'attachent qu'à un client **créé avec l'horloge**. L
 **5b — Échec de paiement au renouvellement**
 - Portail de facturation (Paramètres) → ajouter la carte `4000 0000 0000 0341` (l'attachement réussit, les débits échouent), la définir par défaut, supprimer la 4242.
 - Avancer l'horloge de **1 mois + 2 heures**.
-- **Attendu** : `invoice.payment_failed` et `customer.subscription.updated` (statut `past_due`) en 200 ; SQL **inchangé** (`starter`) ; accès **conservé** pendant la fenêtre de relance (délai de grâce, cf. §2.3).
+- **Attendu** : `invoice.payment_failed` et `customer.subscription.updated` (statut `past_due`) en 200 ; SQL : plan **inchangé** (`starter`), `subscription_status = 'past_due'` ; accès **conservé** pendant la fenêtre de relance (délai de grâce, cf. §2.3) ; bandeau rouge « Le dernier paiement de votre abonnement a échoué » dans l'espace client, dont le bouton ouvre le portail Stripe. Après paiement : `subscription_status = 'active'`, bandeau disparu.
 
 **5c — Fin des relances**
 - Avancer l'horloge au-delà de la durée de relance configurée (par ex. +3 semaines pour un calendrier de 2 semaines), par paliers si besoin.
