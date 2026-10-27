@@ -99,6 +99,7 @@ export type Database = {
           balance_checked_at?: string | null
           promise_date?: string | null
           reminders_paused?: boolean
+          is_sample?: boolean
           payment_token: string | null
           created_at: string
           updated_at: string
@@ -123,6 +124,7 @@ export type Database = {
           balance_checked_at?: string | null
           promise_date?: string | null
           reminders_paused?: boolean
+          is_sample?: boolean
           payment_token?: string | null
           created_at?: string
           updated_at?: string
@@ -147,6 +149,7 @@ export type Database = {
           balance_checked_at?: string | null
           promise_date?: string | null
           reminders_paused?: boolean
+          is_sample?: boolean
           payment_token?: string | null
           created_at?: string
           updated_at?: string

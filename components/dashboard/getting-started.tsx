@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { CheckCircle2, Circle } from 'lucide-react'
-export function GettingStarted({ companyReady, imported, verified, trialEndsAt }: { companyReady: boolean; imported: boolean; verified: boolean; trialEndsAt: string | null }) {
+import { SampleInvoicesButton } from './sample-invoices'
+export function GettingStarted({ companyReady, imported, verified, trialEndsAt, canTrySamples = false }: { companyReady: boolean; imported: boolean; verified: boolean; trialEndsAt: string | null; canTrySamples?: boolean }) {
   const tasks = [
     { label: 'Vérifier mes coordonnées', detail: 'Le nom qui apparaîtra dans vos relances.', href: '/dashboard/settings', done: companyReady },
     { label: 'Importer mes factures', detail: 'Votre export CSV, sans modifier votre facturation.', href: '/dashboard/invoices/import', done: imported },
@@ -16,5 +17,6 @@ export function GettingStarted({ companyReady, imported, verified, trialEndsAt }
       {task.done ? <CheckCircle2 className="mb-3 h-5 w-5 text-green-700" aria-label="Terminé" /> : <Circle className="mb-3 h-5 w-5 text-brand-300" aria-label="À faire" />}
       <p className="text-sm font-medium">{task.label}</p><p className="mt-2 text-xs leading-relaxed text-gray-500">{task.detail}</p>
     </Link>)}</div>
+    {canTrySamples && <SampleInvoicesButton />}
   </section>
 }

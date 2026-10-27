@@ -22,6 +22,12 @@ export default async function DashboardPage() {
   const { data: profile, error: profileError } = await db.from('profiles').select('company_name, plan, trial_ends_at').eq('id', user.id).single()
   if (profileError || !profile) throw new Error('Votre profil ne peut pas être chargé.')
   const overview = await loadCollectionOverview(db)
+  const { count: sampleCount } = await db
+    .from('invoices')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .eq('is_sample', true)
+  const realInvoices = overview.invoice_count - (sampleCount ?? 0)
   const priorities = overview.priorities
   return (
     <div className="mx-auto max-w-7xl p-5 sm:p-8 lg:p-10">
@@ -46,7 +52,7 @@ export default async function DashboardPage() {
           Importer / actualiser
         </Link>
       </div>
-      <GettingStarted companyReady={Boolean(profile.company_name)} imported={overview.invoice_count > 0} verified={overview.has_verified} trialEndsAt={profile.plan === 'free_trial' ? profile.trial_ends_at : null} />
+      <GettingStarted companyReady={Boolean(profile.company_name)} imported={realInvoices > 0} verified={overview.has_verified && realInvoices > 0} trialEndsAt={profile.plan === 'free_trial' ? profile.trial_ends_at : null} canTrySamples={overview.invoice_count === 0} />
       <Link href="/dashboard/today" className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50 p-5"><span><b>À faire aujourd’hui</b><span className="mt-1 block text-sm text-gray-600">Emails à compléter, soldes à vérifier, promesses dépassées et incidents d’envoi.</span></span><span className="text-sm font-medium">Voir mes actions →</span></Link>
       <div className="mb-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[

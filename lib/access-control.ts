@@ -75,6 +75,7 @@ export async function monthlyInvoiceCount(
     .from('invoices')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', userId)
+    .eq('is_sample', false)
     .gte('created_at', monthStart.toISOString())
   if (error) throw error
   return count ?? 0

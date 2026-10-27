@@ -43,6 +43,7 @@ export async function POST(request: Request) {
       .from('invoices')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id)
+      .eq('is_sample', false)
       .gte('created_at', monthStart.toISOString())
 
     if (countError || currentCount === null) return NextResponse.json({ error: 'Quota momentanément indisponible.' }, { status: 503 })

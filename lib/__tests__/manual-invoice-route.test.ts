@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-const mock = vi.hoisted(() => ({ user: vi.fn(), profile: vi.fn(), count: vi.fn(), duplicate: vi.fn(), insert: vi.fn(), saved: vi.fn() }))
+const mock = vi.hoisted(() => ({ user: vi.fn(), profile: vi.fn(), count: vi.fn(), duplicate: vi.fn(), insert: vi.fn(), saved: vi.fn(), sampleFilter: vi.fn() }))
 vi.mock('@/lib/supabase/server', () => ({ createClient: async () => ({
   auth: { getUser: mock.user },
   from: (table: string) => {
     if (table === 'profiles') return { select: () => ({ eq: () => ({ single: mock.profile }) }) }
     return {
-      select: (_: string, options?: unknown) => ({ eq: () => options ? { gte: mock.count } : { eq: () => ({ maybeSingle: mock.duplicate }) } }),
+      select: (_: string, options?: unknown) => ({ eq: () => options ? { eq: (column: string, value: unknown) => { mock.sampleFilter(column, value); return { gte: mock.count } } } : { eq: () => ({ maybeSingle: mock.duplicate }) } }),
       insert: (value: unknown) => { mock.insert(value); return { select: () => ({ single: mock.saved }) } },
     }
   },
@@ -29,6 +29,10 @@ describe('Manual creation failure boundaries', () => {
     mock[stage].mockResolvedValue({ data: null, count: null, error: { message: 'offline' } })
     expect((await save()).status).toBe(503)
     expect(mock.insert).not.toHaveBeenCalled()
+  })
+  it('counts the quota without sample invoices', async () => {
+    expect((await save()).status).toBe(201)
+    expect(mock.sampleFilter).toHaveBeenCalledWith('is_sample', false)
   })
   it('refuses missing authentication and exhausted quotas', async () => {
     mock.user.mockResolvedValueOnce({ data: { user: null } })
