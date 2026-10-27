@@ -1,8 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import * as Dialog from '@radix-ui/react-dialog'
 import {
   LayoutDashboard,
   FileText,
@@ -16,31 +17,42 @@ import {
   ChevronRight,
   BarChart3,
   Plug,
-  Kanban,
   Users,
   X,
   Search,
+  Menu,
 } from 'lucide-react'
 import { Logo } from '@/components/brand/logo'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import type { Profile } from '@/lib/database.types'
 
-const navItems = [
-  { href: '/dashboard', label: 'Vue d’ensemble', icon: LayoutDashboard },
-  { href: '/dashboard/today', label: 'À faire aujourd’hui', icon: Clock },
-  { href: '/dashboard/clients', label: 'Mes clients', icon: Users },
-  { href: '/dashboard/invoices', label: 'Mes impayés', icon: FileText },
-  { href: '/dashboard/scenarios', label: 'Scénarios', icon: Bell },
-  { href: '/dashboard/templates', label: 'Modèles email', icon: Mail },
-  { href: '/dashboard/stats', label: 'Statistiques', icon: BarChart3 },
-  { href: '/dashboard/integrations', label: 'Connexions', icon: Plug },
+const navGroups = [
   {
-    href: '/dashboard/operations',
-    label: 'État des relances',
-    icon: AlertTriangle,
+    label: 'Suivi',
+    items: [
+      { href: '/dashboard', label: 'Vue d’ensemble', icon: LayoutDashboard },
+      { href: '/dashboard/today', label: 'À faire aujourd’hui', icon: Clock },
+      { href: '/dashboard/clients', label: 'Mes clients', icon: Users },
+      { href: '/dashboard/invoices', label: 'Mes impayés', icon: FileText },
+    ],
   },
-  { href: '/dashboard/settings', label: 'Paramètres', icon: Settings },
+  {
+    label: 'Relances',
+    items: [
+      { href: '/dashboard/scenarios', label: 'Scénarios', icon: Bell },
+      { href: '/dashboard/templates', label: 'Modèles email', icon: Mail },
+      { href: '/dashboard/operations', label: 'État des relances', icon: AlertTriangle },
+    ],
+  },
+  {
+    label: 'Espace',
+    items: [
+      { href: '/dashboard/stats', label: 'Statistiques', icon: BarChart3 },
+      { href: '/dashboard/integrations', label: 'Connexions', icon: Plug },
+      { href: '/dashboard/settings', label: 'Paramètres', icon: Settings },
+    ],
+  },
 ]
 
 const PLAN_LABELS: Record<string, string> = {
@@ -66,8 +78,6 @@ function SidebarContent({
   pathname: string
   onClose?: () => void
 }) {
-  const router = useRouter()
-
   const handleSignOut = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
@@ -88,9 +98,9 @@ function SidebarContent({
       : null
 
   return (
-    <div className="flex h-full flex-col bg-white">
+    <div className="flex h-full min-h-0 flex-col bg-[#fcfbf8]">
       {/* Logo */}
-      <div className="flex h-14 items-center justify-between border-b px-5 flex-shrink-0">
+      <div className="flex h-16 shrink-0 items-center justify-between border-b border-[#e8e6e0] px-5">
         <Logo
           href="/dashboard"
           size="sm"
@@ -100,7 +110,7 @@ function SidebarContent({
           <button
             onClick={onClose}
             aria-label="Fermer le menu"
-            className="p-1 rounded-md hover:bg-gray-100 text-gray-500"
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-[#526171] hover:bg-[#efede8] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#182b40]"
           >
             <X className="h-5 w-5" />
           </button>
@@ -110,16 +120,12 @@ function SidebarContent({
       {/* ⌘K hint — opens the command palette */}
       <button
         onClick={() => {
-          window.dispatchEvent(
-            new KeyboardEvent('keydown', {
-              key: 'k',
-              metaKey: true,
-              bubbles: true,
-            }),
-          )
           onClose?.()
+          window.setTimeout(() => {
+            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true }))
+          }, 0)
         }}
-        className="mx-3 my-3 flex items-center justify-between px-3 py-1.5 text-xs text-gray-500 bg-gray-50 hover:bg-gray-100 border border-gray-100 rounded-lg transition-colors group"
+        className="group mx-3 mt-4 flex min-h-10 items-center justify-between rounded-lg border border-[#e5e4df] bg-white px-3 text-sm text-[#526171] transition-colors hover:border-[#b9c1c9] hover:bg-[#f8f8f5] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#182b40]"
       >
         <span className="flex items-center gap-2">
           <Search className="h-3.5 w-3.5" />
@@ -136,36 +142,44 @@ function SidebarContent({
       </button>
 
       {/* Navigation */}
-      <nav className="flex-1 px-2 py-3 overflow-y-auto space-y-0.5">
-        {navItems.map((item) => {
-          const Icon = item.icon
-          const isActive =
-            item.href === '/dashboard'
-              ? pathname === '/dashboard'
-              : pathname.startsWith(item.href)
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onClose}
-              className={cn(
-                'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                isActive
-                  ? 'bg-brand-gradient text-white shadow-sm shadow-brand-500/30'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
-              )}
-            >
-              <Icon className="h-4 w-4 flex-shrink-0" />
-              {item.label}
-            </Link>
-          )
-        })}
+      <nav aria-label="Navigation principale" className="min-h-0 flex-1 overflow-y-auto px-3 pb-5 pt-4">
+        {navGroups.map((group) => (
+          <div key={group.label} className="mb-5 last:mb-0">
+            <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[.13em] text-[#788491]">
+              {group.label}
+            </p>
+            <div className="space-y-0.5">
+              {group.items.map((item) => {
+                const Icon = item.icon
+                const isActive = item.href === '/dashboard'
+                  ? pathname === item.href
+                  : pathname === item.href || pathname.startsWith(`${item.href}/`)
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={onClose}
+                    aria-current={isActive ? 'page' : undefined}
+                    className={cn(
+                      'flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#182b40]',
+                      isActive
+                        ? 'bg-[#182b40] text-white'
+                        : 'text-[#4d5c6c] hover:bg-[#efeee9] hover:text-[#182b40]',
+                    )}
+                  >
+                    <Icon className={cn('h-[18px] w-[18px] shrink-0', isActive ? 'text-[#ef9d7c]' : 'text-[#768493]')} aria-hidden="true" />
+                    {item.label}
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       {/* Trial banner */}
       {trialDaysLeft !== null && (
-        <div className="mx-2 mb-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
+        <div className="mx-3 mb-3 rounded-xl border border-[#ead8c4] bg-[#fbf3e9] p-3">
           <div className="flex items-center gap-1.5 mb-2">
             <Clock className="h-3.5 w-3.5 text-amber-600 flex-shrink-0" />
             <p className="text-xs font-semibold text-amber-900">
@@ -175,7 +189,7 @@ function SidebarContent({
           <Link
             href="/dashboard/settings"
             onClick={onClose}
-            className="flex items-center justify-between rounded-md bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium px-2.5 py-1.5 transition-colors"
+            className="flex items-center justify-between min-h-9 rounded-md bg-[#182b40] px-2.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#294059]"
           >
             Activer mon tarif fondateur
             <ChevronRight className="h-3 w-3" />
@@ -196,14 +210,14 @@ function SidebarContent({
       {/* User */}
       <div className="border-t p-2">
         <div className="flex items-center gap-2.5 rounded-lg px-2 py-2">
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-gradient text-white text-xs font-bold">
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#182b40] text-white text-xs font-bold">
             {initials || '?'}
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-xs font-semibold text-gray-900 truncate">
               {profile?.company_name || 'Mon entreprise'}
             </div>
-            <div className="text-xs text-gray-400 truncate">
+            <div className="text-xs text-gray-500 truncate">
               {PLAN_LABELS[profile?.plan || 'free_trial']}
             </div>
           </div>
@@ -240,7 +254,7 @@ export function Sidebar() {
   }, [])
 
   return (
-    <aside className="hidden md:flex h-full w-60 flex-col border-r flex-shrink-0">
+    <aside className="hidden h-full w-64 shrink-0 flex-col border-r border-[#e8e6e0] md:flex">
       <SidebarContent profile={profile} email={email} pathname={pathname} />
     </aside>
   )
@@ -266,56 +280,39 @@ export function MobileNav() {
     })
   }, [])
 
-  // Close on route change
+  // Close the drawer when navigating or switching to the desktop layout.
   useEffect(() => {
     setOpen(false)
   }, [pathname])
 
+  useEffect(() => {
+    const desktop = window.matchMedia('(min-width: 768px)')
+    const closeOnDesktop = () => { if (desktop.matches) setOpen(false) }
+    desktop.addEventListener('change', closeOnDesktop)
+    return () => desktop.removeEventListener('change', closeOnDesktop)
+  }, [])
+
   return (
-    <>
-      {/* Hamburger button — only visible on mobile */}
-      <button
-        onClick={() => setOpen(true)}
-        className="md:hidden flex items-center justify-center h-9 w-9 rounded-lg hover:bg-gray-100 text-gray-600"
-        aria-label="Ouvrir le menu"
-      >
-        <svg
-          className="h-5 w-5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          viewBox="0 0 24 24"
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      <Dialog.Trigger asChild>
+        <button
+          type="button"
+          className="flex h-11 w-11 items-center justify-center rounded-lg text-[#34495c] hover:bg-[#efeee9] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#182b40] md:hidden"
+          aria-label="Ouvrir le menu"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M4 6h16M4 12h16M4 18h16"
-          />
-        </svg>
-      </button>
-
-      {/* Backdrop */}
-      {open && (
-        <div
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm md:hidden"
-          onClick={() => setOpen(false)}
-        />
-      )}
-
-      {/* Drawer */}
-      <div
-        className={cn(
-          'fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out md:hidden',
-          open ? 'translate-x-0' : '-translate-x-full',
-        )}
-      >
-        <SidebarContent
-          profile={profile}
-          email={email}
-          pathname={pathname}
-          onClose={() => setOpen(false)}
-        />
-      </div>
-    </>
+          <Menu className="h-5 w-5" aria-hidden="true" />
+        </button>
+      </Dialog.Trigger>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-[#102235]/45 md:hidden" />
+        <Dialog.Content
+          aria-describedby={undefined}
+          className="fixed inset-y-0 left-0 z-[60] w-[min(19rem,85vw)] bg-[#fcfbf8] shadow-2xl focus:outline-none md:hidden"
+        >
+          <Dialog.Title className="sr-only">Menu de navigation</Dialog.Title>
+          <SidebarContent profile={profile} email={email} pathname={pathname} onClose={() => setOpen(false)} />
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }

@@ -91,6 +91,7 @@ export function ProductPreview() {
             {invoices.map((item, i) => (
               <button
                 key={item.ref}
+                type="button"
                 onClick={() => {
                   setSelected(i)
                   setOpened(false)
@@ -114,7 +115,7 @@ export function ProductPreview() {
               </button>
             ))}
           </div>
-          <aside className="rf-next-action">
+          <aside className="rf-next-action" aria-live="polite">
             <div className="rf-action-icon">
               {selected === 0 ? (
                 <Mail size={20} />
@@ -127,7 +128,7 @@ export function ProductPreview() {
             <span className="rf-eyebrow">Prochaine action</span>
             <h4>{invoice.name}</h4>
             <p>{opened ? invoice.text : invoice.note}</p>
-            <button onClick={() => setOpened(!opened)}>
+            <button type="button" onClick={() => setOpened(!opened)}>
               {opened ? 'Revenir au suivi' : invoice.action}
               {opened ? <Check size={15} /> : <ArrowUpRight size={15} />}
             </button>

@@ -41,14 +41,14 @@ export default async function DashboardLayout({
       new Date(profile.trial_ends_at) <= new Date())
 
   return (
-    <div className="rf-workspace flex h-screen overflow-hidden bg-gray-50">
+    <div className="rf-workspace flex h-screen supports-[height:100dvh]:h-[100dvh] overflow-hidden bg-gray-50">
       {/* Desktop sidebar */}
       <Sidebar />
 
       {/* Main content area */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         {/* Top bar — mobile: hamburger + logo + bell | desktop: bell only */}
-        <div className="rf-workspace-top flex items-center justify-between border-b px-5 flex-shrink-0">
+        <div className="rf-workspace-top flex shrink-0 items-center justify-between border-b border-[#e8e6e0] px-3 sm:px-5">
           {/* Mobile left */}
           <div className="flex items-center gap-3 md:hidden">
             <MobileNav />
@@ -63,7 +63,7 @@ export default async function DashboardLayout({
           <NotificationBell />
         </div>
 
-        <main id="main-content" className="flex-1 overflow-y-auto">
+        <main id="main-content" tabIndex={-1} className="min-h-0 flex-1 overflow-y-auto">
           {expired && (
             <div
               role="status"
