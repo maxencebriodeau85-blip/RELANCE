@@ -1,26 +1,28 @@
 import Link from 'next/link'
+import { brandColors, symbolPath, wordmarkPaths } from '@/lib/brand/artwork'
 import { cn } from '@/lib/utils'
 
 type Size = 'sm' | 'md' | 'lg'
 type Variant = 'default' | 'mono-white' | 'mono-dark'
-const sizes = { sm: 'h-8 w-8', md: 'h-10 w-10', lg: 'h-12 w-12' }
+const sizes = { sm: 'h-8', md: 'h-10', lg: 'h-12' }
 
-/** E construit comme une suite de lignes, ponctuée par le signal de suivi. */
+function Artwork({ variant, withWordmark = false }: { variant: Variant; withWordmark?: boolean }) {
+  const ink = variant === 'mono-white' ? '#ffffff' : brandColors.ink
+  return (
+    <svg viewBox={`0 0 ${withWordmark ? 296 : 64} 64`} width="100%" height="100%" fill="none" aria-hidden="true" focusable="false">
+      <path d={symbolPath} stroke={ink} strokeWidth="10.5" strokeLinecap="round" />
+      <rect x="25" y="28" width="36" height="9" rx="4.5" fill={variant === 'default' ? brandColors.accent : ink} />
+      {withWordmark && <g fill={ink} fillRule="evenodd">{wordmarkPaths.map((d, i) => <path key={i} d={d} />)}</g>}
+    </svg>
+  )
+}
+
 export function LogoMark({ size = 'md', variant = 'default', className }: {
   size?: Size
   variant?: Variant
   className?: string
 }) {
-  const light = variant === 'mono-white'
-  return (
-    <span className={cn('inline-flex shrink-0 items-center justify-center', sizes[size], className)} aria-hidden="true">
-      <svg viewBox="0 0 64 64" width="100%" height="100%" fill="none" focusable="false">
-        <rect width="64" height="64" rx="15" fill={light ? '#fff' : '#182b40'} />
-        <path d="M21 19v26M21 19h21M21 32h15M21 45h21" stroke={light ? '#182b40' : '#fff'} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" />
-        <rect x="40" y="28.5" width="8" height="7" rx="3.5" fill={variant === 'default' ? '#ea693a' : light ? '#182b40' : '#fff'} />
-      </svg>
-    </span>
-  )
+  return <span className={cn('inline-flex aspect-square shrink-0', sizes[size], className)} aria-hidden="true"><Artwork variant={variant} /></span>
 }
 
 export function Logo({ href = '/', size = 'md', variant = 'default', withWordmark = true, className }: {
@@ -30,9 +32,9 @@ export function Logo({ href = '/', size = 'md', variant = 'default', withWordmar
   withWordmark?: boolean
   className?: string
 }) {
-  const content = <>
-    <LogoMark size={size} variant={variant} />
-    {withWordmark && <span className={cn('font-semibold tracking-[-.055em]', size === 'lg' ? 'text-3xl' : size === 'md' ? 'text-2xl' : 'text-xl', variant === 'mono-white' ? 'text-white' : 'text-[#182b40]')}>encair</span>}
-  </>
-  return href ? <Link href={href} aria-label="Encair — accueil" className={cn('inline-flex items-center gap-2.5', className)}>{content}</Link> : <span className={cn('inline-flex items-center gap-2.5', className)}>{content}</span>
+  const classes = cn('inline-flex shrink-0 items-center', sizes[size], withWordmark ? 'aspect-[296/64]' : 'aspect-square', className)
+  const content = <Artwork variant={variant} withWordmark={withWordmark} />
+  return href
+    ? <Link href={href} aria-label="Encair — accueil" className={classes}>{content}</Link>
+    : <span role="img" aria-label="Encair" className={classes}>{content}</span>
 }
