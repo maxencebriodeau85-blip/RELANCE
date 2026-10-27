@@ -1,0 +1,19 @@
+/** Original Encair artwork. Shared by the UI and downloadable SVG exports. */
+export const brandColors = { ink: '#182b40', accent: '#ea693a', paper: '#f7f4ed' }
+export const symbolPath = 'M50.5 46.5C46 52.5 39.5 56 31.5 56C18 56 7 45 7 31.5C7 18 18 7 31.5 7C43 7 52 14.5 55 25.5'
+
+/** Custom outlined lowercase lettering: no font download or substitution. */
+export const wordmarkPaths = [
+  'M112 38H87.5C88.4 44.7 92.5 48.5 99 48.5C103.5 48.5 107.1 46.8 110.4 43.7L115.6 49.4C111.5 54.2 105.9 57 98.8 57C86.7 57 78.5 48.8 78.5 37C78.5 25.3 86.5 17 97.8 17C109.4 17 116.5 25.1 116.5 36C116.5 37.3 115.9 38 114.5 38ZM87.8 31.5H107.7C106.8 26.7 103.2 24 98 24C92.8 24 89.1 26.8 87.8 31.5Z',
+  'M124 55V19C124 18.4 124.4 18 125 18H131C131.6 18 132 18.4 132 19V22.3C134.6 18.9 138.5 17 143.5 17C153.3 17 159 23.2 159 33.2V55C159 55.6 158.6 56 158 56H151C150.4 56 150 55.6 150 55V34C150 27.9 147.2 24.8 142 24.8C136.5 24.8 133 28.5 133 34.5V55C133 55.6 132.6 56 132 56H125C124.4 56 124 55.6 124 55Z',
+  'M199.7 23.1L194.7 29.1C192 26.4 188.8 25 185.1 25C178.3 25 173.8 29.8 173.8 37C173.8 44.2 178.3 49 185.1 49C188.9 49 192.2 47.5 194.9 44.7L200.2 50.4C196.5 54.6 191.3 57 184.8 57C173.1 57 164.8 48.7 164.8 37C164.8 25.3 173.1 17 184.8 17C191.1 17 196.3 19.2 199.7 23.1Z',
+  'M224 17C229 17 233.2 18.9 236 22.3V19C236 18.4 236.4 18 237 18H243C243.6 18 244 18.4 244 19V55C244 55.6 243.6 56 243 56H237C236.4 56 236 55.6 236 55V51.7C233.2 55.1 229 57 224 57C213.1 57 205 48.5 205 37C205 25.5 213.1 17 224 17ZM224.9 25C218.3 25 214 30 214 37C214 44 218.3 49 224.9 49C231.5 49 235.9 44 235.9 37C235.9 30 231.5 25 224.9 25Z',
+  'M254 18H261C261.6 18 262 18.4 262 19V55C262 55.6 261.6 56 261 56H254C253.4 56 253 55.6 253 55V19C253 18.4 253.4 18 254 18ZM263 7C263 10 260.6 12.4 257.5 12.4C254.4 12.4 252 10 252 7C252 4 254.4 1.6 257.5 1.6C260.6 1.6 263 4 263 7Z',
+  'M272 55V19C272 18.4 272.4 18 273 18H279C279.6 18 280 18.4 280 19V24C282.7 19.5 287.1 17 293 17H295V25.6H292.5C285.2 25.6 281 29.7 281 37.4V55C281 55.6 280.6 56 280 56H273C272.4 56 272 55.6 272 55Z',
+]
+
+export function brandSvg({ wordmark = true, light = false, tile = false }: { wordmark?: boolean; light?: boolean; tile?: boolean } = {}) {
+  const ink = light ? '#ffffff' : brandColors.ink
+  const mark = `<path d="${symbolPath}" fill="none" stroke="${ink}" stroke-width="10.5" stroke-linecap="round"/><rect x="25" y="28" width="36" height="9" rx="4.5" fill="${brandColors.accent}"/>`
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${wordmark ? 296 : 64} 64" role="img" aria-labelledby="title"><title id="title">Encair</title>${tile ? `<rect width="64" height="64" rx="14" fill="${light ? brandColors.ink : brandColors.paper}"/><g transform="translate(9 9) scale(.71875)">${mark}</g>` : mark}${wordmark ? `<g fill="${ink}" fill-rule="evenodd">${wordmarkPaths.map(d => `<path d="${d}"/>`).join('')}</g>` : ''}</svg>\n`
+}
