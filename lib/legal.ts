@@ -20,6 +20,8 @@
 /** Version des CGU/CGV — à incrémenter à chaque modification substantielle. */
 export const TERMS_VERSION = '2026-10-18'
 export const LEGAL_LAST_UPDATED = '18 octobre 2026'
+/** Politique de confidentialité : export en libre-service et délai de suppression. */
+export const PRIVACY_LAST_UPDATED = '27 octobre 2026'
 
 const env = (key: string): string | null => {
   const v = process.env[key]?.trim()

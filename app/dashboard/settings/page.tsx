@@ -28,6 +28,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Profile } from '@/lib/database.types'
+import { AccountData } from '@/components/dashboard/account-data'
 
 const PLAN_LABELS: Record<string, string> = {
   free_trial: 'Essai gratuit',
@@ -481,6 +482,8 @@ function SettingsPageInner() {
             </p>
           </CardContent>
         </Card>
+
+        <AccountData accountEmail={userEmail || null} />
       </div>
     </div>
   )

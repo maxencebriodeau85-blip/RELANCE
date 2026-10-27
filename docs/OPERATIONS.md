@@ -83,7 +83,10 @@ Recette de restauration à effectuer dans un projet isolé, jamais sur la produc
 
 ## Suppressions et données personnelles
 
-Les demandes d’accès, de suppression et de restitution restent une procédure opérateur. Vérifier l’identité et le périmètre, fournir l’export, révoquer les sessions/clés, puis supprimer selon les engagements contractuels et obligations de conservation. Ne pas lancer de suppression massive d’anciens comptes sans une revue préalable. Tenir une trace séparée des suppressions à réappliquer lors d’une restauration.
+- **Accès et portabilité** : le client exporte lui-même toutes ses données depuis Paramètres > Vos données (`GET /api/account/export`, fichier JSON, sans aucun secret, 5 exports par heure). Pour un compte trop volumineux (plus de 50 000 lignes dans une table), l'export refuse plutôt que de tronquer : l'opérateur le fournit à la main.
+- **Suppression** : suivre `scripts/ops/suppression-compte.sql` (vérification de l'adresse, résiliation Stripe d'abord, suppression dans Supabase Auth, contrôle à 0, registre des suppressions). Délai : un mois. La cascade sur les 15 tables est prouvée par le bloc 3 de `scripts/ops/recette-base.sql`.
+- **Conservation** : la même requête liste les essais non convertis depuis plus de six mois, à supprimer un par un. Ne pas lancer de suppression massive sans revue.
+- Tenir une trace séparée des suppressions (identifiant et dates, pas l'adresse) à réappliquer lors d’une restauration.
 
 ## Références vérifiées le 18 octobre 2026
 

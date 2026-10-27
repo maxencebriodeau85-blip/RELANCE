@@ -3,7 +3,7 @@ import { LegalLayout } from '@/components/legal/legal-layout'
 import { ContactLink, LegalField } from '@/components/legal/legal-field'
 import {
   CONTACT_EMAIL,
-  LEGAL_LAST_UPDATED,
+  PRIVACY_LAST_UPDATED,
   PUBLISHER,
   SUBPROCESSORS,
 } from '@/lib/legal'
@@ -19,7 +19,7 @@ export default function PrivacyPage() {
   return (
     <LegalLayout
       title="Politique de confidentialité"
-      lastUpdated={LEGAL_LAST_UPDATED}
+      lastUpdated={PRIVACY_LAST_UPDATED}
     >
       <p>
         Cette politique explique quelles données personnelles Encair traite,
@@ -124,10 +124,12 @@ export default function PrivacyPage() {
       </ul>
 
       <p>
-        Les demandes d’export et de suppression peuvent être adressées au
-        contact indiqué sur cette page. Les suppressions de comptes sont
-        traitées par l’éditeur ; aucune purge automatique des comptes inactifs
-        n’est annoncée.
+        Vous pouvez exporter à tout moment toutes les données de votre compte
+        depuis Paramètres, rubrique « Vos données » (fichier JSON). Les demandes
+        de suppression sont adressées au contact indiqué sur cette page, depuis
+        l’adresse du compte : l’éditeur résilie l’abonnement éventuel puis
+        supprime le compte et toutes ses données dans un délai d’un mois. Aucune
+        purge automatique des comptes inactifs n’est annoncée.
       </p>
 
       <h2>5. Prestataires et transferts hors Union européenne</h2>
