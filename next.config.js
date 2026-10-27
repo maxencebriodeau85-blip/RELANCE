@@ -26,13 +26,13 @@ const cspHeader = [
 
 const nextConfig = {
   outputFileTracingIncludes: { '/api/invoices/*/pdf': ['./assets/fonts/DejaVuSans.ttf'] },
+  // Encair n'utilise pas next/image. L'optimiseur reste coupé et n'accepte
+  // aucune image distante : l'ancien motif *.supabase.co laissait n'importe
+  // quel projet Supabase lui servir un SVG (GHSA-2464-fhr4-w9xw, corrigée en
+  // 15.5.28). Réactiver seulement avec l'hôte exact du projet, jamais *.
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '*.supabase.co',
-      },
-    ],
+    unoptimized: true,
+    remotePatterns: [],
   },
   async redirects() {
     return [
