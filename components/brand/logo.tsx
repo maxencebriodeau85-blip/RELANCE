@@ -5,7 +5,7 @@ type Size = 'sm' | 'md' | 'lg'
 type Variant = 'default' | 'mono-white' | 'mono-dark'
 const sizes = { sm: 'h-8 w-8', md: 'h-10 w-10', lg: 'h-12 w-12' }
 
-/** A compact E and an open end: a clear path from invoice to payment. */
+/** E construit comme une suite de lignes, ponctuée par le signal de suivi. */
 export function LogoMark({ size = 'md', variant = 'default', className }: {
   size?: Size
   variant?: Variant
@@ -16,8 +16,8 @@ export function LogoMark({ size = 'md', variant = 'default', className }: {
     <span className={cn('inline-flex shrink-0 items-center justify-center', sizes[size], className)} aria-hidden="true">
       <svg viewBox="0 0 64 64" width="100%" height="100%" fill="none" focusable="false">
         <rect width="64" height="64" rx="15" fill={light ? '#fff' : '#182b40'} />
-        <path d="M42 19H29C21.82 19 18 24.82 18 32s3.82 13 11 13h13M19 32h17" stroke={light ? '#182b40' : '#fff'} strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-        <rect x="41" y="28" width="7" height="8" rx="2" fill={variant === 'default' ? '#ea693a' : light ? '#182b40' : '#fff'} />
+        <path d="M21 19v26M21 19h21M21 32h15M21 45h21" stroke={light ? '#182b40' : '#fff'} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" />
+        <rect x="40" y="28.5" width="8" height="7" rx="3.5" fill={variant === 'default' ? '#ea693a' : light ? '#182b40' : '#fff'} />
       </svg>
     </span>
   )
