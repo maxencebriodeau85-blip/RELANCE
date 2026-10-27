@@ -64,7 +64,7 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: '/favicon.ico',
+    icon: [{ url: '/brand/encair-symbole.svg', type: 'image/svg+xml' }, { url: '/favicon.ico' }],
   },
   manifest: '/manifest.webmanifest',
 }
