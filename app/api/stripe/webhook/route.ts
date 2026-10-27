@@ -53,6 +53,7 @@ async function revertToFreeTrial(
     .update({
       plan: 'free_trial',
       stripe_subscription_id: null,
+      subscription_status: null,
       trial_ends_at: new Date(Date.now() - 1000).toISOString(),
     } as never)
     .eq('stripe_customer_id', customerId)
@@ -91,7 +92,21 @@ async function syncSubscriptionStatus(
     return
   }
 
-  if (!['active', 'trialing'].includes(subscription.status)) return
+  if (!['active', 'trialing'].includes(subscription.status)) {
+    // past_due / incomplete : l'accès est conservé pendant les nouvelles
+    // tentatives de Stripe (délai de grâce), mais le client doit savoir que
+    // son paiement a échoué. On enregistre le statut, sans toucher au plan,
+    // et seulement pour l'abonnement déjà rattaché au profil.
+    if (['past_due', 'incomplete'].includes(subscription.status)) {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ subscription_status: subscription.status } as never)
+        .eq('stripe_customer_id', customerId)
+        .eq('stripe_subscription_id', subscription.id)
+      if (error) throw error
+    }
+    return
+  }
 
   // Resolve the owner BEFORE validating the price: a subscription that does
   // not belong to an Encair profile (another product on the same Stripe
@@ -127,6 +142,7 @@ async function syncSubscriptionStatus(
     .from('profiles')
     .update({
       stripe_subscription_id: subscription.id,
+      subscription_status: subscription.status,
       ...(plan ? { plan } : {}),
     } as never)
     .eq('stripe_customer_id', customerId)

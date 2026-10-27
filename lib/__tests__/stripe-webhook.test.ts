@@ -91,6 +91,7 @@ describe('Stripe lifecycle delivery', () => {
       expect(mocks.subscription).toHaveBeenCalledWith('sub_current')
       expect(mocks.write).toHaveBeenCalledWith({
         stripe_subscription_id: 'sub_current',
+        subscription_status: 'active',
         plan: 'starter',
       })
       expect(mocks.filter).toHaveBeenCalledWith(

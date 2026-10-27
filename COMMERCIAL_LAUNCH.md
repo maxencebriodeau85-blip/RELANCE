@@ -16,7 +16,7 @@ Ce document est une **checklist de mise en production**, pas une attestation de 
 - [ ] Inscription, confirmation d'email, mot de passe oublié et reconnexion testés sur mobile.
 - [ ] SMTP Supabase et domaine d'envoi Resend configurés et vérifiés (SPF/DKIM/DMARC selon fournisseur).
 - [ ] Première importation guidée ; l'utilisateur sait pourquoi ses factures sont initialement en pause.
-- [ ] Essai expiré, quota atteint et échec de paiement expliqués sans perte de données.
+- [ ] Essai expiré, quota atteint et échec de paiement expliqués sans perte de données. *27/10/2026 : bandeau « essai terminé », messages de quota, et bandeau « paiement échoué » avec accès direct au portail Stripe (statut enregistré par le webhook, tests `stripe-lifecycle`) ; données conservées (contrôles 28-29 de `recette-base.sql`). Reste à le voir à l'écran, connecté.*
 - [ ] Checkout Stripe test : double clic, annulation, paiement réussi, webhook retardé, échec, résiliation et portail.
 - [ ] Taxes applicables vérifiées avec un professionnel ; prix HT et facturation cohérents.
 

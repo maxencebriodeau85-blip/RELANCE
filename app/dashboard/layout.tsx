@@ -4,6 +4,7 @@ import { Sidebar, MobileNav } from '@/components/dashboard/sidebar'
 import { NotificationBell } from '@/components/dashboard/notification-bell'
 import { CommandPalette } from '@/components/dashboard/command-palette'
 import { Logo } from '@/components/brand/logo'
+import { PaymentFailedBanner } from '@/components/dashboard/payment-failed-banner'
 
 export default async function DashboardLayout({
   children,
@@ -25,7 +26,7 @@ export default async function DashboardLayout({
 
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('plan, trial_ends_at')
+    .select('plan, trial_ends_at, subscription_status')
     .eq('id', user.id)
     .single()
 
@@ -64,6 +65,9 @@ export default async function DashboardLayout({
         </div>
 
         <main id="main-content" tabIndex={-1} className="min-h-0 flex-1 overflow-y-auto">
+          {['past_due', 'incomplete'].includes(profile.subscription_status ?? '') && (
+            <PaymentFailedBanner />
+          )}
           {expired && (
             <div
               role="status"
