@@ -5,7 +5,6 @@ import { CTA_LABEL } from '@/lib/plans'
 import Link from 'next/link'
 import { Menu, X } from 'lucide-react'
 import { Logo } from '@/components/brand/logo'
-import { Magnetic } from '@/components/effects/magnetic'
 
 const LINKS = [
   { href: '/#produit', label: 'Produit' },
@@ -31,7 +30,7 @@ export function SiteNav() {
   // Close menu on resize to desktop
   useEffect(() => {
     const onResize = () => {
-      if (window.innerWidth >= 768) setOpen(false)
+      if (window.innerWidth >= 1024) setOpen(false)
     }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
@@ -47,16 +46,16 @@ export function SiteNav() {
   }, [open])
 
   return (
-    <nav className={`sticky top-0 z-50 border-b backdrop-blur-md transition-all duration-300 ${
+    <nav className={`sticky top-0 z-50 border-b transition-colors duration-200 ${
       scrolled
-        ? 'border-gray-200/80 bg-white/85 shadow-[0_1px_20px_-8px_rgba(13,15,35,0.15)]'
-        : 'border-transparent bg-white/70'
-    } supports-[backdrop-filter]:bg-white/70`}>
+        ? 'border-[#e1ded7] bg-[#f7f4ed]'
+        : 'border-transparent bg-[#f7f4ed]'
+    }`}>
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
         <Logo size="sm" />
 
         {/* Desktop links */}
-        <div className="hidden md:flex items-center gap-6 text-sm text-gray-600">
+        <div className="hidden lg:flex items-center gap-6 text-sm text-gray-600">
           {LINKS.map((l) => (
             <Link key={l.href} href={l.href} className="hover:text-gray-900 transition-colors">
               {l.label}
@@ -65,21 +64,19 @@ export function SiteNav() {
         </div>
 
         {/* Desktop CTAs */}
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-2">
           <Link
             href="/auth/login"
             className="text-sm font-medium text-gray-600 hover:text-gray-900 px-3 py-1.5 transition-colors"
           >
             Se connecter
           </Link>
-          <Magnetic strength={0.35}>
-            <Link
+          <Link
               href="/auth/register"
-              className="rounded-lg bg-brand-gradient text-white text-sm font-semibold px-4 py-2 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all"
+              className="rounded-lg bg-[#182b40] text-white text-sm font-semibold px-4 py-2.5 hover:bg-[#294059] transition-colors"
             >
               {CTA_LABEL}
-            </Link>
-          </Magnetic>
+          </Link>
         </div>
 
         {/* Mobile burger */}
@@ -87,7 +84,7 @@ export function SiteNav() {
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? 'Fermer le menu' : 'Ouvrir le menu'}
           aria-expanded={open}
-          className="md:hidden flex h-9 w-9 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+          className="lg:hidden flex h-9 w-9 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
         >
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
@@ -95,7 +92,7 @@ export function SiteNav() {
 
       {/* Mobile sheet */}
       {open && (
-        <div className="md:hidden absolute inset-x-0 top-full bg-white border-b shadow-lg animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="lg:hidden absolute inset-x-0 top-full bg-white border-b shadow-lg animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="px-4 py-4 space-y-1">
             {LINKS.map((l) => (
               <Link
@@ -118,7 +115,7 @@ export function SiteNav() {
               <Link
                 href="/auth/register"
                 onClick={() => setOpen(false)}
-                className="block text-center rounded-lg bg-brand-gradient text-white text-sm font-semibold px-4 py-2.5"
+                className="block text-center rounded-lg bg-[#182b40] text-white text-sm font-semibold px-4 py-2.5"
               >
                 {CTA_LABEL}
               </Link>
