@@ -26,7 +26,7 @@ Ce document est une **checklist de mise en production**, pas une attestation de 
 - [ ] Durée de conservation, suppression de compte, export des données et demandes RGPD testés.
 - [ ] Support opérationnel : adresse de contact, délai de réponse annoncé et procédure d'incident.
 - [ ] Surveillance des erreurs, sauvegardes, rotation des secrets et alerte en cas d'échec cron configurées.
-- [ ] Aucun secret exposé au navigateur ou au dépôt ; audit des dépendances et analyse des risques documentés.
+- [x] Aucun secret exposé au navigateur ou au dépôt ; audit des dépendances et analyse des risques documentés. *Preuve 27/10/2026 : `docs/SECURITE.md` (historique des 21 branches sans secret, faille critique Next.js corrigée en 15.5.28, test `security-config`).*
 
 ## Commandes locales
 ```bash
