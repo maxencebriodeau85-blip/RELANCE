@@ -10,14 +10,61 @@ vi.mock('@/lib/billing-sync', () => ({ syncCheckout: mocks.sync }))
 import { POST } from '../../app/api/stripe/checkout/route'
 const request = () => new Request('https://encair.test/api/stripe/checkout', { method: 'POST', body: JSON.stringify({ plan: 'starter' }) })
 beforeEach(() => {
-  vi.clearAllMocks(); mocks.configured.mockReturnValue(true)
+  vi.resetAllMocks(); mocks.configured.mockReturnValue(true)
   mocks.user.mockResolvedValue({ data: { user: { id: 'u1', email: 'test@example.com' } } })
   mocks.profile.mockResolvedValue({ data: { stripe_customer_id: 'cus_1' }, error: null })
   mocks.price.mockResolvedValue({ active: true, unit_amount: 1600, currency: 'eur', recurring: { interval: 'month', interval_count: 1 } })
-  mocks.subscriptions.mockResolvedValue({ data: [] }); mocks.sessions.mockResolvedValue({ data: [] })
+  mocks.subscriptions.mockResolvedValue({ data: [], has_more: false }); mocks.sessions.mockResolvedValue({ data: [], has_more: false })
   mocks.create.mockResolvedValue({ url: 'https://checkout.stripe.com/test' }); mocks.portal.mockResolvedValue({ url: 'https://billing.stripe.com/test' })
 })
 describe('Checkout safety and recovery', () => {
+  it('does not create checkout when an older active subscription may be outside the first 100 results', async () => {
+    const history = [...Array.from({ length: 100 }, (_, index) => ({ id: `sub_canceled_${index}`, status: 'canceled' })), { id: 'sub_older_active', status: 'active' }]
+    mocks.subscriptions.mockResolvedValue({ data: history.slice(0, 100), has_more: history.length > 100 })
+    const response = await POST(request())
+    expect(response.status).toBe(503)
+    expect(mocks.create).not.toHaveBeenCalled()
+    expect(mocks.sessions).not.toHaveBeenCalled()
+  })
+  it('does not create checkout when an older open session may be outside the first 100 results', async () => {
+    const history = [...Array.from({ length: 100 }, (_, index) => ({ id: `cs_expired_${index}`, mode: 'subscription', metadata: { userId: 'u1' }, status: 'expired' })), { id: 'cs_older_open', mode: 'subscription', metadata: { userId: 'u1' }, status: 'open', url: 'https://checkout.stripe.com/older' }]
+    mocks.sessions.mockResolvedValue({ data: history.slice(0, 100), has_more: history.length > 100 })
+    const response = await POST(request())
+    expect(response.status).toBe(503)
+    expect(mocks.create).not.toHaveBeenCalled()
+  })
+
+  it.each(['subscriptions', 'sessions'] as const)('requires explicit history completeness from %s before creation', async resource => {
+    mocks[resource].mockResolvedValue({ data: [] })
+    const response = await POST(request())
+    expect(response.status).toBe(503)
+    expect(response.headers.get('cache-control')).toBe('no-store')
+    expect((await response.json()).error).toContain('historique de facturation')
+    expect(mocks.create).not.toHaveBeenCalled()
+    expect(mocks.sync).not.toHaveBeenCalled()
+  })
+  it('allows a new checkout when both full 100-item pages are explicitly complete', async () => {
+    mocks.subscriptions.mockResolvedValue({ data: Array.from({ length: 100 }, (_, index) => ({ id: `sub_${index}`, status: 'canceled' })), has_more: false })
+    mocks.sessions.mockResolvedValue({ data: Array.from({ length: 100 }, (_, index) => ({ id: `cs_${index}`, mode: 'subscription', metadata: { userId: 'u1' }, status: 'expired' })), has_more: false })
+    expect((await POST(request())).status).toBe(200)
+    expect(mocks.create).toHaveBeenCalledOnce()
+    expect(mocks.create.mock.calls[0][0].idempotencyKey).toBe('encair-checkout-u1-price_founder-cs_0')
+  })
+  it('still syncs a completed checkout before offering another when history is complete', async () => {
+    const session = { id: 'cs_complete', mode: 'subscription', metadata: { userId: 'u1' }, status: 'complete' }
+    mocks.sessions.mockResolvedValue({ data: [session], has_more: false })
+    mocks.sync.mockResolvedValue(true)
+    const response = await POST(request())
+    expect(response.status).toBe(200)
+    expect((await response.json()).url).toContain('/dashboard')
+    expect(mocks.sync).toHaveBeenCalledWith(session, 'u1')
+    expect(mocks.create).not.toHaveBeenCalled()
+  })
+  it.each(['subscriptions', 'sessions'] as const)('does not create checkout when %s cannot be read', async resource => {
+    mocks[resource].mockRejectedValue(new Error('simulated outage'))
+    expect((await POST(request())).status).toBe(503)
+    expect(mocks.create).not.toHaveBeenCalled()
+  })
   it('does not crash when billing is not configured', async () => {
     mocks.configured.mockReturnValue(false)
     expect((await POST(request())).status).toBe(503); expect(mocks.create).not.toHaveBeenCalled()
@@ -31,11 +78,11 @@ describe('Checkout safety and recovery', () => {
     expect(mocks.create).not.toHaveBeenCalled()
   })
   it('routes an existing past-due subscription to the portal instead of charging again', async () => {
-    mocks.subscriptions.mockResolvedValue({ data: [{ status: 'past_due' }] })
+    mocks.subscriptions.mockResolvedValue({ data: [{ status: 'past_due' }], has_more: true })
     expect((await (await POST(request())).json()).url).toContain('billing.stripe.com'); expect(mocks.create).not.toHaveBeenCalled()
   })
   it('reuses the open payment session', async () => {
-    mocks.sessions.mockResolvedValue({ data: [{ mode: 'subscription', metadata: { userId: 'u1' }, status: 'open', url: 'https://checkout.stripe.com/existing' }] })
+    mocks.sessions.mockResolvedValue({ data: [{ mode: 'subscription', metadata: { userId: 'u1' }, status: 'open', url: 'https://checkout.stripe.com/existing' }], has_more: true })
     expect((await (await POST(request())).json()).url).toContain('existing'); expect(mocks.create).not.toHaveBeenCalled()
   })
   it('shares an idempotency key across concurrent attempts and uses an accessible cancellation page', async () => {
