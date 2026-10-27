@@ -7,7 +7,6 @@ import {
   Mail,
   ListChecks,
   ShieldCheck,
-  CornerDownRight,
 } from 'lucide-react'
 import { SiteNav } from '@/components/landing/site-nav'
 import { SiteFooter } from '@/components/landing/site-footer'
@@ -94,18 +93,9 @@ export default function HomePage() {
               </span>
             </div>
           </div>
-          <div className="rf-hero-aside" aria-hidden="true">
-            <span className="rf-aside-line" />
-            <p>
-              Moins de « je vous relance ».
-              <br />
-              <b>Plus de factures payées.</b>
-            </p>
-            <CornerDownRight size={34} />
+          <div id="produit" className="rf-product-wrap">
+            <ProductPreview />
           </div>
-        </section>
-        <section id="produit" className="rf-product-wrap">
-          <ProductPreview />
         </section>
         <div className="rf-principles">
           <span>Votre logiciel de facturation reste le même.</span>

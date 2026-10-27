@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { CTA_LABEL } from '@/lib/plans'
 import Link from 'next/link'
 import { Menu, X } from 'lucide-react'
@@ -18,6 +18,7 @@ const LINKS = [
 export function SiteNav() {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const menuTrigger = useRef<HTMLButtonElement>(null)
 
   // Elevate the nav (shadow + stronger blur) once the page scrolls.
   useEffect(() => {
@@ -35,6 +36,19 @@ export function SiteNav() {
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [])
+
+  // Escape closes the mobile navigation.
+  useEffect(() => {
+    if (!open) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpen(false)
+        menuTrigger.current?.focus()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [open])
 
   // Lock body scroll when menu open
   useEffect(() => {
@@ -81,9 +95,11 @@ export function SiteNav() {
 
         {/* Mobile burger */}
         <button
+          ref={menuTrigger}
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? 'Fermer le menu' : 'Ouvrir le menu'}
           aria-expanded={open}
+          aria-controls={open ? "mobile-navigation" : undefined}
           className="lg:hidden flex h-9 w-9 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
         >
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -92,7 +108,7 @@ export function SiteNav() {
 
       {/* Mobile sheet */}
       {open && (
-        <div className="lg:hidden absolute inset-x-0 top-full bg-white border-b shadow-lg animate-in fade-in slide-in-from-top-2 duration-200">
+        <div id="mobile-navigation" className="lg:hidden absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto bg-white border-b shadow-lg">
           <div className="px-4 py-4 space-y-1">
             {LINKS.map((l) => (
               <Link

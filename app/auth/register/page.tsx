@@ -20,7 +20,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full h-11 rounded-lg bg-brand-gradient disabled:opacity-60 text-white font-semibold text-sm transition-all hover:shadow-lg hover:shadow-brand-500/30 flex items-center justify-center gap-2"
+      className="w-full h-11 rounded-lg bg-[#182b40] disabled:opacity-60 text-white font-semibold text-sm transition-colors hover:bg-[#294059] flex items-center justify-center gap-2"
     >
       {pending ? (
         <>
@@ -42,11 +42,11 @@ function PasswordStrength({ password }: { password: string }) {
   if (/[0-9]/.test(password)) strength++
   if (/[^A-Za-z0-9]/.test(password)) strength++
 
-  const labels = ['', 'Faible', 'Moyen', 'Fort', 'Très fort']
+  const labels = ['Faible', 'Faible', 'Moyen', 'Fort', 'Très fort']
   const colors = ['', 'bg-red-500', 'bg-yellow-500', 'bg-blue-500', 'bg-green-500']
 
   return (
-    <div className="space-y-1 mt-1">
+    <div id="password-strength" className="space-y-1 mt-1">
       <div className="flex gap-1">
         {[1, 2, 3, 4].map((level) => (
           <div
@@ -55,7 +55,7 @@ function PasswordStrength({ password }: { password: string }) {
           />
         ))}
       </div>
-      <p className="text-xs text-gray-400">Force : {labels[strength]}</p>
+      <p className="text-xs text-gray-600">Force : {labels[strength]}</p>
     </div>
   )
 }
@@ -88,7 +88,7 @@ export default function RegisterPage() {
             <ResendForm email={state.email} />
             <Link
               href="/auth/login"
-              className="inline-block w-full h-11 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-colors leading-[44px]"
+              className="inline-block w-full h-11 rounded-lg bg-[#182b40] hover:bg-[#294059] text-white font-semibold text-sm transition-colors leading-[44px]"
             >
               Retour à la connexion
             </Link>
@@ -134,6 +134,7 @@ export default function RegisterPage() {
               <Input
                 id="companyName"
                 name="companyName"
+                autoComplete="organization"
                 placeholder="Bureau d’études Martin"
                 required
                 autoFocus
@@ -170,15 +171,17 @@ export default function RegisterPage() {
                   minLength={8}
                   maxLength={128}
                   autoComplete="new-password"
-                  className="h-11 pr-10"
+                  aria-describedby={password ? "password-strength" : undefined}
+                  className="h-11 pr-12"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center text-gray-600 hover:text-[#182b40]"
                   aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                  aria-pressed={showPassword}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -193,6 +196,8 @@ export default function RegisterPage() {
               <Input
                 id="confirmPassword"
                 name="confirmPassword"
+                aria-invalid={Boolean(confirmPassword && password !== confirmPassword)}
+                aria-describedby={confirmPassword && password !== confirmPassword ? "password-mismatch" : undefined}
                 type="password"
                 placeholder="••••••••"
                 required
@@ -202,7 +207,7 @@ export default function RegisterPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
               {confirmPassword && password !== confirmPassword && (
-                <p className="text-xs text-red-500">Les mots de passe ne correspondent pas</p>
+                <p id="password-mismatch" className="text-xs text-red-700">Les mots de passe ne correspondent pas</p>
               )}
             </div>
 
@@ -216,10 +221,10 @@ export default function RegisterPage() {
                 />
                 <span>
                   J’accepte les{' '}
-                  <Link href="/cgu" className="underline text-blue-600">conditions générales (CGU/CGV)</Link>{' '}
-                  et l’<Link href="/dpa" className="underline text-blue-600">accord de sous-traitance</Link>, et je reconnais
+                  <Link href="/cgu" target="_blank" rel="noopener noreferrer" className="underline text-[#a64829]">conditions générales (CGU/CGV)</Link>{' '}
+                  et l’<Link href="/dpa" target="_blank" rel="noopener noreferrer" className="underline text-[#a64829]">accord de sous-traitance</Link>, et je reconnais
                   avoir pris connaissance de la{' '}
-                  <Link href="/privacy" className="underline text-blue-600">politique de confidentialité</Link>.
+                  <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="underline text-[#a64829]">politique de confidentialité</Link>. <span className="text-gray-500">Ces liens s’ouvrent dans un nouvel onglet.</span>
                 </span>
               </label>
               <label className="flex items-start gap-2.5 text-xs text-gray-600 leading-relaxed">
@@ -238,12 +243,12 @@ export default function RegisterPage() {
 
           <p className="mt-6 text-center text-sm text-gray-500">
             Déjà un compte ?{' '}
-            <Link href="/auth/login" className="font-semibold text-blue-600 hover:underline">
+            <Link href="/auth/login" className="font-semibold text-[#a64829] hover:underline">
               Se connecter
             </Link>
           </p>
 
-          <div className="mt-6 flex items-center justify-center gap-4 text-xs text-gray-400">
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs text-gray-600">
             <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3 text-green-500" />Sans carte bancaire</span>
             <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3 text-green-500" />Sans engagement</span>
           </div>

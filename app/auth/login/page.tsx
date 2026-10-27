@@ -97,7 +97,7 @@ function LoginForm() {
                 </Label>
                 <Link
                   href="/auth/forgot-password"
-                  className="text-xs text-blue-600 hover:text-blue-700 hover:underline"
+                  className="text-xs text-[#a64829] hover:text-[#78351f] hover:underline"
                 >
                   Oublié ?
                 </Link>
@@ -110,13 +110,14 @@ function LoginForm() {
                   placeholder="••••••••"
                   required
                   autoComplete="current-password"
-                  className="h-11 pr-10"
+                  className="h-11 pr-12"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center text-gray-600 hover:text-[#182b40]"
                   aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                  aria-pressed={showPassword}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -126,7 +127,7 @@ function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-11 rounded-lg bg-brand-gradient disabled:opacity-60 text-white font-semibold text-sm transition-all hover:shadow-lg hover:shadow-brand-500/30 flex items-center justify-center gap-2"
+              className="w-full h-11 rounded-lg bg-[#182b40] disabled:opacity-60 text-white font-semibold text-sm transition-colors hover:bg-[#294059] flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
@@ -142,12 +143,12 @@ function LoginForm() {
           <p className="mt-4 text-center text-xs"><Link href="/auth/resend" className="text-brand-700 underline">Email de confirmation non reçu ?</Link></p>
           <p className="mt-6 text-center text-sm text-gray-500">
             Pas encore de compte ?{' '}
-            <Link href="/auth/register" className="font-semibold text-blue-600 hover:underline">
+            <Link href="/auth/register" className="font-semibold text-[#a64829] hover:underline">
               {CTA_LABEL}
             </Link>
           </p>
 
-          <div className="mt-6 flex items-center justify-center gap-4 text-xs text-gray-400">
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs text-gray-600">
             <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3 text-green-500" />Sans carte bancaire</span>
             <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3 text-green-500" />Sans engagement</span>
           </div>

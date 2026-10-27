@@ -1,6 +1,3 @@
-import { Bell, Search } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-
 interface HeaderProps {
   title: string
   description?: string
@@ -9,14 +6,12 @@ interface HeaderProps {
 
 export function Header({ title, description, actions }: HeaderProps) {
   return (
-    <header className="flex min-h-16 flex-col items-start justify-between gap-3 border-b bg-white px-4 py-4 sm:flex-row sm:items-center sm:px-6">
+    <header className="flex min-h-20 flex-col items-start justify-between gap-4 border-b border-[#e8e6e0] bg-[#fcfbf8] px-5 py-5 sm:flex-row sm:items-center sm:px-8">
       <div className="min-w-0">
-        <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
-        {description && <p className="text-sm text-gray-500">{description}</p>}
+        <h1 className="text-xl font-semibold tracking-[-.025em] text-[#182b40]">{title}</h1>
+        {description && <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[#576574]">{description}</p>}
       </div>
-      <div className="flex shrink-0 flex-wrap items-center gap-3">
-        {actions}
-      </div>
+      {actions && <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0 sm:justify-end">{actions}</div>}
     </header>
   )
 }
