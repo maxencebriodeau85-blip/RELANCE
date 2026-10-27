@@ -37,6 +37,12 @@ Chaque passage examine au plus 100 candidats et tente au plus 25 envois dans un 
 
 En cas d’arrêt brutal, le bail expire ; les réservations d’envoi protègent les messages déjà tentés. Ne jamais effacer leurs traces pour « débloquer » un envoi sans vérifier le statut chez Resend.
 
+## Emails de fin d'essai
+
+Chaque jour à 08:30 UTC, `GET /api/cron/trial-reminders` (même `CRON_SECRET` que les relances) prévient les comptes en essai dont l'adresse est confirmée : à J-7 (fin d'essai dans 2 à 7 jours) puis à J-1 (moins de 36 h). L'email rappelle ce que le client suit déjà (factures, reste dû, relances envoyées), le prix exact de l'offre et ce qui se passe sans abonnement. Chaque étape n'est envoyée qu'une fois par compte (`profiles.trial_reminder_7_sent_at`, `trial_reminder_1_sent_at`, réservés avant l'envoi). Un refus définitif de Resend libère la réservation ; une issue inconnue la garde, pour ne jamais envoyer deux fois. Sans configuration Resend complète, la route répond 503 et n'envoie rien. 40 comptes au plus par étape et par jour : au-delà, les suivants partent le lendemain.
+
+Pour renvoyer un email à un compte (après correction d'une adresse) : remettre la colonne correspondante à `null` dans `profiles`.
+
 ## Surveillance du worker de relances
 
 Les journaux Vercel Hobby ne sont conservés qu’une heure : un cron qui échoue chaque jour peut passer inaperçu. Lorsqu’un passage autorisé est bloqué, `/api/cron/reminders` répond toujours 503 mais inscrit désormais dans `collection_worker` la date (`last_attempt_at`) et la cause (`last_blocked_reason`) : `automation_not_configured` (variables Resend, service role ou `CRON_SECRET` absentes) ou `claim_failed` (réservation impossible en base). Cette trace est au mieux : sans `SUPABASE_SERVICE_ROLE_KEY`, rien ne peut être écrit. Une réservation réussie efface la cause. Un 401 (secret absent ou faux) n’ouvre aucune connexion et ne laisse donc aucune trace : c’est la sonde ci-dessous qui le révèle.
