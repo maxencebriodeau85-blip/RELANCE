@@ -23,7 +23,7 @@ Ce document est une **checklist de mise en production**, pas une attestation de 
 ## Bloquants — confiance et exploitation
 - [ ] Domaine et disponibilité de la marque Encair vérifiés ; URL canonique et TLS opérationnels.
 - [ ] Mentions légales, CGU, politique de confidentialité et accord de sous-traitance RGPD revus pour l'entité exploitante.
-- [ ] Durée de conservation, suppression de compte, export des données et demandes RGPD testés.
+- [ ] Durée de conservation, suppression de compte, export des données et demandes RGPD testés. *27/10/2026 : export en libre-service (tests `account-export`), suppression en cascade prouvée (bloc 3 de `recette-base.sql`), procédure et requête de conservation dans `scripts/ops/suppression-compte.sql`. Reste : un export réel depuis l'interface, connecté.*
 - [ ] Support opérationnel : adresse de contact, délai de réponse annoncé et procédure d'incident.
 - [ ] Surveillance des erreurs, sauvegardes, rotation des secrets et alerte en cas d'échec cron configurées.
 - [x] Aucun secret exposé au navigateur ou au dépôt ; audit des dépendances et analyse des risques documentés. *Preuve 27/10/2026 : `docs/SECURITE.md` (historique des 21 branches sans secret, faille critique Next.js corrigée en 15.5.28, test `security-config`).*

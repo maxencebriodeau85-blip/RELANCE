@@ -1,4 +1,5 @@
--- Recette de la base Encair : 41 contrôles du parcours client et des traitements serveur.
+-- Recette de la base Encair : 44 contrôles du parcours client, des traitements serveur
+-- et de la suppression d'un compte.
 --
 -- À lancer sur la base de RECETTE (encair-test) : Supabase > SQL Editor > Run,
 -- ou via l'outil execute_sql. Chaque bloc crée des comptes fictifs (@encair.test),
@@ -9,7 +10,7 @@
 -- Le résultat s'affiche donc comme une « erreur » commençant par RECETTE.
 -- Chaque ligne commence par OK ou KO. Une seule ligne KO bloque le lancement.
 -- Ne couvre pas : envoi réel Resend, Stripe, interface, routes HTTP (voir
--- COMMERCIAL_LAUNCH.md). Première exécution : 27 octobre 2026, 41/41 OK.
+-- COMMERCIAL_LAUNCH.md). Première exécution : 27 octobre 2026, 44/44 OK.
 
 -- ===== Bloc 1 : parcours client, isolement entre comptes, essai expiré (01-29)
 DO $recette$
@@ -206,3 +207,41 @@ BEGIN
  RAISE EXCEPTION 'RECETTE SERVEUR (tout est annulé)%', r;
 END
 $recette2$;
+
+-- ===== Bloc 3 : suppression d'un compte (RGPD) (S1-S3)
+-- Contient une suppression : Supabase demande une confirmation avant de l'exécuter.
+DO $suppr$
+DECLARE a uuid := gen_random_uuid(); keep uuid := gen_random_uuid(); inv uuid; ct uuid; k uuid; r text := E'\n'; n int; total int := 0; t text;
+BEGIN
+ insert into auth.users(id, instance_id, aud, role, email, email_confirmed_at, raw_user_meta_data, created_at, updated_at) values
+  (a,'00000000-0000-0000-0000-000000000000','authenticated','authenticated','supprime-moi@encair.test',now(),'{"company_name":"A supprimer"}',now(),now()),
+  (keep,'00000000-0000-0000-0000-000000000000','authenticated','authenticated','reste@encair.test',now(),'{"company_name":"Autre client"}',now(),now());
+ insert into public.invoices(user_id,client_name,client_email,invoice_number,amount,due_date) values(a,'Client','c@x.test','S-1',100,current_date) returning id into inv;
+ insert into public.invoices(user_id,client_name,client_email,invoice_number,amount,due_date) values(keep,'Client','c@x.test','K-1',100,current_date);
+ insert into public.reminders(invoice_id,user_id,type,channel,status) values(inv,a,'email_1','email','sent');
+ insert into public.notifications(user_id,type,title,body) values(a,'invoice_overdue','t','b');
+ insert into public.email_template_overrides(user_id,template_type,subject,body) values(a,'email_1','s','b');
+ insert into public.reminder_scenarios(user_id,name,steps) values(a,'Perso','[]');
+ insert into public.import_presets(user_id,name,headers,mapping) values(a,'Format','["a","b","c","d"]','{"client_name":"a","invoice_number":"b","amount":"c","due_date":"d"}');
+ insert into public.contacts(user_id,name) values(a,'Contact') returning id into ct;
+ insert into public.journal_entries(user_id,contact_id,type,content) values(a,ct,'note','x');
+ insert into public.integration_keys(user_id,name,key_hash,key_prefix,scopes) values(a,'Cle',repeat('a',64),'enc_','{invoices:read}') returning id into k;
+ insert into public.integration_requests(key_id,request_id,body_hash,response) values(k,'req-00001',repeat('b',64),'{}');
+ insert into public.invoice_external_refs(user_id,source,external_id,invoice_id) values(a,'test','e1',inv);
+
+ delete from auth.users where id = a;
+
+ for t in select unnest(array['profiles:id','invoices:user_id','reminders:user_id','notifications:user_id','email_template_overrides:user_id','reminder_scenarios:user_id','import_presets:user_id','contacts:user_id','journal_entries:user_id','contact_sequences:user_id','integration_keys:user_id','invoice_external_refs:user_id','integrations:user_id','api_keys:user_id']) loop
+  execute format('select count(*) from public.%I where %I = $1', split_part(t,':',1), split_part(t,':',2)) into n using a;
+  total := total + n;
+  if n > 0 then r := r || 'KO reste ' || n || ' ligne(s) dans ' || split_part(t,':',1) || E'\n'; end if;
+ end loop;
+ select count(*) into n from public.integration_requests where key_id = k; total := total + n;
+ r := r || case when total = 0 then 'OK ' else 'KO ' end || 'S1 Suppression du compte : plus aucune ligne dans les 15 tables du client (' || total || ')' || E'\n';
+ select count(*) into n from public.invoices where user_id = keep;
+ r := r || case when n = 1 then 'OK ' else 'KO ' end || 'S2 Les données d’un autre client restent intactes' || E'\n';
+ select count(*) into n from auth.identities where user_id = a;
+ r := r || case when n = 0 then 'OK ' else 'KO ' end || 'S3 Identités de connexion supprimées' || E'\n';
+ RAISE EXCEPTION 'RECETTE SUPPRESSION (tout est annulé)%', r;
+END
+$suppr$;
