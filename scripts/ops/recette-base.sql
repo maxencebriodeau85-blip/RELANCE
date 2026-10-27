@@ -1,5 +1,5 @@
--- Recette de la base Encair : 54 contrôles du parcours client, des traitements serveur,
--- de la suppression d'un compte et des factures d'exemple.
+-- Recette de la base Encair : 65 contrôles du parcours client, des traitements serveur,
+-- de la suppression d'un compte, des factures d'exemple et de l'API v1.
 --
 -- À lancer sur la base de RECETTE (encair-test) : Supabase > SQL Editor > Run,
 -- ou via l'outil execute_sql. Chaque bloc crée des comptes fictifs (@encair.test),
@@ -10,7 +10,7 @@
 -- Le résultat s'affiche donc comme une « erreur » commençant par RECETTE.
 -- Chaque ligne commence par OK ou KO. Une seule ligne KO bloque le lancement.
 -- Ne couvre pas : envoi réel Resend, Stripe, interface, routes HTTP (voir
--- COMMERCIAL_LAUNCH.md). Dernière exécution complète : 27 octobre 2026, 54/54 OK.
+-- COMMERCIAL_LAUNCH.md). Dernière exécution complète : 27 octobre 2026, 65/65 OK.
 
 -- ===== Bloc 1 : parcours client, isolement entre comptes, essai expiré (01-29)
 DO $recette$
@@ -298,3 +298,62 @@ BEGIN
  perform set_config('role','postgres',true);
  RAISE EXCEPTION 'RECETTE EXEMPLES (tout est annulé)%', r;
 END $exemples$;
+
+-- ===== Bloc 5 : API v1, deux clients et leurs clés (A1-A11)
+DO $api$
+DECLARE a uuid := gen_random_uuid(); b uuid := gen_random_uuid(); r text := E'\n'; j jsonb; n int;
+ ha text := repeat('a',64); hb text := repeat('b',64); hbw text := repeat('c',64); hr text := repeat('d',64); he text := repeat('e',64);
+ body text := repeat('1',64);
+ row_a jsonb := '[{"external_id":"ext-1","expected_updated_at":null,"invoice_number":"API-1","client_name":"Client A","client_email":"a@client.test","amount":500,"due_date":"2026-12-01"}]';
+BEGIN
+ insert into auth.users(id, instance_id, aud, role, email, email_confirmed_at, raw_user_meta_data, created_at, updated_at) values
+  (a,'00000000-0000-0000-0000-000000000000','authenticated','authenticated','api-a@encair.test',now(),'{}',now(),now()),
+  (b,'00000000-0000-0000-0000-000000000000','authenticated','authenticated','api-b@encair.test',now(),'{}',now(),now());
+ insert into public.integration_keys(user_id,name,key_hash,key_prefix,scopes) values
+  (a,'A complète',ha,'enc_a','{invoices:read,invoices:write}'),
+  (b,'B lecture',hb,'enc_b','{invoices:read}'),
+  (b,'B écriture',hbw,'enc_c','{invoices:read,invoices:write}');
+ insert into public.integration_keys(user_id,name,key_hash,key_prefix,scopes,revoked_at) values (a,'A révoquée',hr,'enc_d','{invoices:read}',now());
+ insert into public.integration_keys(user_id,name,key_hash,key_prefix,scopes,expires_at) values (a,'A expirée',he,'enc_e','{invoices:read}',now()-interval '1 day');
+ perform set_config('role','service_role',true);
+ j := public.integration_sync(ha,'req-a-0001',body,'logiciel',row_a);
+ r := r || case when (j->>'imported')::int=1 then 'OK ' else 'KO ' end || 'A1 La clé de A importe dans le compte de A' || E'\n';
+ j := public.integration_list(ha);
+ r := r || case when jsonb_array_length(j->'invoices')=1 then 'OK ' else 'KO ' end || 'A2 La clé de A liste ses factures (1)' || E'\n';
+ j := public.integration_list(hb);
+ r := r || case when jsonb_array_length(j->'invoices')=0 then 'OK ' else 'KO ' end || 'A3 La clé de B ne voit aucune facture de A' || E'\n';
+ begin
+  j := public.integration_sync(hb,'req-b-0001',body,'logiciel',row_a);
+  r := r || 'KO A4 Une clé en lecture seule a écrit' || E'\n';
+ exception when others then r := r || case when sqlerrm='SCOPE_REQUIRED' then 'OK ' else 'KO ' end || 'A4 Clé en lecture seule : écriture refusée' || E'\n'; end;
+ j := public.integration_sync(hbw,'req-b-0002',body,'logiciel',row_a);
+ select count(*) into n from public.invoices where invoice_number='API-1';
+ r := r || case when n=2 and (select count(*) from public.invoices where invoice_number='API-1' and user_id=a)=1 then 'OK ' else 'KO ' end || 'A5 Même référence chez B : créée chez B seulement, A intact' || E'\n';
+ begin
+  j := public.integration_list(hr);
+  r := r || 'KO A6 Clé révoquée acceptée' || E'\n';
+ exception when others then r := r || case when sqlerrm='INVALID_KEY' then 'OK ' else 'KO ' end || 'A6 Clé révoquée refusée' || E'\n'; end;
+ begin
+  j := public.integration_list(he);
+  r := r || 'KO A7 Clé expirée acceptée' || E'\n';
+ exception when others then r := r || case when sqlerrm='INVALID_KEY' then 'OK ' else 'KO ' end || 'A7 Clé expirée refusée' || E'\n'; end;
+ begin
+  j := public.integration_list(repeat('f',64));
+  r := r || 'KO A8 Clé inconnue acceptée' || E'\n';
+ exception when others then r := r || case when sqlerrm='INVALID_KEY' then 'OK ' else 'KO ' end || 'A8 Clé inconnue refusée' || E'\n'; end;
+ j := public.integration_sync(ha,'req-a-0001',body,'logiciel',row_a);
+ select count(*) into n from public.invoices where user_id=a;
+ r := r || case when (j->>'replayed')::boolean and n=1 then 'OK ' else 'KO ' end || 'A9 Requête rejouée : même réponse, aucun doublon' || E'\n';
+ begin
+  j := public.integration_sync(ha,'req-a-0001',repeat('2',64),'logiciel',row_a);
+  r := r || 'KO A10 Même identifiant de requête avec un autre contenu accepté' || E'\n';
+ exception when others then r := r || case when sqlerrm='IDEMPOTENCY_CONFLICT' then 'OK ' else 'KO ' end || 'A10 Même identifiant, autre contenu : refusé' || E'\n'; end;
+ perform set_config('role','postgres',true);
+ begin
+  perform set_config('role','authenticated',true);
+  j := public.integration_list(ha);
+  r := r || 'KO A11 Un navigateur connecté a appelé l’API serveur' || E'\n';
+ exception when others then r := r || 'OK A11 Fonctions de l’API réservées au serveur (' || sqlstate || ')' || E'\n'; end;
+ perform set_config('role','postgres',true);
+ RAISE EXCEPTION 'RECETTE API v1 (tout est annulé)%', r;
+END $api$;
