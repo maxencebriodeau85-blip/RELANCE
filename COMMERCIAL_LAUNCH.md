@@ -4,12 +4,12 @@ Ce document est une **checklist de mise en production**, pas une attestation de 
 
 ## Bloquants — produit et données
 - [ ] Sauvegarde Supabase restaurée avec succès sur un environnement isolé.
-- [ ] Migrations comparées avec l'historique distant, appliquées et testées en préproduction (ne jamais lancer `db push` aveuglément).
-- [ ] Deux comptes de test : aucune lecture ou écriture croisée possible (RLS, API et exports).
-- [ ] CSV français : doublons, références contradictoires, montants négatifs, email absent et réimport couverts.
-- [ ] Paiement partiel : email et mise en demeure affichent exclusivement le solde restant dû ; paiement intégral stoppe les envois.
+- [x] Migrations comparées avec l'historique distant, appliquées et testées en préproduction (ne jamais lancer `db push` aveuglément). *Preuve 27/10/2026 : encair-test à 29/29 migrations, structure identique à RECOUVREMENT (colonnes, règles d'accès, index, contraintes, déclencheurs et droits comparés par empreinte), recette `scripts/ops/recette-base.sql` 41/41.*
+- [ ] Deux comptes de test : aucune lecture ou écriture croisée possible (RLS, API et exports). *Base prouvée le 27/10/2026 (contrôles 21 à 27 de `recette-base.sql`) ; reste à tester les routes HTTP `/api/v1` et les exports.*
+- [x] CSV français : doublons, références contradictoires, montants négatifs, email absent et réimport couverts. *Preuve : contrôles 02 à 14 de `recette-base.sql` sur encair-test, lecture des fichiers couverte par les tests `invoice-import`.*
+- [x] Paiement partiel : email et mise en demeure affichent exclusivement le solde restant dû ; paiement intégral stoppe les envois. *Preuve : contrôles 04, 06, 16, 17 et 40 de `recette-base.sql`, tests `collection` et `reminder-service` (2 869,66 − 506,51 = 2 363,15 €).*
 - [ ] Litige, promesse, pause et changement de destinataire suspendent les relances comme prévu.
-- [ ] Réessais et webhooks Resend : aucun double envoi lors de requêtes concurrentes ou de réponses ambiguës.
+- [ ] Réessais et webhooks Resend : aucun double envoi lors de requêtes concurrentes ou de réponses ambiguës. *Base prouvée le 27/10/2026 (contrôles 32 à 38) ; reste un envoi réel signé Resend, qui attend le domaine.*
 - [ ] Cron et erreurs d'envoi surveillés ; procédure écrite pour traiter les envois `pending`.
 
 ## Bloquants — parcours client et paiement
