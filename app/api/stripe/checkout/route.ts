@@ -4,6 +4,8 @@ import { createCheckoutSession, createBillingPortalSession, stripe, STRIPE_PLANS
 import { getAppUrl } from '@/lib/app-url'
 import { syncCheckout } from '@/lib/billing-sync'
 
+const incompleteHistory = () => NextResponse.json({ error: 'Impossible de vérifier tout votre historique de facturation. Aucun nouvel abonnement n’a été créé. Contactez le support.' }, { status: 503, headers: { 'Cache-Control': 'no-store' } })
+
 export async function POST(request: Request) {
   if (!billingConfigured()) return NextResponse.json({ error: 'Les abonnements ne sont pas encore ouverts. Votre compte et votre essai restent accessibles.' }, { status: 503 })
   try {
@@ -38,10 +40,15 @@ export async function POST(request: Request) {
       const portal = await createBillingPortalSession({ customerId: customerId!, returnUrl: `${appUrl}/subscription` })
       return NextResponse.json({ url: portal.url })
     }
+    // A bounded first page is not evidence that no older subscription exists.
+    // Known subscriptions above remain manageable, but creation must fail closed.
+    if (subscriptions.has_more !== false) return incompleteHistory()
     const sessions = await stripe.checkout.sessions.list({ customer: customerId!, limit: 100 })
     const relevant = sessions.data.filter(item => item.mode === 'subscription' && item.metadata?.userId === user.id)
     const open = relevant.find(item => item.status === 'open' && item.url)
     if (open) return NextResponse.json({ url: open.url })
+    // Reusing a known open session is safe; creating another requires a complete history.
+    if (sessions.has_more !== false) return incompleteHistory()
     // A completed checkout may precede its webhook. Sync it before offering another.
     const latest = relevant[0]
     if (latest?.status === 'complete' && await syncCheckout(latest, user.id)) return NextResponse.json({ url: `${appUrl}/dashboard` })
