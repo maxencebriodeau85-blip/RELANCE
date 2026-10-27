@@ -1,5 +1,5 @@
--- Recette de la base Encair : 44 contrôles du parcours client, des traitements serveur
--- et de la suppression d'un compte.
+-- Recette de la base Encair : 54 contrôles du parcours client, des traitements serveur,
+-- de la suppression d'un compte et des factures d'exemple.
 --
 -- À lancer sur la base de RECETTE (encair-test) : Supabase > SQL Editor > Run,
 -- ou via l'outil execute_sql. Chaque bloc crée des comptes fictifs (@encair.test),
@@ -10,7 +10,7 @@
 -- Le résultat s'affiche donc comme une « erreur » commençant par RECETTE.
 -- Chaque ligne commence par OK ou KO. Une seule ligne KO bloque le lancement.
 -- Ne couvre pas : envoi réel Resend, Stripe, interface, routes HTTP (voir
--- COMMERCIAL_LAUNCH.md). Première exécution : 27 octobre 2026, 44/44 OK.
+-- COMMERCIAL_LAUNCH.md). Dernière exécution complète : 27 octobre 2026, 54/54 OK.
 
 -- ===== Bloc 1 : parcours client, isolement entre comptes, essai expiré (01-29)
 DO $recette$
@@ -245,3 +245,56 @@ BEGIN
  RAISE EXCEPTION 'RECETTE SUPPRESSION (tout est annulé)%', r;
 END
 $suppr$;
+
+-- ===== Bloc 4 : factures d'exemple (E1-E10)
+DO $exemples$
+DECLARE a uuid := gen_random_uuid(); b uuid := gen_random_uuid(); r text := E'\n'; n int; j jsonb; id1 uuid;
+BEGIN
+ insert into auth.users(id, instance_id, aud, role, email, email_confirmed_at, raw_user_meta_data, created_at, updated_at) values
+  (a,'00000000-0000-0000-0000-000000000000','authenticated','authenticated','exemples@encair.test',now(),'{}',now(),now()),
+  (b,'00000000-0000-0000-0000-000000000000','authenticated','authenticated','autre@encair.test',now(),'{}',now(),now());
+ perform set_config('request.jwt.claims', json_build_object('sub',a,'role','authenticated')::text, true);
+ perform set_config('role','authenticated',true);
+ j := public.create_sample_invoices();
+ select count(*) into n from public.invoices where is_sample;
+ r := r || case when n=5 then 'OK ' else 'KO ' end || 'E1 Cinq exemples créés par le client (sous RLS)' || E'\n';
+ j := public.collection_overview();
+ r := r || case when (j->>'invoice_count')::int=5 and (j->>'outstanding')::numeric>0 then 'OK ' else 'KO ' end || 'E2 Tableau de bord rempli : reste dû ' || (j->>'outstanding') || ' €, litige ' || (j->>'disputed') || ' €, promesses ' || (j->>'promise_count') || E'\n';
+ j := public.import_collection_invoices((select jsonb_agg(jsonb_build_object('invoice_number','R-'||g,'client_name','C','amount',100,'due_date','2026-12-01')) from generate_series(1,10) g));
+ r := r || case when (j->>'imported')::int=10 then 'OK ' else 'KO ' end || 'E3 Les exemples ne consomment pas le quota : 10 vraies factures importées' || E'\n';
+ perform set_config('role','postgres',true);
+ begin
+  perform set_config('role','authenticated',true);
+  insert into public.invoices(user_id,client_name,invoice_number,amount,due_date,is_sample) values(a,'X','HACK',10,'2026-12-01',true);
+  r := r || 'KO E4 Le client a fabriqué un exemple hors quota' || E'\n';
+ exception when others then r := r || 'OK E4 Un client ne peut pas fabriquer d’exemple (' || sqlerrm || ')' || E'\n'; end;
+ begin
+  perform set_config('role','authenticated',true);
+  update public.invoices set is_sample=true where invoice_number='R-1';
+  r := r || 'KO E5 Vraie facture transformée en exemple' || E'\n';
+ exception when others then r := r || 'OK E5 Une vraie facture ne peut pas devenir un exemple' || E'\n'; end;
+ select id into id1 from public.invoices where invoice_number='EXEMPLE-1' and user_id=a;
+ begin
+  perform set_config('role','service_role',true);
+  perform public.claim_collection_reminder(id1,a,'email_1','s','c');
+  r := r || 'KO E6 Relance réservée sur un exemple' || E'\n';
+ exception when others then r := r || case when sqlerrm like 'Facture d’exemple%' then 'OK ' else 'KO ' end || 'E6 Aucune relance serveur sur un exemple' || E'\n'; end;
+ perform set_config('role','service_role',true);
+ j := public.generate_collection_notifications(a);
+ r := r || case when (j->>'created')::int=0 then 'OK ' else 'KO ' end || 'E7 Aucune notification sur les exemples (' || (j->>'created') || ')' || E'\n';
+ perform set_config('role','postgres',true);
+ perform set_config('request.jwt.claims', json_build_object('sub',b,'role','authenticated')::text, true);
+ perform set_config('role','authenticated',true);
+ select count(*) into n from public.invoices where is_sample;
+ r := r || case when n=0 then 'OK ' else 'KO ' end || 'E8 Un autre compte ne voit pas ces exemples' || E'\n';
+ perform set_config('role','postgres',true);
+ perform set_config('request.jwt.claims', json_build_object('sub',a,'role','authenticated')::text, true);
+ perform set_config('role','authenticated',true);
+ delete from public.invoices where user_id=a and is_sample;
+ select count(*) into n from public.invoices where user_id=a and is_sample;
+ r := r || case when n=0 then 'OK ' else 'KO ' end || 'E9 Le client supprime ses exemples' || E'\n';
+ select count(*) into n from public.invoices where user_id=a and not is_sample;
+ r := r || case when n=10 then 'OK ' else 'KO ' end || 'E10 Ses vraies factures restent intactes (' || n || ')' || E'\n';
+ perform set_config('role','postgres',true);
+ RAISE EXCEPTION 'RECETTE EXEMPLES (tout est annulé)%', r;
+END $exemples$;

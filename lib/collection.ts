@@ -24,6 +24,8 @@ export function reminderBlock(
   invoice: Invoice,
   now = new Date(),
 ): string | null {
+  if (invoice.is_sample)
+    return 'Facture d’exemple : aucune relance n’est envoyée. Importez vos factures pour relancer vos clients.'
   const amount = Number(invoice.amount)
   const paid = Number(invoice.amount_paid ?? 0)
   if (

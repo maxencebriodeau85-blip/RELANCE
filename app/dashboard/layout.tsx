@@ -5,6 +5,7 @@ import { NotificationBell } from '@/components/dashboard/notification-bell'
 import { CommandPalette } from '@/components/dashboard/command-palette'
 import { Logo } from '@/components/brand/logo'
 import { PaymentFailedBanner } from '@/components/dashboard/payment-failed-banner'
+import { SampleInvoicesBanner } from '@/components/dashboard/sample-invoices'
 
 export default async function DashboardLayout({
   children,
@@ -34,6 +35,13 @@ export default async function DashboardLayout({
     throw new Error(
       'Votre espace est momentanément indisponible. Réessayez dans un instant.',
     )
+
+  // Exemples présents : rappel sur toutes les pages, échec de lecture sans conséquence.
+  const { count: sampleCount } = await supabase
+    .from('invoices')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .eq('is_sample', true)
 
   const expired =
     profile.plan === 'free_trial' &&
@@ -68,6 +76,7 @@ export default async function DashboardLayout({
           {['past_due', 'incomplete'].includes(profile.subscription_status ?? '') && (
             <PaymentFailedBanner />
           )}
+          {(sampleCount ?? 0) > 0 && <SampleInvoicesBanner count={sampleCount ?? 0} />}
           {expired && (
             <div
               role="status"
