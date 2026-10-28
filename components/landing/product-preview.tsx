@@ -127,8 +127,8 @@ export function ProductPreview() {
             </div>
             <span className="rf-eyebrow">Prochaine action</span>
             <h4>{invoice.name}</h4>
-            <p>{opened ? invoice.text : invoice.note}</p>
-            <button type="button" onClick={() => setOpened(!opened)}>
+            <p id="preview-action-detail">{opened ? invoice.text : invoice.note}</p>
+            <button type="button" aria-expanded={opened} aria-controls="preview-action-detail" onClick={() => setOpened(!opened)}>
               {opened ? 'Revenir au suivi' : invoice.action}
               {opened ? <Check size={15} /> : <ArrowUpRight size={15} />}
             </button>

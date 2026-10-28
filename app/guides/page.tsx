@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   },
 }
 import { SiteFooter } from '@/components/landing/footer'
-import { Logo } from '@/components/brand/logo'
+import { SiteNav } from '@/components/landing/site-nav'
 import { CTA_LABEL, TRIAL_LINE } from '@/lib/plans'
 import { PUBLISHER } from '@/lib/legal'
 
@@ -49,28 +49,18 @@ const categoryColors: Record<string, string> = {
 
 export default function GuidesPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="rf-site min-h-screen">
       {/* Header */}
-      <div className="bg-white border-b">
-        <div className="mx-auto max-w-5xl px-4 py-4 flex items-center justify-between">
-          <Logo size="sm" />
-          <Link
-            href="/auth/register"
-            className="rounded-lg bg-brand-gradient text-white text-sm font-semibold px-4 py-2 transition-all hover:shadow-md hover:scale-[1.02]"
-          >
-            {CTA_LABEL}
-          </Link>
-        </div>
-      </div>
+      <SiteNav />
 
-      <div className="mx-auto max-w-5xl px-4 py-12 space-y-10">
+      <main id="main-content" className="mx-auto max-w-6xl px-5 py-8 space-y-7">
         {/* Hero */}
-        <div className="text-center max-w-2xl mx-auto">
+        <div className="max-w-3xl">
           <div className="inline-flex items-center gap-2 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold px-4 py-1.5 mb-5">
             <Scale className="h-4 w-4" />
             Ressources juridiques gratuites
           </div>
-          <h1 className="text-4xl font-extrabold text-gray-900 mb-4">
+          <h1 className="text-3xl sm:text-4xl font-semibold text-gray-900 mb-4">
             Guides recouvrement & droit commercial
           </h1>
           <p className="text-gray-500 text-lg leading-relaxed">
@@ -81,14 +71,14 @@ export default function GuidesPage() {
         </div>
 
         {/* Lead magnet banner */}
-        <div className="rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-700 p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div className="rounded-2xl bg-[#182b40] p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-white/20">
             <Download className="h-6 w-6 text-white" />
           </div>
           <div className="flex-1">
-            <h3 className="font-bold text-white text-lg">5 modèles de relance gratuits</h3>
+            <h3 className="font-bold text-white text-lg">3 modèles de relance gratuits</h3>
             <p className="text-blue-200 text-sm mt-0.5">
-              Relance cordiale, ferme, pré-contentieuse, réponse à une contestation et mise en demeure : 5 modèles à copier et adapter.
+              Trois rappels amiables à copier et adapter au solde réel de votre facture.
             </p>
           </div>
           <Link
@@ -117,7 +107,7 @@ export default function GuidesPage() {
                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${categoryColors[guide.category] || 'bg-gray-100 text-gray-600'}`}>
                       {guide.category}
                     </span>
-                    <span className="flex items-center gap-1 text-xs text-gray-400">
+                    <span className="flex items-center gap-1 text-xs text-gray-500">
                       <Clock className="h-3 w-3" />
                       {guide.readTime}
                     </span>
@@ -130,7 +120,7 @@ export default function GuidesPage() {
                   <p className="text-xs text-gray-500 leading-relaxed line-clamp-3">{guide.desc}</p>
                 </div>
                 <div className="flex items-center justify-between pt-1 border-t border-gray-50">
-                  <span className="text-xs text-gray-400">Guide #{i + 1}</span>
+                  <span className="text-xs text-gray-500">Guide #{i + 1}</span>
                   {available ? (
                     <span className="flex items-center gap-1 text-xs font-semibold text-blue-600 group-hover:gap-1.5 transition-all">
                       Lire le guide
@@ -172,14 +162,14 @@ export default function GuidesPage() {
           </p>
           <Link
             href="/auth/register"
-            className="inline-flex items-center gap-2 rounded-xl bg-brand-gradient text-white font-bold px-6 py-3 transition-all hover:shadow-lg hover:shadow-brand-500/30"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#182b40] text-white font-bold px-6 py-3 transition-all hover:bg-[#294059]"
           >
             {CTA_LABEL}
             <ChevronRight className="h-4 w-4" />
           </Link>
-          <p className="text-xs text-gray-400 mt-3">{TRIAL_LINE}</p>
+          <p className="text-xs text-gray-500 mt-3">{TRIAL_LINE}</p>
         </div>
-      </div>
+      </main>
 
       <SiteFooter />
     </div>

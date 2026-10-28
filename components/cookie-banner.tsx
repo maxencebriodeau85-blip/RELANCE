@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { Cookie, X } from 'lucide-react'
+import { X } from 'lucide-react'
 
 const STORAGE_KEY = 'rf_cookie_consent_v1'
 
@@ -59,55 +59,30 @@ export function CookieBanner() {
   }
 
   return (
-    <div
-      role="dialog"
+    <aside
       aria-live="polite"
-      aria-label="Préférences cookies"
-      className="fixed bottom-4 left-4 right-4 sm:left-6 sm:right-auto sm:max-w-md z-[60] animate-in fade-in slide-in-from-bottom-4 duration-300"
+      aria-label="Cookies et vie privée"
+      className="fixed bottom-3 left-3 right-3 z-[60] mx-auto max-w-4xl rounded-xl border border-[#dce0e2] bg-white p-4 shadow-lg sm:flex sm:items-center sm:gap-5"
     >
-      <div className="rounded-2xl border border-gray-200 bg-white shadow-2xl p-4 relative">
-        <button
-          onClick={reject}
-          aria-label="Fermer"
-          className="absolute top-3 right-3 h-7 w-7 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-        >
-          <X className="h-4 w-4" />
-        </button>
-
-        <div className="flex items-start gap-3 mb-3 pr-6">
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
-            <Cookie className="h-4 w-4" />
-          </div>
-          <div>
-            <h2 className="text-sm font-semibold text-gray-900">Cookies &amp; vie privée</h2>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Encair n&apos;utilise qu&apos;un cookie nécessaire à la connexion. La mesure
-              d&apos;audience fonctionne sans cookie et sans données personnelles.
-            </p>
-          </div>
-        </div>
-
-        {/* Buttons side-by-side even on mobile to keep the banner compact so
-            it never covers a centered CTA (e.g. the login button). */}
-        <div className="flex flex-row gap-2 mt-3">
-          <button
-            onClick={accept}
-            className="flex-1 rounded-lg bg-brand-gradient text-white text-sm font-semibold px-4 py-2 transition-all hover:shadow-md"
-          >
-            Compris
-          </button>
-        </div>
-
-        <p className="text-[11px] text-gray-400 mt-3">
-          <Link href="/privacy" className="hover:text-gray-700 underline underline-offset-2">
-            Politique de confidentialité
-          </Link>
+      <div className="min-w-0 pr-8 sm:flex-1 sm:pr-0">
+        <p className="text-xs leading-relaxed text-[#526171]">
+          Encair n&apos;utilise qu&apos;un cookie nécessaire à la connexion. La mesure
+          d&apos;audience fonctionne sans cookie et sans données personnelles.
+        </p>
+        <p className="mt-1.5 text-[11px] text-[#526171]">
+          <Link href="/privacy" className="underline underline-offset-2">Politique de confidentialité</Link>
           {' · '}
-          <Link href="/mentions-legales" className="hover:text-gray-700 underline underline-offset-2">
-            Mentions légales
-          </Link>
+          <Link href="/mentions-legales" className="underline underline-offset-2">Mentions légales</Link>
         </p>
       </div>
-    </div>
+      <div className="mt-3 flex items-center justify-end gap-2 sm:mt-0 sm:shrink-0">
+        <button type="button" onClick={accept} className="min-h-10 rounded-lg bg-[#182b40] px-4 text-sm font-semibold text-white hover:bg-[#294059]">
+          Compris
+        </button>
+        <button type="button" onClick={reject} aria-label="Fermer l’information sur les cookies" className="absolute right-2 top-2 flex h-10 w-10 items-center justify-center rounded-lg text-[#526171] hover:bg-gray-100 sm:static">
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+    </aside>
   )
 }

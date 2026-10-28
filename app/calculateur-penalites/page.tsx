@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { Calculator, ChevronRight, Info, ListChecks } from 'lucide-react'
 import { SiteFooter } from '@/components/landing/footer'
-import { Logo } from '@/components/brand/logo'
+import { SiteNav } from '@/components/landing/site-nav'
 import { formatEuro } from '@/lib/metrics'
 import { CTA_LABEL } from '@/lib/plans'
 import {
@@ -52,29 +52,19 @@ export default function CalculateurPenalitesPage() {
   }, [amount, dueDate, rate, useContractRate])
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="rf-site min-h-screen">
       {/* Header */}
-      <div className="border-b border-gray-100 bg-white">
-        <div className="mx-auto max-w-3xl px-4 py-4 flex items-center justify-between">
-          <Logo size="sm" />
-          <Link
-            href="/auth/register"
-            className="rounded-lg bg-brand-gradient text-white text-sm font-semibold px-4 py-2 transition-all hover:shadow-md hover:scale-[1.02]"
-          >
-            {CTA_LABEL}
-          </Link>
-        </div>
-      </div>
+      <SiteNav />
 
-      <div className="mx-auto max-w-3xl px-4 py-12">
-        <div className="text-center mb-10">
-          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-gradient text-white mb-4 shadow-lg shadow-brand-500/30">
-            <Calculator className="h-7 w-7" />
+      <main id="main-content" className="mx-auto max-w-5xl px-5 py-8">
+        <div className="text-left mb-7">
+          <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#182b40] text-white mb-4">
+            <Calculator className="h-5 w-5" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3">
+          <h1 className="text-3xl sm:text-4xl font-semibold text-gray-900 mb-3">
             Calculateur de pénalités de retard
           </h1>
-          <p className="text-gray-600 max-w-xl mx-auto">
+          <p className="text-gray-600 max-w-2xl">
             Calculez les pénalités de retard et l&apos;indemnité forfaitaire de 40 € dues par un
             client professionnel sur une facture impayée (art. L441-10 du Code de commerce).
           </p>
@@ -86,10 +76,11 @@ export default function CalculateurPenalitesPage() {
             <h2 className="text-base font-bold text-gray-900 mb-4">Votre facture impayée</h2>
             <div className="space-y-4">
               <div>
-                <label className="text-xs font-semibold text-gray-700 mb-1.5 block">
+                <label htmlFor="penalty-amount" className="text-xs font-semibold text-gray-700 mb-1.5 block">
                   Montant TTC de la facture (€)
                 </label>
                 <input
+                  id="penalty-amount"
                   type="number"
                   min="0"
                   step="0.01"
@@ -99,10 +90,11 @@ export default function CalculateurPenalitesPage() {
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-gray-700 mb-1.5 block">
+                <label htmlFor="penalty-due-date" className="text-xs font-semibold text-gray-700 mb-1.5 block">
                   Date d&apos;échéance initiale
                 </label>
                 <input
+                  id="penalty-due-date"
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
@@ -140,12 +132,11 @@ export default function CalculateurPenalitesPage() {
           </div>
 
           {/* Result */}
-          <div className="md:col-span-2 rounded-2xl bg-brand-gradient text-white p-6 shadow-xl shadow-brand-500/30 relative overflow-hidden">
-            <div className="brand-orb bg-fuchsia-400/30 h-[200px] w-[200px] -bottom-10 -right-10" />
+          <div className="md:col-span-2 rounded-2xl bg-[#182b40] text-white p-6 relative overflow-hidden">
             <p className="text-xs uppercase tracking-wider text-blue-200 font-bold mb-4">
               Total dû par le débiteur
             </p>
-            <p className="text-4xl font-extrabold mb-1">{formatEuro(result.total)}</p>
+            <p className="text-3xl sm:text-4xl font-semibold mb-1">{formatEuro(result.total)}</p>
             <p className="text-xs text-blue-200 mb-6">
               {result.daysOverdue} jour{result.daysOverdue > 1 ? 's' : ''} de retard
             </p>
@@ -211,13 +202,13 @@ export default function CalculateurPenalitesPage() {
           </p>
           <Link
             href="/auth/register"
-            className="inline-flex items-center gap-2 rounded-xl bg-brand-gradient text-white font-bold px-6 py-3 transition-all hover:shadow-lg hover:shadow-brand-500/30"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#182b40] text-white font-bold px-6 py-3 transition-all hover:bg-[#294059]"
           >
             {CTA_LABEL}
             <ChevronRight className="h-4 w-4" />
           </Link>
         </div>
-      </div>
+      </main>
 
       <SiteFooter />
     </div>

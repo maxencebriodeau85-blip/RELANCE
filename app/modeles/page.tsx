@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { Mail, AlertTriangle, Info, ChevronRight, ClipboardCopy } from 'lucide-react'
-import { Logo } from '@/components/brand/logo'
+import { SiteNav } from '@/components/landing/site-nav'
 import { SiteFooter } from '@/components/landing/footer'
 import { CTA_LABEL, TRIAL_LINE } from '@/lib/plans'
 import { PUBLISHER } from '@/lib/legal'
@@ -28,28 +28,18 @@ const templates = REMINDER_TEMPLATES.map((template) => ({
 
 export default function ModelesPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="rf-site min-h-screen">
       {/* Header */}
-      <div className="bg-white border-b">
-        <div className="mx-auto max-w-5xl px-4 py-4 flex items-center justify-between">
-          <Logo size="sm" />
-          <Link
-            href="/auth/register"
-            className="rounded-lg bg-brand-gradient text-white text-sm font-semibold px-4 py-2 transition-all hover:shadow-md hover:scale-[1.02]"
-          >
-            {CTA_LABEL}
-          </Link>
-        </div>
-      </div>
+      <SiteNav />
 
-      <div className="mx-auto max-w-4xl px-4 py-12 space-y-8">
+      <main id="main-content" className="mx-auto max-w-5xl px-5 py-8 space-y-6">
         {/* Hero */}
-        <div className="text-center max-w-2xl mx-auto">
+        <div className="max-w-3xl">
           <div className="inline-flex items-center gap-2 rounded-full bg-green-100 text-green-700 text-sm font-semibold px-4 py-1.5 mb-5">
             <ClipboardCopy className="h-4 w-4" />
             3 modèles amiables à copier
           </div>
-          <h1 className="text-4xl font-extrabold text-gray-900 mb-4">
+          <h1 className="text-3xl sm:text-4xl font-semibold text-gray-900 mb-4">
             Modèles de lettres de relance
           </h1>
           <p className="text-gray-500 text-lg leading-relaxed">
@@ -59,7 +49,7 @@ export default function ModelesPage() {
         </div>
 
         {/* Automation upsell */}
-        <div className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-700 p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div className="rounded-2xl bg-[#182b40] p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="flex-1">
             <h3 className="font-bold text-white">
               Préparez vos relances email dans Encair
@@ -97,7 +87,7 @@ export default function ModelesPage() {
 
               {/* Subject */}
               <div className="px-6 py-3 border-b bg-blue-50/50">
-                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider mr-2">Objet :</span>
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider mr-2">Objet :</span>
                 <span className="text-sm text-gray-800 font-medium">{tpl.subject}</span>
               </div>
 
@@ -110,12 +100,12 @@ export default function ModelesPage() {
 
               {/* Footer */}
               <div className="px-6 py-3 border-t bg-gray-50 flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                <div className="flex items-center gap-1.5 text-xs text-gray-500">
                   <Info className="h-3.5 w-3.5 text-amber-500" />
                   À adapter — pénalités et 40 € : clients professionnels uniquement
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400">Variables entre {'{}'} à remplacer</span>
+                  <span className="text-xs text-gray-500">Variables entre {'{}'} à remplacer</span>
                 </div>
               </div>
             </div>
@@ -133,14 +123,14 @@ export default function ModelesPage() {
           </p>
           <Link
             href="/auth/register"
-            className="inline-flex items-center gap-2 rounded-xl bg-brand-gradient text-white font-bold px-6 py-3 transition-all hover:shadow-lg hover:shadow-brand-500/30"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#182b40] text-white font-bold px-6 py-3 transition-all hover:bg-[#294059]"
           >
             {CTA_LABEL}
             <ChevronRight className="h-4 w-4" />
           </Link>
-          <p className="text-xs text-gray-400 mt-3">{TRIAL_LINE}</p>
+          <p className="text-xs text-gray-500 mt-3">{TRIAL_LINE}</p>
         </div>
-      </div>
+      </main>
 
       <SiteFooter />
     </div>

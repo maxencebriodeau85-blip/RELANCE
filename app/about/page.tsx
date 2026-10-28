@@ -16,9 +16,9 @@ export default function About() {
   return (
     <div className="rf-site">
       <SiteNav />
-      <main id="main-content" className="rf-section max-w-3xl">
+      <main id="main-content" className="rf-section rf-about">
         <span className="rf-eyebrow">À PROPOS</span>
-        <h1 className="text-5xl font-medium tracking-tight">
+        <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight">
           Savoir qui relancer,
           <br />
           et quand.

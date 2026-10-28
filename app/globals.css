@@ -475,92 +475,151 @@ section[id] {
 @media(max-width:800px) { .rf-site .rf-hero { padding-top:56px; } }
 @media(max-width:560px) { .rf-site .rf-hero { padding-top:44px; padding-bottom:32px; } .rf-site .rf-hero h1 { font-size:clamp(36px, 10vw, 42px); letter-spacing:-1.8px; } .rf-site .rf-hero-copy > p { font-size:16px; } .rf-site .rf-hero-proof { line-height:1.5; } }
 
-/* Encair marketing: pair the promise with a usable, labelled product preview. */
+/* Encair marketing: compact layouts with readable content and useful previews. */
+.rf-home .rf-hero, .rf-home .rf-section, .rf-home .rf-principles,
+.rf-home .rf-control, .rf-site .rf-footer, .rf-home .rf-final { max-width:1280px; }
 .rf-site .rf-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-  align-items: center;
-  gap: clamp(36px, 5vw, 72px);
-  padding: clamp(64px, 8vw, 96px) 32px 56px;
+  display:grid;
+  grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);
+  align-items:center;
+  gap:clamp(28px,3vw,40px);
+  padding:36px 24px 28px;
 }
-.rf-site .rf-hero-copy { min-width: 0; }
-.rf-site .rf-hero h1 {
-  font-size: clamp(39px, 4.3vw, 60px);
-  letter-spacing: -0.055em;
-  line-height: 1.08;
+.rf-site .rf-hero-copy { min-width:0; }
+.rf-site .rf-launch { margin-bottom:18px; line-height:1.5; }
+.rf-site .rf-launch > span { flex:none; }
+.rf-site .rf-hero h1 { font-size:clamp(38px,4vw,54px); letter-spacing:-.055em; line-height:1.09; margin-bottom:18px; }
+.rf-site .rf-hero-copy > p { max-width:540px; font-size:16px; line-height:1.7; }
+.rf-site .rf-hero-actions { flex-wrap:wrap; gap:18px; margin:22px 0 16px; }
+.rf-site .rf-hero-proof { flex-wrap:wrap; gap:7px 20px; line-height:1.5; }
+.rf-site .rf-product-wrap { min-width:0; width:100%; padding:0; scroll-margin-top:84px; }
+.rf-site .rf-preview { border-radius:12px; border-color:#d5dbdf; box-shadow:0 12px 32px -24px rgba(24,43,64,.28); }
+.rf-site .rf-preview-top { gap:12px; padding:10px 16px; background:#fbfaf7; }
+.rf-site .rf-demo-label { color:#536170; border-color:#d8dfe4; font-size:10px; }
+.rf-site .rf-mini-brand { gap:8px; font-size:11px; }
+.rf-site .rf-mini-brand > span { width:26px; height:26px; }
+.rf-site .rf-preview-heading .rf-eyebrow, .rf-site .rf-next-action .rf-eyebrow { font-size:10px; letter-spacing:.09em; }
+.rf-site .rf-preview-body { padding:18px; }
+.rf-site .rf-preview-heading h3 { font-size:20px; }
+.rf-site .rf-demo-kpis { gap:8px; margin:16px 0; }
+.rf-site .rf-demo-kpis > div { min-width:0; padding:12px 10px; }
+.rf-site .rf-demo-kpis span { display:block; min-height:29px; color:#536170; font-size:11px; line-height:1.35; }
+.rf-site .rf-demo-kpis strong { margin:4px 0; font-size:clamp(22px,2vw,27px); white-space:nowrap; }
+.rf-site .rf-demo-kpis small { font-size:.65em; }
+.rf-site .rf-demo-kpis p { color:#536170; font-size:10px; line-height:1.4; }
+.rf-site .rf-demo-kpis > div:first-child span, .rf-site .rf-demo-kpis > div:first-child p { color:#d5e0ea; }
+.rf-site .rf-orange { color:#a74a28!important; }
+.rf-site .rf-demo-grid { grid-template-columns:minmax(0,1.4fr) minmax(0,1fr); gap:12px; align-items:start; }
+.rf-site .rf-table-title { padding:4px 0 8px; color:#33495d; }
+.rf-site .rf-invoice-row { min-height:56px; padding:8px; gap:8px; }
+.rf-site .rf-client-avatar { width:28px; height:28px; border-radius:7px; }
+.rf-site .rf-client-name { min-width:0; }
+.rf-site .rf-client-name small { color:#536170; font-size:10px; }
+.rf-site .rf-state { font-size:10px; }
+.rf-site .rf-next-action { position:relative; padding:14px; }
+.rf-site .rf-action-icon { float:none; width:30px; height:30px; margin:0 0 10px; }
+.rf-site .rf-next-action h4 { font-size:15px; font-weight:600; }
+.rf-site .rf-next-action p { margin:9px 0 12px; color:#675448; font-size:12px; line-height:1.55; overflow-wrap:anywhere; }
+.rf-site .rf-next-action button { min-height:42px; gap:8px; text-align:left; }
+.rf-site .rf-next-action button svg { flex:none; }
+.rf-site .rf-preview-foot { margin-top:12px; color:#586978; font-size:11px; line-height:1.45; }
+.rf-site .rf-principles { justify-content:space-between; padding:16px 24px 20px; border-bottom:1px solid #e0e1dd; color:#536170; font-size:12px; }
+.rf-site .rf-principles span { line-height:1.5; }
+.rf-site .rf-section { padding:52px 24px; }
+.rf-site .rf-section-heading { gap:28px; margin-bottom:22px; }
+.rf-site .rf-feature-grid { gap:24px; }
+.rf-site .rf-feature { padding:20px 8px 8px 0; }
+.rf-site .rf-feature > div { margin-bottom:18px; }
+.rf-site .rf-feature p { font-size:14px; line-height:1.7; }
+.rf-site .rf-control { gap:40px; padding:36px; width:calc(100% - 48px); }
+.rf-site .rf-control > div > p { margin:16px 0 20px; line-height:1.7; }
+.rf-site .rf-control-list > div { align-items:flex-start; padding:16px 0; }
+.rf-site .rf-control-list p { font-size:12px; line-height:1.55; }
+.rf-site .rf-control-list svg { flex:none; margin-top:3px; }
+.rf-site .rf-price-layout { display:block; }
+.rf-site .rf-price-intro { display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:end; margin-bottom:24px; }
+.rf-site .rf-price-intro .rf-lead { max-width:520px; margin:0 0 12px; line-height:1.7; }
+.rf-site .rf-price-card { display:grid; grid-template-columns:1fr 1fr; gap:40px; padding:28px 32px; box-shadow:3px 3px 0 #e9e2d5; }
+.rf-site .rf-price { margin-top:8px; line-height:1.15; }
+.rf-site .rf-price > span { color:#536170; }
+.rf-site .rf-price-offer > p { margin:8px 0; color:#536170; font-size:12px; line-height:1.6; max-width:440px; }
+.rf-site .rf-price-offer .rf-button { width:auto; margin-top:12px; }
+.rf-site .rf-price-inclusions { border-left:1px solid #e3e6e9; padding-left:32px; align-self:center; }
+.rf-site .rf-price-card ul { padding:0; border:0; margin:0 0 18px; gap:13px; }
+.rf-site .rf-price-card li { font-size:14px; line-height:1.5; }
+.rf-site .rf-note { color:#536170; }
+.rf-site .rf-founder { grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr); gap:40px; }
+.rf-site .rf-founder .rf-lead { max-width:none; margin:0; line-height:1.7; }
+.rf-site .rf-founder .rf-lead + .rf-lead { margin-top:14px; }
+.rf-site .rf-founder a { overflow-wrap:anywhere; text-decoration:underline; text-underline-offset:3px; }
+.rf-site .rf-questions { display:block; }
+.rf-site .rf-question-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:32px; align-items:start; margin-top:18px; }
+.rf-site .rf-faq details { padding:16px 0; }
+.rf-site .rf-faq summary { min-height:28px; align-items:center; line-height:1.5; }
+.rf-site .rf-faq summary:focus-visible { outline:3px solid #b9522d; outline-offset:4px; border-radius:3px; }
+.rf-site .rf-faq details[open] summary span { transform:rotate(45deg); }
+.rf-site .rf-faq summary span { display:inline-block; flex:none; transition:transform .15s ease; }
+.rf-site .rf-final { padding:44px 24px 48px; }
+.rf-site .rf-final .rf-button { margin-top:22px; }
+.rf-site .rf-footer { display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:28px; padding:24px; }
+.rf-site .rf-footer nav { flex-wrap:wrap; justify-content:flex-end; gap:12px 18px; line-height:1.5; }
+.rf-site .rf-footer p, .rf-site .rf-footer small { color:#536170; }
+.rf-site .rf-footer small { white-space:nowrap; }
+@media (max-width:1100px) and (min-width:901px) {
+  .rf-site .rf-client-avatar { display:none; }
 }
-.rf-site .rf-hero-copy > p { max-width: 520px; font-size: 16px; line-height: 1.75; }
-.rf-site .rf-hero-actions { margin-top: 28px; }
-.rf-site .rf-hero-proof { flex-wrap: wrap; gap: 10px 22px; line-height: 1.5; }
-.rf-site .rf-product-wrap { min-width: 0; width: 100%; padding: 0; scroll-margin-top: 90px; }
-.rf-site .rf-preview { border-radius: 12px; border-color: #d5dbdf; box-shadow: 0 20px 55px -32px rgba(24,43,64,.35); }
-.rf-site .rf-preview-top { padding: 13px 17px; background: #fbfaf7; }
-.rf-site .rf-demo-label { color: #536170; border-color: #d8dfe4; font-size: 11px; }
-.rf-site .rf-mini-brand { font-size: 12px; }
-.rf-site .rf-preview-heading .rf-eyebrow, .rf-site .rf-next-action .rf-eyebrow { font-size: 10px; letter-spacing: .09em; }
-.rf-site .rf-preview-body { padding: 21px; }
-.rf-site .rf-preview-heading h3 { font-size: 21px; }
-.rf-site .rf-demo-kpis { gap: 8px; margin: 20px 0; }
-.rf-site .rf-demo-kpis > div { min-width: 0; padding: 14px 12px; }
-.rf-site .rf-demo-kpis span { display: block; min-height: 29px; color: #536170; font-size: 12px; line-height: 1.35; }
-.rf-site .rf-demo-kpis strong { margin: 5px 0; font-size: clamp(21px, 2.1vw, 27px); white-space: nowrap; }
-.rf-site .rf-demo-kpis small { font-size: .65em; }
-.rf-site .rf-demo-kpis p { color: #536170; font-size: 11px; line-height: 1.4; }
-.rf-site .rf-demo-kpis > div:first-child span, .rf-site .rf-demo-kpis > div:first-child p { color: #d5e0ea; }
-.rf-site .rf-orange { color: #a74a28 !important; }
-.rf-site .rf-demo-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
-.rf-site .rf-table-title { padding-bottom: 8px; color: #33495d; }
-.rf-site .rf-invoice-row { min-height: 54px; padding: 9px 10px; }
-.rf-site .rf-client-name { min-width: 0; }
-.rf-site .rf-client-name small { color: #536170; font-size: 11px; }
-.rf-site .rf-state { font-size: 11px; }
-.rf-site .rf-next-action { position: relative; padding: 15px 16px; }
-.rf-site .rf-action-icon { float: left; margin: 0 12px 8px 0; }
-.rf-site .rf-next-action h4 { font-size: 15px; font-weight: 600; }
-.rf-site .rf-next-action p { clear: both; margin: 10px 0 13px; color: #675448; font-size: 12px; }
-.rf-site .rf-next-action button { min-height: 40px; }
-.rf-site .rf-preview-foot { margin-top: 14px; color: #586978; font-size: 12px; line-height: 1.45; }
-.rf-site .rf-principles { justify-content: space-between; padding: 22px 32px 28px; border-bottom: 1px solid #e0e1dd; color: #536170; font-size: 12px; }
-.rf-site .rf-principles span { line-height: 1.5; }
-.rf-site .rf-section { padding-top: 88px; padding-bottom: 88px; }
-.rf-site .rf-feature-grid { gap: 26px; }
-.rf-site .rf-feature > div { margin-bottom: 32px; }
-.rf-site .rf-feature p { font-size: 14px; line-height: 1.75; }
-.rf-site .rf-control { gap: 60px; }
-.rf-site .rf-control-list > div { align-items: flex-start; }
-.rf-site .rf-control-list p { font-size: 12px; line-height: 1.55; }
-.rf-site .rf-control-list svg { flex: none; margin-top: 3px; }
-.rf-site .rf-price-card { box-shadow: 6px 6px 0 #e9e2d5; }
-.rf-site .rf-price-card li { font-size: 13px; line-height: 1.5; }
-.rf-site .rf-faq summary { min-height: 28px; align-items: center; line-height: 1.5; }
-.rf-site .rf-faq details[open] summary span { transform: rotate(45deg); }
-.rf-site .rf-faq summary span { display: inline-block; flex: none; transition: transform .15s ease; }
-@media (max-width: 900px) {
-  .rf-site .rf-hero { grid-template-columns: 1fr; gap: 36px; padding: 56px 24px 32px; }
-  .rf-site .rf-hero-copy > p { max-width: 640px; }
-  .rf-site .rf-product-wrap { max-width: 640px; }
-  .rf-site .rf-demo-grid { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
-  .rf-site .rf-principles { justify-content: flex-start; padding: 20px 24px 28px; }
+@media (max-width:900px) {
+  .rf-site .rf-hero { grid-template-columns:1fr; gap:24px; padding:30px 24px 24px; }
+  .rf-site .rf-hero-copy { max-width:720px; }
+  .rf-site .rf-hero-copy > p { max-width:640px; }
+  .rf-site .rf-product-wrap { max-width:none; }
+  .rf-site .rf-principles { flex-wrap:wrap; justify-content:flex-start; padding:16px 24px; }
+  .rf-site .rf-control { gap:28px; padding:28px; margin:auto; }
+  .rf-site .rf-footer { grid-template-columns:1fr; gap:20px; }
+  .rf-site .rf-footer nav { justify-content:flex-start; }
 }
-@media (max-width: 560px) {
-  .rf-site .rf-hero { padding: 42px 20px 26px; gap: 30px; }
-  .rf-site .rf-hero h1 { font-size: clamp(34px, 9.8vw, 42px); letter-spacing: -.045em; }
-  .rf-site .rf-hero-copy > p { font-size: 15px; }
-  .rf-site .rf-hero-actions { align-items: flex-start; gap: 20px; }
-  .rf-site .rf-hero-proof { display: grid; gap: 7px; }
-  .rf-site .rf-preview-top { padding: 12px; }
-  .rf-site .rf-preview-body { padding: 16px 13px; }
-  .rf-site .rf-demo-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .rf-site .rf-demo-kpis > div { padding: 12px; }
-  .rf-site .rf-demo-kpis > div:first-child { grid-column: 1 / -1; }
-  .rf-site .rf-demo-kpis span { min-height: 0; font-size: 12px; }
-  .rf-site .rf-demo-kpis strong { font-size: 24px; letter-spacing: -.04em; }
-  .rf-site .rf-demo-kpis p { font-size: 11px; }
-  .rf-site .rf-demo-grid { grid-template-columns: 1fr; }
-  .rf-site .rf-principles { display: grid; justify-content: stretch; text-align: left; gap: 12px; padding: 18px 20px 26px; }
-  .rf-site .rf-section { padding: 64px 20px; }
-  .rf-site .rf-feature-grid { gap: 0; }
-  .rf-site .rf-feature > div { margin-bottom: 20px; }
-  .rf-site .rf-control { margin: 0 20px; gap: 24px; padding: 28px; }
+@media (max-width:640px) {
+  .rf-site .rf-price-intro, .rf-site .rf-price-card { grid-template-columns:1fr; gap:20px; }
+  .rf-site .rf-price-card { padding:24px; }
+  .rf-site .rf-price-inclusions { border-left:0; border-top:1px solid #e3e6e9; padding:20px 0 0; }
+  .rf-site .rf-price-offer .rf-button { width:100%; }
+  .rf-site .rf-question-grid { grid-template-columns:1fr; }
+  .rf-site .rf-founder { grid-template-columns:1fr; gap:20px; }
 }
-@media (prefers-reduced-motion: reduce) { .rf-site .rf-faq summary span { transition: none; } }
+@media (max-width:560px) {
+  .rf-site .rf-hero { padding:24px 20px; gap:24px; }
+  .rf-site .rf-hero h1 { font-size:clamp(34px,9.5vw,42px); letter-spacing:-.045em; }
+  .rf-site .rf-hero-copy > p { font-size:15px; }
+  .rf-site .rf-hero-actions { align-items:flex-start; gap:16px; }
+  .rf-site .rf-hero-proof { display:grid; gap:7px; }
+  .rf-site .rf-preview-top { padding:10px 12px; flex-wrap:wrap; }
+  .rf-site .rf-preview-body { padding:14px 12px; }
+  .rf-site .rf-demo-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:14px 0; }
+  .rf-site .rf-demo-kpis > div { padding:10px; }
+  .rf-site .rf-demo-kpis > div:first-child { grid-column:1/-1; display:grid; grid-template-columns:1fr auto; align-items:center; column-gap:10px; }
+  .rf-site .rf-demo-kpis > div:first-child strong { grid-column:2; grid-row:1/3; }
+  .rf-site .rf-demo-kpis span { min-height:0; font-size:12px; }
+  .rf-site .rf-demo-kpis strong { font-size:24px; letter-spacing:-.04em; }
+  .rf-site .rf-demo-kpis p { font-size:11px; }
+  .rf-site .rf-demo-grid { grid-template-columns:1fr; }
+  .rf-site .rf-action-icon { float:left; margin:0 10px 8px 0; }
+  .rf-site .rf-next-action p { clear:both; }
+  .rf-site .rf-principles { display:grid; justify-content:stretch; text-align:left; gap:10px; padding:14px 20px; }
+  .rf-site .rf-section { padding:36px 20px; }
+  .rf-site .rf-section-heading { margin-bottom:20px; }
+  .rf-site .rf-feature-grid { gap:0; }
+  .rf-site .rf-feature { padding:18px 0; }
+  .rf-site .rf-feature > div { margin-bottom:14px; }
+  .rf-site .rf-control { width:calc(100% - 40px); gap:20px; padding:24px; }
+  .rf-site .rf-final { padding:36px 20px; }
+}
+@media (prefers-reduced-motion:reduce) { .rf-site .rf-faq summary span { transition:none; } }
+
+/* Account forms stay close to their headings, with no forced viewport height. */
+.rf-auth-shell { display:flex; max-width:1100px; margin:24px auto; border:1px solid #e0e3e6; border-radius:14px; overflow:hidden; background:#fff; }
+@media (max-width:1150px) { .rf-auth-shell { margin:20px 24px; } }
+@media (max-width:1023px) { .rf-auth-shell { max-width:520px; margin:20px auto; } }
+@media (max-width:560px) { .rf-auth-shell { margin:12px; border-radius:10px; } }
+
+.rf-site .rf-about { max-width:900px; }
+.rf-site .rf-about .rf-lead { max-width:700px; }

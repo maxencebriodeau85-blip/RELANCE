@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { missingPublisherFields } from '@/lib/legal'
-import { Logo } from '@/components/brand/logo'
+import { SiteNav } from '@/components/landing/site-nav'
 
 export function LegalLayout({
   title,
@@ -12,26 +12,11 @@ export function LegalLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-white">
-      <header className="sticky top-0 z-50 border-b bg-white/95 backdrop-blur-sm">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Logo size="sm" />
-          <nav className="flex items-center gap-6 text-sm font-medium text-gray-600">
-            <Link href="/" className="hover:text-gray-900 transition-colors">
-              Accueil
-            </Link>
-            <Link
-              href="/auth/login"
-              className="hover:text-gray-900 transition-colors"
-            >
-              Se connecter
-            </Link>
-          </nav>
-        </div>
-      </header>
+    <div className="rf-site min-h-screen">
+      <SiteNav />
 
-      <main className="container mx-auto max-w-3xl px-4 py-16">
-        <div className="mb-12">
+      <main id="main-content" className="mx-auto max-w-3xl px-5 py-10">
+        <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-3">{title}</h1>
           <p className="text-sm text-gray-500">
             Dernière mise à jour : {lastUpdated}
@@ -51,7 +36,7 @@ export function LegalLayout({
         </article>
       </main>
 
-      <footer className="border-t bg-gray-50 py-8 mt-16">
+      <footer className="border-t bg-gray-50 py-6 mt-8">
         <div className="container mx-auto px-4 text-center text-sm text-gray-500">
           <p>© {new Date().getFullYear()} Encair</p>
           <div className="mt-2 flex flex-wrap justify-center gap-4">

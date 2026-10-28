@@ -4,6 +4,7 @@ import { ArrowLeft, Clock, Calendar, ChevronRight, BookOpen } from 'lucide-react
 import type { Metadata } from 'next'
 import { GUIDES } from '@/lib/guides-content'
 import { SiteFooter } from '@/components/landing/footer'
+import { SiteNav } from '@/components/landing/site-nav'
 import { CTA_LABEL } from '@/lib/plans'
 import { PUBLISHER } from '@/lib/legal'
 
@@ -61,35 +62,24 @@ export default async function GuideArticlePage({ params }: { params: Promise<{ s
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="rf-site min-h-screen">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
       />
 
-      {/* Header */}
-      <div className="border-b border-gray-100 bg-white">
-        <div className="mx-auto max-w-3xl px-4 py-4 flex items-center justify-between">
-          <Link
-            href="/guides"
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Tous les guides
-          </Link>
-          <Link
-            href="/auth/register"
-            className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 transition-colors"
-          >
-            {CTA_LABEL}
-          </Link>
-        </div>
+      <SiteNav />
+      <main id="main-content">
+      <div className="mx-auto max-w-3xl px-5 pt-6">
+        <Link href="/guides" className="inline-flex items-center gap-2 text-sm text-[#526171] hover:text-[#182b40]">
+          <ArrowLeft className="h-4 w-4" /> Tous les guides
+        </Link>
       </div>
 
-      <article className="mx-auto max-w-3xl px-4 py-12">
+      <article className="mx-auto max-w-3xl px-5 py-6">
         <aside className="mb-6 rounded border border-blue-100 bg-blue-50 p-4 text-sm">Ce guide donne des repères généraux ; il ne remplace pas l’examen de votre contrat et de votre situation. Encair assure le suivi amiable : il ne fournit ni acte juridique validé ni représentation en justice. Pour une procédure, vérifiez les règles et formulaires sur <a className="underline" href="https://entreprendre.service-public.gouv.fr/">Service Public</a>.</aside>
         {/* Article header */}
-        <div className="mb-10">
+        <div className="mb-7">
           <div className="flex items-center gap-3 text-xs text-gray-500 mb-4">
             <span className="rounded-full bg-blue-100 text-blue-700 font-semibold px-2.5 py-0.5">
               {guide.category}
@@ -185,8 +175,7 @@ export default async function GuideArticlePage({ params }: { params: Promise<{ s
         )}
 
         {/* CTA */}
-        <div className="rounded-2xl bg-brand-gradient text-white p-8 mt-12 text-center shadow-xl shadow-brand-500/30 relative overflow-hidden">
-          <div className="brand-orb bg-fuchsia-400/30 h-[200px] w-[200px] -bottom-10 -right-10" />
+        <div className="rounded-xl bg-[#182b40] text-white p-6 mt-8 text-center">
           <div className="relative">
             <h3 className="text-xl font-bold mb-2">Suivez vos impayés sans tableur</h3>
             <p className="text-white/80 text-sm mb-5">
@@ -203,6 +192,7 @@ export default async function GuideArticlePage({ params }: { params: Promise<{ s
           </div>
         </div>
       </article>
+      </main>
 
       <SiteFooter />
     </div>

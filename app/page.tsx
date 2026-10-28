@@ -56,7 +56,7 @@ const faq = [
 
 export default function HomePage() {
   return (
-    <div className="rf-site">
+    <div className="rf-site rf-home">
       <SiteNav />
       <main id="main-content">
         <section className="rf-hero">
@@ -196,7 +196,7 @@ export default function HomePage() {
           </div>
         </section>
         <PricingSection />
-        <section className="rf-section rf-faq" aria-labelledby="fondateur">
+        <section className="rf-section rf-faq rf-founder" aria-labelledby="fondateur">
           <div>
             <span className="rf-eyebrow">QUI EST DERRIÈRE</span>
             <h2 id="fondateur">
@@ -223,16 +223,12 @@ export default function HomePage() {
             </p>
           </div>
         </section>
-        <section id="faq" className="rf-section rf-faq">
+        <section id="faq" className="rf-section rf-faq rf-questions">
           <div>
             <span className="rf-eyebrow">EN TOUTE CLARTÉ</span>
-            <h2>
-              Avant de
-              <br />
-              vous lancer.
-            </h2>
+            <h2>Avant de vous lancer.</h2>
           </div>
-          <div>
+          <div className="rf-question-grid">
             {faq.map(([q, a]) => (
               <details key={q}>
                 <summary>

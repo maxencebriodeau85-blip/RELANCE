@@ -4,9 +4,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Mail, MessageCircle, Send, CheckCircle, AlertCircle } from 'lucide-react'
 import { SiteFooter } from '@/components/landing/footer'
-import { Logo } from '@/components/brand/logo'
+import { SiteNav } from '@/components/landing/site-nav'
 import { CONTACT_EMAIL } from '@/lib/legal'
-import { CTA_LABEL } from '@/lib/plans'
 
 export default function ContactPage() {
   const [form, setForm] = useState({
@@ -56,11 +55,11 @@ export default function ContactPage() {
 
   if (sent) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      <div className="rf-site min-h-screen">
         <div className="mx-auto max-w-md px-4 py-20">
           <div className="text-center bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
-            <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-green-600 mb-4">
-              <CheckCircle className="h-7 w-7" />
+            <div className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-green-100 text-green-600 mb-4">
+              <CheckCircle className="h-5 w-5" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Message envoyé !</h1>
             <p className="text-gray-600 text-sm mb-6">
@@ -68,7 +67,7 @@ export default function ContactPage() {
             </p>
             <Link
               href="/"
-              className="inline-flex items-center gap-2 rounded-xl bg-brand-gradient text-white font-semibold px-5 py-2.5 text-sm transition-all hover:shadow-lg hover:shadow-brand-500/30"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#182b40] text-white font-semibold px-5 py-2.5 text-sm transition-all hover:bg-[#294059]"
             >
               <ArrowLeft className="h-4 w-4" />
               Retour à l&apos;accueil
@@ -80,28 +79,18 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      <div className="border-b border-gray-100 bg-white">
-        <div className="mx-auto max-w-3xl px-4 py-4 flex items-center justify-between">
-          <Logo size="sm" />
-          <Link
-            href="/auth/register"
-            className="rounded-lg bg-brand-gradient text-white text-sm font-semibold px-4 py-2 transition-all hover:shadow-md hover:scale-[1.02]"
-          >
-            {CTA_LABEL}
-          </Link>
-        </div>
-      </div>
+    <div className="rf-site min-h-screen">
+      <SiteNav />
 
-      <div className="mx-auto max-w-3xl px-4 py-12">
-        <div className="text-center mb-10">
-          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-gradient text-white mb-4 shadow-lg shadow-brand-500/30">
-            <MessageCircle className="h-7 w-7" />
+      <main id="main-content" className="mx-auto max-w-5xl px-5 py-8">
+        <div className="text-left mb-7">
+          <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#182b40] text-white mb-4">
+            <MessageCircle className="h-5 w-5" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3">
+          <h1 className="text-3xl sm:text-4xl font-semibold text-gray-900 mb-3">
             Contact
           </h1>
-          <p className="text-gray-600 max-w-xl mx-auto">
+          <p className="text-gray-600 max-w-2xl">
             Une question sur l’import de vos factures, une suggestion ou un bug à signaler ?
             Votre message arrive directement au fondateur d’Encair.
           </p>
@@ -109,7 +98,7 @@ export default function ContactPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Form */}
-          <form onSubmit={handleSubmit} noValidate className="md:col-span-2 rounded-2xl bg-white border border-gray-200 p-6 shadow-sm space-y-4">
+          <form onSubmit={handleSubmit} noValidate aria-busy={sending} className="md:col-span-2 rounded-2xl bg-white border border-gray-200 p-6 shadow-sm space-y-4">
             {/* Honeypot — hidden from real users */}
             <input
               type="text"
@@ -124,10 +113,16 @@ export default function ContactPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-semibold text-gray-700 mb-1.5 block">
+                <label htmlFor="contact-name" className="text-xs font-semibold text-gray-700 mb-1.5 block">
                   Votre nom <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="contact-name"
+                  name="name"
+                  autoComplete="name"
+                  required
+                  aria-invalid={Boolean(errors.name)}
+                  aria-describedby={errors.name ? 'contact-name-error' : undefined}
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -136,13 +131,19 @@ export default function ContactPage() {
                   }`}
                   maxLength={100}
                 />
-                {errors.name && <p className="text-xs text-red-600 mt-1">{errors.name}</p>}
+                {errors.name && <p id="contact-name-error" role="alert" className="text-xs text-red-600 mt-1">{errors.name}</p>}
               </div>
               <div>
-                <label className="text-xs font-semibold text-gray-700 mb-1.5 block">
+                <label htmlFor="contact-email" className="text-xs font-semibold text-gray-700 mb-1.5 block">
                   Email <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="contact-email"
+                  name="email"
+                  autoComplete="email"
+                  required
+                  aria-invalid={Boolean(errors.email)}
+                  aria-describedby={errors.email ? 'contact-email-error' : undefined}
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -151,15 +152,17 @@ export default function ContactPage() {
                   }`}
                   maxLength={200}
                 />
-                {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email}</p>}
+                {errors.email && <p id="contact-email-error" role="alert" className="text-xs text-red-600 mt-1">{errors.email}</p>}
               </div>
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-gray-700 mb-1.5 block">
+              <label htmlFor="contact-subject" className="text-xs font-semibold text-gray-700 mb-1.5 block">
                 Objet
               </label>
               <input
+                id="contact-subject"
+                name="subject"
                 type="text"
                 value={form.subject}
                 onChange={(e) => setForm({ ...form, subject: e.target.value })}
@@ -170,10 +173,15 @@ export default function ContactPage() {
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-gray-700 mb-1.5 block">
+              <label htmlFor="contact-message" className="text-xs font-semibold text-gray-700 mb-1.5 block">
                 Message <span className="text-red-500">*</span>
               </label>
               <textarea
+                id="contact-message"
+                name="message"
+                required
+                aria-invalid={Boolean(errors.message)}
+                aria-describedby={errors.message ? 'contact-message-error contact-message-length' : 'contact-message-length'}
                 value={form.message}
                 onChange={(e) => setForm({ ...form, message: e.target.value })}
                 rows={6}
@@ -182,18 +190,18 @@ export default function ContactPage() {
                 }`}
                 maxLength={5000}
               />
-              {errors.message && <p className="text-xs text-red-600 mt-1">{errors.message}</p>}
-              <p className="text-[11px] text-gray-400 mt-1">{form.message.length} / 5000</p>
+              {errors.message && <p id="contact-message-error" role="alert" className="text-xs text-red-600 mt-1">{errors.message}</p>}
+              <p id="contact-message-length" className="text-[11px] text-gray-500 mt-1">{form.message.length} / 5000</p>
             </div>
 
             {globalError && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-3 flex items-start gap-2">
+              <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 flex items-start gap-2">
                 <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
                 <p className="text-xs text-red-700">{globalError}</p>
               </div>
             )}
 
-            <p className="text-[11px] text-gray-400">
+            <p className="text-[11px] text-gray-500">
               Vos nom, email et message servent uniquement à vous répondre et sont conservés
               3 ans après le dernier échange.{' '}
               <Link href="/privacy" className="underline">Politique de confidentialité</Link>
@@ -202,7 +210,7 @@ export default function ContactPage() {
             <button
               type="submit"
               disabled={sending}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-brand-gradient disabled:opacity-60 text-white font-semibold px-6 py-3 text-sm transition-all hover:shadow-lg hover:shadow-brand-500/30"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#182b40] disabled:opacity-60 text-white font-semibold px-6 py-3 text-sm transition-all hover:bg-[#294059]"
             >
               {sending ? (
                 'Envoi en cours…'
@@ -249,7 +257,7 @@ export default function ContactPage() {
             </div>
           </div>
         </div>
-      </div>
+      </main>
 
       <SiteFooter />
     </div>
