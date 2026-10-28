@@ -30,3 +30,19 @@ Après correctif : 0 faille critique, 1 haute non exploitable (zod) dans les dé
 | Fuite par le dépôt public | Aucun secret dans l'historique (voir plus haut) | Dépôt privé |
 | Perte de données | Sauvegarde quotidienne chiffrée et restaurée (workflows prêts) | Dépôt privé + secrets GitHub, puis premier passage réel ; Supabase Pro pour le PITR |
 | Script injecté dans les pages | CSP stricte sur les origines | Retirer `unsafe-inline`/`unsafe-eval` demande une recette dans le navigateur, connecté |
+
+## Page publique « Sécurité et données » (`/securite`)
+
+La page promet aux prospects des mesures précises. Chacune doit rester vraie : avant de modifier l'hébergement, l'authentification, les clés d'API, les limites de fréquence ou les envois, relire `app/securite/page.tsx` et la corriger dans la même PR (date `SECURITY_LAST_UPDATED` comprise).
+
+| Affirmation | Où c'est vérifié |
+| --- | --- |
+| Base dans l'UE (Stockholm), fonctions à Paris | Supabase `eu-north-1`, `vercel.json` (`cdg1`) |
+| Cloisonnement par compte, testé à chaque modification | RLS, `scripts/ops/recette-base.sql`, tests `invoice-pdf-route`, `integration-api-route`, CI `verify` |
+| HTTPS imposé, CSP, pas d'affichage en cadre | `next.config.js` (HSTS, CSP, `X-Frame-Options: DENY`) |
+| Mots de passe comparés aux fuites connues | `lib/password-security.ts` (inscription, réinitialisation) |
+| Clés d'API : empreinte SHA-256, expiration d'un an | `lib/integration-api.ts`, `/api-docs` |
+| Relance réservée une fois, clé d'idempotence | `claim_collection_reminder`, en-tête `Idempotency-Key` des envois Resend |
+| Export libre-service, suppression sous un mois | Paramètres > Vos données, `scripts/ops/suppression-compte.sql` |
+
+Ne jamais y ajouter de certification, de sauvegarde ou de chiffrement qui ne sont pas en place. Les signalements arrivent sur l'adresse publiée par `/.well-known/security.txt` (`NEXT_PUBLIC_CONTACT_EMAIL`).

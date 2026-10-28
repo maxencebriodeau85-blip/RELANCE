@@ -1,78 +1,41 @@
-import Link from 'next/link'
 import { missingPublisherFields } from '@/lib/legal'
-import { Logo } from '@/components/brand/logo'
+import { PublicPage } from '@/components/landing/public-page'
 
+/**
+ * Pages légales et documentation : même coque que le reste du site public,
+ * typographie de lecture (`rf-prose`) et liens soulignés.
+ */
 export function LegalLayout({
   title,
   lastUpdated,
+  eyebrow = 'Informations légales',
+  showPublisherNotice = true,
   children,
 }: {
   title: string
   lastUpdated: string
+  eyebrow?: string
+  showPublisherNotice?: boolean
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-white">
-      <header className="sticky top-0 z-50 border-b bg-white/95 backdrop-blur-sm">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Logo size="sm" />
-          <nav className="flex items-center gap-6 text-sm font-medium text-gray-600">
-            <Link href="/" className="hover:text-gray-900 transition-colors">
-              Accueil
-            </Link>
-            <Link
-              href="/auth/login"
-              className="hover:text-gray-900 transition-colors"
-            >
-              Se connecter
-            </Link>
-          </nav>
-        </div>
-      </header>
-
-      <main className="container mx-auto max-w-3xl px-4 py-16">
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">{title}</h1>
-          <p className="text-sm text-gray-500">
-            Dernière mise à jour : {lastUpdated}
-          </p>
-        </div>
-        <article className="legal-content space-y-4 text-gray-700 leading-relaxed [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-gray-900 [&_h2]:mt-10 [&_h2]:mb-4 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-gray-900 [&_h3]:mt-6 [&_h3]:mb-2 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:space-y-1 [&_strong]:text-gray-900 [&_a]:text-blue-600 [&_a:hover]:underline">
-          {missingPublisherFields().length > 0 && (
-            <p
-              role="note"
-              className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm"
-            >
+    <PublicPage>
+      <div className="rf-page rf-page-narrow">
+        <header className="rf-page-head rf-page-head-compact mb-10">
+          <span className="rf-eyebrow">{eyebrow}</span>
+          <h1>{title}</h1>
+          <p className="rf-meta">Dernière mise à jour : {lastUpdated}</p>
+        </header>
+        <article className="rf-prose">
+          {showPublisherNotice && missingPublisherFields().length > 0 && (
+            <p role="note">
               Les informations de l’éditeur sont en cours de finalisation. Elles
               doivent être complétées avant l’ouverture commerciale du service.
             </p>
           )}
           {children}
         </article>
-      </main>
-
-      <footer className="border-t bg-gray-50 py-8 mt-16">
-        <div className="container mx-auto px-4 text-center text-sm text-gray-500">
-          <p>© {new Date().getFullYear()} Encair</p>
-          <div className="mt-2 flex flex-wrap justify-center gap-4">
-            <Link href="/cgu" className="hover:text-gray-900">
-              CGU/CGV
-            </Link>
-            <Link href="/privacy" className="hover:text-gray-900">
-              Confidentialité
-            </Link>
-            <Link href="/dpa" className="hover:text-gray-900">
-              Sous-traitance
-            </Link>
-            <Link href="/mentions-legales" className="hover:text-gray-900">
-              Mentions légales
-            </Link>
-            <Link href="/contact" className="hover:text-gray-900">
-              Contact
-            </Link>
-          </div>
-        </div>
-      </footer>
-    </div>
+      </div>
+    </PublicPage>
   )
 }

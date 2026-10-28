@@ -68,15 +68,15 @@ export default function RegisterPage() {
 
   if (state?.success) {
     return (
-      <div className="min-h-screen flex">
-        <AuthSidePanel />
+      <main id="main-content" className="rf-auth-shell">
+        <AuthSidePanel compact />
         <div className="flex-1 flex items-center justify-center p-6 bg-white">
           <div className="w-full max-w-sm text-center space-y-5">
             <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Vérifiez votre email</h2>
+              <h1 className="text-2xl font-bold text-gray-900">Vérifiez votre email</h1>
               <p className="text-gray-500 mt-2 text-sm">
                 Un email de confirmation a été envoyé à{' '}
                 <strong className="text-gray-800">{state.email}</strong>. Cliquez sur le lien pour activer votre compte.
@@ -94,23 +94,22 @@ export default function RegisterPage() {
             </Link>
           </div>
         </div>
-      </div>
+      </main>
     )
   }
 
   return (
-    <div className="min-h-screen flex">
+    <main id="main-content" className="rf-auth-shell">
       <AuthSidePanel />
 
-      {/* Right — form (bottom clearance for the fixed cookie banner on mobile) */}
-      <div className="flex-1 flex items-center justify-center p-6 pb-28 sm:pb-6 bg-white overflow-y-auto">
-        <div className="w-full max-w-sm">
+      <div className="flex min-w-0 flex-1 items-start justify-center px-5 py-7 sm:p-8 lg:p-10">
+        <div className="w-full max-w-md">
           {/* Mobile logo */}
-          <div className="mb-8 lg:hidden">
+          <div className="mb-6 lg:hidden">
             <Logo size="sm" />
           </div>
 
-          <div className="mb-7">
+          <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900">Créer votre espace Encair</h1>
             <p className="text-gray-500 mt-1 text-sm">
               Essai {OFFER.trialDays} jours, jusqu’à {OFFER.trialInvoiceLimit} factures · Sans carte bancaire · Aucun prélèvement automatique
@@ -254,6 +253,6 @@ export default function RegisterPage() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   )
 }

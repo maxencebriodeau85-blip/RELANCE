@@ -46,20 +46,17 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex">
-      <AuthSidePanel />
+    <main id="main-content" className="rf-auth-shell">
+      <AuthSidePanel compact />
 
-      {/* Right — form. Extra bottom padding on mobile so the vertically
-          centered form clears the fixed cookie banner (which otherwise
-          covers the "Se connecter" button on short screens). */}
-      <div className="flex-1 flex items-center justify-center p-6 pb-28 sm:pb-6 bg-white overflow-y-auto">
-        <div className="w-full max-w-sm">
+      <div className="flex min-w-0 flex-1 items-start justify-center px-5 py-7 sm:p-8 lg:p-10">
+        <div className="w-full max-w-md">
           {/* Mobile logo */}
-          <div className="mb-8 lg:hidden">
+          <div className="mb-6 lg:hidden">
             <Logo size="sm" />
           </div>
 
-          <div className="mb-8">
+          <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900">Connexion</h1>
             <p className="text-gray-500 mt-1 text-sm">Accédez à votre espace Encair</p>
           </div>
@@ -154,7 +151,7 @@ function LoginForm() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   )
 }
 

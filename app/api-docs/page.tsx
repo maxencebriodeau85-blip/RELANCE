@@ -1,10 +1,21 @@
 import Link from 'next/link'
 import { LegalLayout } from '@/components/legal/legal-layout'
+import { pageMetadata } from '@/lib/seo'
+
+export const metadata = pageMetadata({
+  title: 'API — Connecter votre logiciel de facturation',
+  description:
+    'Documentation de l’API v1 d’Encair : clés d’accès, lecture des factures, import par lots idempotents, actualisation des règlements et gestion des erreurs.',
+  path: '/api-docs',
+})
+
 export default function ApiDocs() {
   return (
     <LegalLayout
       title="Connecter votre logiciel à Encair"
       lastUpdated="18 octobre 2026"
+      eyebrow="Documentation de l’API"
+      showPublisherNotice={false}
     >
       <p>
         L’API v1 permet de lire, importer et actualiser les factures en euros de
@@ -17,7 +28,7 @@ export default function ApiDocs() {
         <a href="/openapi.json" download>
           Télécharger la spécification OpenAPI
         </a>{' '}
-        · <Link href="/dashboard/integrations">Gérer mes clés</Link>
+        · <Link href="/dashboard/integrations" prefetch={false}>Gérer mes clés</Link>
       </p>
       <h2>1. Créer une clé</h2>
       <p>
@@ -27,11 +38,11 @@ export default function ApiDocs() {
         ou un dépôt public. Elle expire au bout d’un an et se révoque depuis le
         tableau de bord.
       </p>
-      <pre className="overflow-x-auto rounded bg-gray-100 p-4 text-sm">
+      <pre>
         {'Authorization: Bearer encair_VOTRE_CLE'}
       </pre>
       <h2>2. Lire les factures et leurs versions</h2>
-      <pre className="overflow-x-auto rounded bg-gray-100 p-4 text-sm">
+      <pre>
         {'GET /api/v1/invoices?limit=50'}
       </pre>
       <p>
@@ -48,7 +59,7 @@ export default function ApiDocs() {
         chaque nouvelle opération et identique lors d’un nouvel essai de la même
         opération.
       </p>
-      <pre className="overflow-x-auto rounded bg-gray-100 p-4 text-sm">{`POST /api/v1/invoices
+      <pre>{`POST /api/v1/invoices
 Idempotency-Key: import-2026-0001
 Content-Type: application/json
 

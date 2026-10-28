@@ -60,7 +60,7 @@ function ConfirmContent() {
           <AlertCircle className="h-7 w-7 text-amber-600" />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Le lien n&apos;a pas pu être validé ici</h2>
+          <h1 className="text-lg font-semibold text-gray-900">Le lien n&apos;a pas pu être validé ici</h1>
           <p className="text-sm text-gray-500 mt-1">{errorMsg}</p>
           <p className="text-xs text-gray-500 mt-2">
             Si vous avez déjà validé votre adresse, connectez-vous. Sinon, demandez un nouveau lien.
@@ -81,15 +81,15 @@ function ConfirmContent() {
 
   return (
     <div className="text-center space-y-3">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent mx-auto" />
-      <p className="text-sm text-blue-200">Vérification de votre adresse email…</p>
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#ea693a] border-t-transparent mx-auto" />
+      <p className="text-sm text-[#c3cfdc]">Vérification de votre adresse email…</p>
     </div>
   )
 }
 
 export default function ConfirmPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex flex-col items-center justify-center p-6">
+    <main id="main-content" tabIndex={-1} className="outline-none min-h-screen bg-[#182b40] flex flex-col items-center justify-center p-6">
       <div className="mb-10">
         <Logo variant="mono-white" size="md" />
       </div>
@@ -97,13 +97,13 @@ export default function ConfirmPage() {
       <Suspense
         fallback={
           <div className="text-center space-y-3">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent mx-auto" />
-            <p className="text-sm text-blue-200">Chargement…</p>
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#ea693a] border-t-transparent mx-auto" />
+            <p className="text-sm text-[#c3cfdc]">Chargement…</p>
           </div>
         }
       >
         <ConfirmContent />
       </Suspense>
-    </div>
+    </main>
   )
 }

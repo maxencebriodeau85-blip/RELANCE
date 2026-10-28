@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createClient } from '@/lib/supabase/client'
 import { Logo } from '@/components/brand/logo'
@@ -70,18 +70,18 @@ export default function ResetPasswordPage() {
 
   if (mode === 'loading') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4 pb-28 sm:pb-4 overflow-y-auto">
+      <main id="main-content" tabIndex={-1} className="outline-none min-h-screen bg-[#f7f4ed] flex items-center justify-center p-4 pb-28 sm:pb-4 overflow-y-auto">
         <div className="text-center space-y-3">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent mx-auto" />
           <p className="text-sm text-gray-500">Vérification du lien…</p>
         </div>
-      </div>
+      </main>
     )
   }
 
   if (mode === 'error') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4 pb-28 sm:pb-4 overflow-y-auto">
+      <main id="main-content" tabIndex={-1} className="outline-none min-h-screen bg-[#f7f4ed] flex items-center justify-center p-4 pb-28 sm:pb-4 overflow-y-auto">
         <div className="w-full max-w-md">
           <Card>
             <CardContent className="pt-8 pb-8 text-center space-y-4">
@@ -89,7 +89,7 @@ export default function ResetPasswordPage() {
                 <AlertCircle className="h-8 w-8 text-red-600" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold">Lien expiré ou invalide</h2>
+                <h1 className="text-xl font-semibold">Lien expiré ou invalide</h1>
                 <p className="text-gray-500 mt-2 text-sm">
                   Ce lien de réinitialisation n&apos;est plus valide. Demandez un nouveau lien pour continuer.
                 </p>
@@ -100,12 +100,12 @@ export default function ResetPasswordPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
+      </main>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4 pb-28 sm:pb-4 overflow-y-auto">
+    <main id="main-content" tabIndex={-1} className="outline-none min-h-screen bg-[#f7f4ed] flex items-center justify-center p-4 pb-28 sm:pb-4 overflow-y-auto">
       <div className="w-full max-w-md">
         <div className="flex items-center justify-center mb-8">
           <Logo size="md" />
@@ -113,7 +113,7 @@ export default function ResetPasswordPage() {
 
         <Card>
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold">Nouveau mot de passe</CardTitle>
+            <h1 className="text-2xl font-bold leading-none tracking-tight">Nouveau mot de passe</h1>
             <CardDescription>
               Choisissez un nouveau mot de passe pour votre compte
             </CardDescription>
@@ -175,6 +175,6 @@ export default function ResetPasswordPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </main>
   )
 }

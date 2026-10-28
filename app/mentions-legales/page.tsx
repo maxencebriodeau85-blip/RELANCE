@@ -1,13 +1,14 @@
-import type { Metadata } from 'next'
+import { pageMetadata } from '@/lib/seo'
 import { LegalLayout } from '@/components/legal/legal-layout'
 import { LegalField } from '@/components/legal/legal-field'
 import { CONTACT_EMAIL, HOST, LEGAL_LAST_UPDATED, PUBLISHER, VAT_MENTION } from '@/lib/legal'
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: 'Mentions légales',
-  description: 'Éditeur, directeur de la publication et hébergeur du site Encair.',
-  alternates: { canonical: '/mentions-legales' },
-}
+  description:
+    'Mentions légales du site Encair : éditeur, directeur de la publication, hébergeur du site et de la base de données, propriété intellectuelle et données personnelles.',
+  path: '/mentions-legales',
+})
 
 export default function LegalPage() {
   return (

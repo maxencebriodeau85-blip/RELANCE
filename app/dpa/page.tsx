@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import { pageMetadata } from '@/lib/seo'
 import { LegalLayout } from '@/components/legal/legal-layout'
 import { ContactLink } from '@/components/legal/legal-field'
 import {
@@ -8,12 +8,12 @@ import {
   SUBPROCESSORS,
 } from '@/lib/legal'
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: 'Accord de sous-traitance des données',
   description:
     'Engagements d’Encair, sous-traitant au sens de l’article 28 du RGPD, pour les données des débiteurs importées par ses clients.',
-  alternates: { canonical: '/dpa' },
-}
+  path: '/dpa',
+})
 
 export default function DpaPage() {
   return (

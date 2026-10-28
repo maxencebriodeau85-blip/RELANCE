@@ -15,14 +15,14 @@ export interface GuideContent {
 export const GUIDES: GuideContent[] = [
   {
     slug: 'mise-en-demeure-guide-complet',
-    title: 'Mise en demeure : modèle, délais et effets juridiques — guide complet 2026',
-    metaTitle: 'Mise en demeure : modèle légal et délais 2026',
+    title: 'Mise en demeure : contenu, délais et effets juridiques — guide complet 2026',
+    metaTitle: 'Mise en demeure : contenu, délais et effets en 2026',
     metaDescription:
       "Tout sur la mise en demeure d'un client : forme (art. 1344 C. civ.), délai à accorder, effets juridiques réels, structure type et erreurs à éviter.",
     category: 'Procédure',
     readTime: '8 min',
     publishedAt: '2026-05-12',
-    updatedAt: '2026-10-13',
+    updatedAt: '2026-10-28',
     intro:
       "La mise en demeure est l'acte qui marque la fin du recouvrement amiable et prépare, si besoin, une procédure judiciaire. Contrairement à une simple relance, elle produit des effets de droit : elle constitue le débiteur en retard, fait courir les intérêts au taux légal et prouve que vous avez réclamé votre dû. Voici comment la rédiger et ce qu'elle change vraiment.",
     sections: [
@@ -49,7 +49,7 @@ export const GUIDES: GuideContent[] = [
         heading: 'Forme et envoi : email ou lettre recommandée ?',
         paragraphs: [
           "La loi n'impose aucune forme particulière. Un email peut suffire, mais la lettre recommandée avec accusé de réception (papier ou électronique) reste la preuve la plus solide devant un tribunal. Dans la pratique : envoyez d'abord par email pour la rapidité, puis doublez par recommandé si la créance dépasse quelques milliers d'euros.",
-          "Vous trouverez un modèle à adapter dans nos modèles de relance (page Modèles), à envoyer de préférence en recommandé.",
+          "Les relances amiables qui la précèdent sont proposées sur la page Modèles. La mise en demeure elle-même n'y figure pas : rédigez-la à partir des éléments ci-dessous, faites-la relire si l'enjeu est important et envoyez-la de préférence en recommandé.",
         ],
       },
       {
@@ -515,7 +515,7 @@ export const GUIDES: GuideContent[] = [
     category: 'Pratique',
     readTime: '5 min',
     publishedAt: '2026-03-10',
-    updatedAt: '2026-10-13',
+    updatedAt: '2026-10-28',
     intro:
       "Trop doux, vous passez pour le banquier gratuit du client. Trop agressif, vous perdez le contrat pour 800 € de retard. Le protocole progressif — utilisé par les credit managers depuis des décennies — trouve le point d'équilibre : fermeté croissante, pied de porte permanent, chaque étape justifiée par l'échec de la précédente. Voici les 4 palettes.",
     sections: [
@@ -548,7 +548,7 @@ export const GUIDES: GuideContent[] = [
         paragraphs: [
           "Objectif : formaliser votre demande. La mise en demeure fait courir les intérêts au taux légal (art. 1344-1 C. civ.) et prouve devant le juge que vous avez réclamé votre dû.",
           "Forme : email + doublage par lettre recommandée avec accusé de réception (LRAR). Le recommandé n'est pas obligatoire mais renforce considérablement votre dossier.",
-          "Contenu : citer explicitement « MISE EN DEMEURE » et l'article 1344 du Code civil. Voir le guide dédié pour le modèle exact.",
+          "Contenu : citer explicitement « MISE EN DEMEURE » et l'article 1344 du Code civil. Le guide dédié détaille les éléments à y faire figurer.",
           "À ce stade, si le client ne répond pas ou refuse, le passage au contentieux est justifié et documenté.",
         ],
       },

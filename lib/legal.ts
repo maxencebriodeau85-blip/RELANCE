@@ -19,9 +19,16 @@
 
 /** Version des CGU/CGV — à incrémenter à chaque modification substantielle. */
 export const TERMS_VERSION = '2026-10-18'
-export const LEGAL_LAST_UPDATED = '18 octobre 2026'
+
+const frenchDate = (iso: string) =>
+  new Date(`${iso}T12:00:00Z`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' })
+
+/** Dates de mise à jour (ISO pour le plan du site, texte pour les pages). */
+export const LEGAL_LAST_UPDATED_ISO = '2026-10-18'
+export const LEGAL_LAST_UPDATED = frenchDate(LEGAL_LAST_UPDATED_ISO)
 /** Politique de confidentialité : export en libre-service et délai de suppression. */
-export const PRIVACY_LAST_UPDATED = '27 octobre 2026'
+export const PRIVACY_LAST_UPDATED_ISO = '2026-10-27'
+export const PRIVACY_LAST_UPDATED = frenchDate(PRIVACY_LAST_UPDATED_ISO)
 
 const env = (key: string): string | null => {
   const v = process.env[key]?.trim()

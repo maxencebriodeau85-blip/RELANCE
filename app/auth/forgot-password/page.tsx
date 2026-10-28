@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createClient } from '@/lib/supabase/client'
 import { Logo } from '@/components/brand/logo'
@@ -73,7 +73,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4 pb-28 sm:pb-4 overflow-y-auto">
+    <main id="main-content" tabIndex={-1} className="outline-none min-h-screen bg-[#f7f4ed] flex items-center justify-center p-4 pb-28 sm:pb-4 overflow-y-auto">
       <div className="w-full max-w-md">
         <div className="flex items-center justify-center mb-8">
           <Logo size="md" />
@@ -86,7 +86,7 @@ export default function ForgotPasswordPage() {
                 <CheckCircle className="h-8 w-8 text-green-600" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold">Email envoyé</h2>
+                <h1 className="text-xl font-semibold">Email envoyé</h1>
                 <p className="text-gray-500 mt-2 text-sm">
                   Si un compte existe pour <strong>{email}</strong>, un lien de réinitialisation vous sera envoyé. Vérifiez votre boîte de réception (et vos spams).
                 </p>
@@ -103,7 +103,7 @@ export default function ForgotPasswordPage() {
         ) : (
           <Card>
             <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl font-bold">Mot de passe oublié</CardTitle>
+              <h1 className="text-2xl font-bold leading-none tracking-tight">Mot de passe oublié</h1>
               <CardDescription>
                 Entrez votre email pour recevoir un lien de réinitialisation
               </CardDescription>
@@ -151,6 +151,6 @@ export default function ForgotPasswordPage() {
           </Card>
         )}
       </div>
-    </div>
+    </main>
   )
 }

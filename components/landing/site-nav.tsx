@@ -19,8 +19,9 @@ export function SiteNav() {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const menuTrigger = useRef<HTMLButtonElement>(null)
+  const navigation = useRef<HTMLElement>(null)
 
-  // Elevate the nav (shadow + stronger blur) once the page scrolls.
+  // Keep a visible separator once the page scrolls.
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
     onScroll()
@@ -31,7 +32,7 @@ export function SiteNav() {
   // Close menu on resize to desktop
   useEffect(() => {
     const onResize = () => {
-      if (window.innerWidth >= 1024) setOpen(false)
+      if (window.innerWidth >= 1280) setOpen(false)
     }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
@@ -50,17 +51,21 @@ export function SiteNav() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [open])
 
-  // Lock body scroll when menu open
+  // This is a disclosure, not a modal: keep the page scrollable and dismiss
+  // the menu when someone interacts outside the navigation.
   useEffect(() => {
-    if (open) {
-      const prev = document.body.style.overflow
-      document.body.style.overflow = 'hidden'
-      return () => { document.body.style.overflow = prev }
+    if (!open) return
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.target instanceof Node && !navigation.current?.contains(event.target)) setOpen(false)
     }
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => document.removeEventListener('pointerdown', onPointerDown)
   }, [open])
 
   return (
-    <nav className={`sticky top-0 z-50 border-b transition-colors duration-200 ${
+    <nav ref={navigation} aria-label="Navigation principale" onBlur={(event) => {
+      if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false)
+    }} className={`sticky top-0 z-50 border-b transition-colors duration-200 ${
       scrolled
         ? 'border-[#e1ded7] bg-[#f7f4ed]'
         : 'border-transparent bg-[#f7f4ed]'
@@ -69,7 +74,7 @@ export function SiteNav() {
         <Logo size="sm" />
 
         {/* Desktop links */}
-        <div className="hidden lg:flex items-center gap-6 text-sm text-gray-600">
+        <div className="hidden xl:flex items-center gap-5 text-sm text-gray-600">
           {LINKS.map((l) => (
             <Link key={l.href} href={l.href} className="hover:text-gray-900 transition-colors">
               {l.label}
@@ -78,7 +83,7 @@ export function SiteNav() {
         </div>
 
         {/* Desktop CTAs */}
-        <div className="hidden lg:flex items-center gap-2">
+        <div className="hidden xl:flex items-center gap-2">
           <Link
             href="/auth/login"
             className="text-sm font-medium text-gray-600 hover:text-gray-900 px-3 py-1.5 transition-colors"
@@ -93,22 +98,28 @@ export function SiteNav() {
           </Link>
         </div>
 
-        {/* Mobile burger */}
+        <div className="flex items-center gap-2 xl:hidden">
+          <Link href="/auth/register" aria-label={CTA_LABEL} className="inline-flex min-h-10 items-center rounded-lg bg-[#182b40] px-3 text-sm font-semibold text-white hover:bg-[#294059]">
+            Essayer<span className="hidden sm:inline">&nbsp;gratuitement</span>
+          </Link>
+        {/* Mobile menu trigger */}
         <button
+          type="button"
           ref={menuTrigger}
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? 'Fermer le menu' : 'Ouvrir le menu'}
           aria-expanded={open}
           aria-controls={open ? "mobile-navigation" : undefined}
-          className="lg:hidden flex h-9 w-9 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+          className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
         >
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
+        </div>
       </div>
 
       {/* Mobile sheet */}
       {open && (
-        <div id="mobile-navigation" className="lg:hidden absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto bg-white border-b shadow-lg">
+        <div id="mobile-navigation" className="xl:hidden absolute inset-x-0 top-full max-h-[calc(100dvh-5rem)] overflow-y-auto bg-white border-b shadow-lg">
           <div className="px-4 py-4 space-y-1">
             {LINKS.map((l) => (
               <Link

@@ -1,5 +1,6 @@
 import { getAppUrl } from '@/lib/app-url'
-import { OFFER } from '@/lib/plans'
+import { organizationJsonLd, softwareJsonLd, websiteJsonLd } from '@/lib/seo'
+import { JsonLd } from '@/components/seo/json-ld'
 import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 import './globals.css'
@@ -48,10 +49,9 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'fr_FR',
   },
+  // Titre, description et image : X reprend ceux d'Open Graph de chaque page.
   twitter: {
     card: 'summary_large_image',
-    title: TITLE,
-    description: DESCRIPTION,
   },
   robots: {
     index: process.env.VERCEL_ENV !== 'preview',
@@ -70,36 +70,10 @@ export const metadata: Metadata = {
   manifest: '/manifest.webmanifest',
 }
 
-// JSON-LD SoftwareApplication.
-// NOTE: aggregateRating intentionally absent — we don't have a real measured
-// rating yet. Putting "4.8 / 30 reviews" would be invented data; Google's
-// structured-data guidelines forbid that and it sabotages credibility.
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'SoftwareApplication',
-  name: 'Encair',
-  applicationCategory: 'BusinessApplication',
-  operatingSystem: 'Web',
-  description:
-    "Suivi des impayés, import CSV et relances email pour les petites entreprises.",
-  url: SITE_URL,
-  inLanguage: 'fr-FR',
-  offers: [
-    {
-      '@type': 'Offer',
-      name: OFFER.name,
-      price: String(OFFER.price),
-      priceCurrency: 'EUR',
-      priceSpecification: {
-        '@type': 'UnitPriceSpecification',
-        price: String(OFFER.price),
-        priceCurrency: 'EUR',
-        unitText: 'mois',
-        valueAddedTaxIncluded: false,
-      },
-    },
-  ],
-}
+// Données structurées : organisation, site et logiciel (lib/seo.ts).
+// Aucune note ni avis : Encair n'en a pas encore de réels, et Google
+// interdit d'en inventer.
+const jsonLd = [organizationJsonLd(), websiteJsonLd(), softwareJsonLd()]
 
 export default function RootLayout({
   children,
@@ -110,10 +84,7 @@ export default function RootLayout({
     <html lang="fr" className={inter.variable} suppressHydrationWarning>
       <head>
         {/* Stripe n'est chargé que sur la page d'abonnement : pas de preconnect global. */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
+        <JsonLd data={jsonLd} />
       </head>
       <body className="font-sans">
         <ScrollProgress />
