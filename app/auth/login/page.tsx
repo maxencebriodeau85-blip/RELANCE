@@ -47,7 +47,7 @@ function LoginForm() {
 
   return (
     <main id="main-content" className="rf-auth-shell">
-      <AuthSidePanel />
+      <AuthSidePanel compact />
 
       <div className="flex min-w-0 flex-1 items-start justify-center px-5 py-7 sm:p-8 lg:p-10">
         <div className="w-full max-w-md">

@@ -9,7 +9,7 @@ const sideFeatures = [
 ]
 
 /** Panneau commun aux pages de connexion et d’inscription. */
-export function AuthSidePanel() {
+export function AuthSidePanel({ compact = false }: { compact?: boolean }) {
   return (
     <aside className="hidden lg:flex lg:w-5/12 shrink-0 flex-col justify-between bg-[#182b40] p-8 text-white">
       <Logo variant="mono-white" size="md" />
@@ -20,14 +20,14 @@ export function AuthSidePanel() {
           Vous gardez votre logiciel de facturation. Encair vous montre chaque
           jour qui relancer, qui a promis de payer et quelles factures sont en litige.
         </p>
-        <div className="mt-6 border-t border-white/15">
+        {!compact && <div className="mt-6 border-t border-white/15">
           {sideFeatures.map(({ icon: Icon, label, sub }) => (
             <div key={label} className="flex items-start gap-3 border-b border-white/15 py-4">
               <Icon aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#f2a17e]" />
               <div><p className="text-sm font-semibold">{label}</p><p className="mt-1 text-xs leading-5 text-[#b5c3d1]">{sub}</p></div>
             </div>
           ))}
-        </div>
+        </div>}
         <p className="mt-6 text-sm leading-6 text-[#c6d1dd]">Encair est en lancement : vous faites partie des premiers utilisateurs et je lis chaque retour.</p>
         <p className="mt-2 text-xs font-semibold text-white">Maxence, fondateur</p>
       </div>

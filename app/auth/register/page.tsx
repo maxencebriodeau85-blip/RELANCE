@@ -69,7 +69,7 @@ export default function RegisterPage() {
   if (state?.success) {
     return (
       <main id="main-content" className="rf-auth-shell">
-        <AuthSidePanel />
+        <AuthSidePanel compact />
         <div className="flex-1 flex items-center justify-center p-6 bg-white">
           <div className="w-full max-w-sm text-center space-y-5">
             <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">
