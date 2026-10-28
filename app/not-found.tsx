@@ -1,90 +1,45 @@
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Home, ArrowLeft, Search } from 'lucide-react'
-import { Logo } from '@/components/brand/logo'
+import type { Metadata } from 'next'
+import { ArrowRight } from 'lucide-react'
+import { PublicPage } from '@/components/landing/public-page'
+
+export const metadata: Metadata = {
+  title: 'Page introuvable',
+  robots: { index: false, follow: true },
+}
+
+const SUGGESTIONS = [
+  { href: '/#fonctionnalites', label: 'Découvrir Encair', text: 'Import CSV, relances et suivi des promesses.' },
+  { href: '/guides', label: 'Lire les guides', text: 'Mise en demeure, pénalités, prescription…' },
+  { href: '/calculateur-penalites', label: 'Calculer des pénalités', text: 'Intérêts de retard et indemnité de 40 €.' },
+  { href: '/contact', label: 'Nous écrire', text: 'Une question ? Réponse sous 48 h ouvrées.' },
+]
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-purple-50 flex flex-col">
-      <header className="border-b bg-white/80 backdrop-blur-sm">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Logo size="sm" />
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/auth/login">Se connecter</Link>
-          </Button>
-        </div>
-      </header>
-
-      <main className="flex-1 flex items-center justify-center px-4 py-16">
-        <div className="text-center max-w-lg">
-          <div className="relative mb-8">
-            <div className="font-display text-[180px] md:text-[220px] font-bold leading-none bg-brand-gradient bg-clip-text text-transparent">
-              404
-            </div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="h-24 w-24 rounded-full bg-blue-100/50 blur-2xl"></div>
-            </div>
-          </div>
-
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Page introuvable
-          </h1>
-          <p className="text-lg text-gray-600 mb-10 leading-relaxed">
-            Cette page n&apos;existe pas ou a été déplacée. Pas de panique — retournons à
-            l&apos;essentiel.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">
-            <Button size="lg" asChild>
-              <Link href="/">
-                <Home className="h-4 w-4 mr-2" />
-                Retour à l&apos;accueil
+    <PublicPage>
+      <div className="rf-page rf-page-narrow">
+        <header className="rf-page-head">
+          <span className="rf-eyebrow">Erreur 404</span>
+          <h1>Cette page n’existe pas ou a été déplacée.</h1>
+          <p>Vérifiez l’adresse, ou repartez de l’une de ces pages.</p>
+        </header>
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {SUGGESTIONS.map((item) => (
+            <li key={item.href}>
+              <Link href={item.href} className="rf-card group h-full flex-col gap-1 p-5">
+                <span className="rf-arrow-link">
+                  {item.label} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </span>
+                <span className="text-sm text-[#4e5b68]">{item.text}</span>
               </Link>
-            </Button>
-            <Button variant="outline" size="lg" asChild>
-              <Link href="/dashboard">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Mon dashboard
-              </Link>
-            </Button>
-          </div>
-
-          <div className="rounded-xl border bg-white/60 backdrop-blur p-6 text-left">
-            <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <Search className="h-4 w-4 text-blue-600" />
-              Pages populaires
-            </h3>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="/#fonctionnalites" className="text-blue-600 hover:underline">
-                  → Fonctionnalités
-                </Link>
-              </li>
-              <li>
-                <Link href="/#pricing" className="text-blue-600 hover:underline">
-                  → Tarifs et plans
-                </Link>
-              </li>
-              <li>
-                <Link href="/#faq" className="text-blue-600 hover:underline">
-                  → Questions fréquentes
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-blue-600 hover:underline">
-                  → Support et contact
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </main>
-
-      <footer className="border-t bg-white/60 backdrop-blur-sm py-6">
-        <div className="container mx-auto px-4 text-center text-sm text-gray-500">
-          © 2026 Encair · <Link href="/contact" className="hover:text-gray-900">Contact</Link>
-        </div>
-      </footer>
-    </div>
+            </li>
+          ))}
+        </ul>
+        <Link href="/" className="rf-button rf-button-dark mt-10">
+          Retour à l’accueil
+        </Link>
+      </div>
+    </PublicPage>
   )
 }

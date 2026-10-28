@@ -42,7 +42,7 @@ export function CookieBanner() {
 
   // Informational notice stays in the document flow on account forms so it
   // cannot cover the submit button or a recovery link on small screens.
-  if (pathname.startsWith('/auth/')) return <aside className="border-t bg-white px-6 py-4 text-center text-xs text-gray-500">
+  if (pathname.startsWith('/auth/')) return <aside aria-label="Cookies" className="border-t bg-white px-6 py-4 text-center text-xs text-gray-500">
     Un cookie de session est nécessaire à votre connexion.{' '}
     <Link href="/privacy" className="underline">Confidentialité</Link>{' · '}
     <Link href="/mentions-legales" className="underline">Mentions légales</Link>

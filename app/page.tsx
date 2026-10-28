@@ -7,7 +7,12 @@ import {
   Mail,
   ListChecks,
   ShieldCheck,
+  MapPin,
+  LockKeyhole,
+  Download,
 } from 'lucide-react'
+import { JsonLd } from '@/components/seo/json-ld'
+import { faqJsonLd } from '@/lib/seo'
 import { SiteNav } from '@/components/landing/site-nav'
 import { SiteFooter } from '@/components/landing/site-footer'
 import { PricingSection } from '@/components/landing/pricing-section'
@@ -19,7 +24,7 @@ export const metadata = {
   alternates: { canonical: '/' },
 }
 
-const faq = [
+const faq: [string, string][] = [
   [
     'Dois-je changer de logiciel de facturation ?',
     'Non. Exportez vos factures au format CSV depuis votre outil actuel (ou un fichier Excel enregistré en CSV), puis importez-les dans Encair. Vous continuez à établir vos factures dans votre logiciel habituel.',
@@ -57,8 +62,9 @@ const faq = [
 export default function HomePage() {
   return (
     <div className="rf-site rf-home">
+      <JsonLd data={faqJsonLd(faq)} />
       <SiteNav />
-      <main id="main-content">
+      <main id="main-content" tabIndex={-1} className="outline-none">
         <section className="rf-hero">
           <div className="rf-hero-copy">
             <div className="rf-launch">
@@ -196,6 +202,52 @@ export default function HomePage() {
           </div>
         </section>
         <PricingSection />
+        <section className="rf-section" aria-labelledby="securite-titre">
+          <div className="rf-section-heading">
+            <div>
+              <span className="rf-eyebrow">SÉCURITÉ ET DONNÉES</span>
+              <h2 id="securite-titre">
+                Vos factures restent
+                <br />
+                les vôtres.
+              </h2>
+            </div>
+            <p>
+              Montants dus, coordonnées de vos clients : des données sensibles,
+              protégées et exportables à tout moment.{' '}
+              <Link href="/securite" className="rf-link">
+                Le détail des mesures
+              </Link>
+            </p>
+          </div>
+          <div className="rf-feature-grid">
+            {[
+              {
+                icon: MapPin,
+                title: 'Hébergement européen.',
+                text: 'Base de données dans l’Union européenne (Suède), application exécutée à Paris, connexion chiffrée (HTTPS) imposée.',
+              },
+              {
+                icon: LockKeyhole,
+                title: 'Chaque compte est cloisonné.',
+                text: 'Un compte ne voit que ses propres factures. Ce cloisonnement est vérifié par des tests automatisés à chaque modification du code.',
+              },
+              {
+                icon: Download,
+                title: 'Sortie libre, sans condition.',
+                text: 'Export CSV de vos factures et export complet de votre compte en libre-service, même après l’essai. Suppression sur simple demande.',
+              },
+            ].map((f) => (
+              <article className="rf-feature" key={f.title}>
+                <div>
+                  <f.icon size={24} aria-hidden="true" />
+                </div>
+                <h3>{f.title}</h3>
+                <p>{f.text}</p>
+              </article>
+            ))}
+          </div>
+        </section>
         <section className="rf-section rf-faq rf-founder" aria-labelledby="fondateur">
           <div>
             <span className="rf-eyebrow">QUI EST DERRIÈRE</span>

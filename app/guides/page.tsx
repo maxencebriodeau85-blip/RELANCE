@@ -1,177 +1,118 @@
 import Link from 'next/link'
-import type { Metadata } from 'next'
-import { ArrowLeft, FileText, Clock, ChevronRight, Scale, Euro, AlertTriangle, Download } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, Calculator, Clock, Mail } from 'lucide-react'
 import { GUIDES } from '@/lib/guides-content'
-
-export const metadata: Metadata = {
-  title: 'Guides — Recouvrement, mise en demeure & droit commercial',
-  description:
-    "10 guides gratuits sur le recouvrement amiable, la mise en demeure, les pénalités de retard, la prescription des créances et la trésorerie des TPE.",
-  alternates: { canonical: '/guides' },
-  openGraph: {
-    title: 'Guides recouvrement & droit commercial',
-    description:
-      "10 guides gratuits sur le recouvrement, la mise en demeure et le droit commercial pour les TPE.",
-    type: 'website',
-  },
-}
-import { SiteFooter } from '@/components/landing/footer'
-import { SiteNav } from '@/components/landing/site-nav'
+import { PublicPage } from '@/components/landing/public-page'
+import { JsonLd } from '@/components/seo/json-ld'
+import { breadcrumbJsonLd, pageMetadata } from '@/lib/seo'
 import { CTA_LABEL, TRIAL_LINE } from '@/lib/plans'
 import { PUBLISHER } from '@/lib/legal'
+import { REMINDER_TEMPLATES } from '@/lib/reminder-templates'
 
-const AVAILABLE_SLUGS = new Set(GUIDES.map((g) => g.slug))
+export const metadata = pageMetadata({
+  title: 'Guides — Recouvrement, mise en demeure & droit commercial',
+  description:
+    'Guides gratuits sur le recouvrement amiable, la mise en demeure, les pénalités de retard, la prescription des créances et la trésorerie des TPE.',
+  path: '/guides',
+  ogTitle: 'Guides recouvrement & droit commercial',
+})
 
-const categoryIcons: Record<string, typeof Scale> = {
-  'Droit commercial': Scale,
-  'Procédure': AlertTriangle,
-  'Trésorerie': Euro,
-  'Pratique': FileText,
-}
-
-// Les cartes reprennent le titre, la description et la durée de chaque guide :
-// une seule source, plus d'écart entre la carte et la page.
-const guides = GUIDES.map((g) => ({
-  slug: g.slug,
-  title: g.title,
-  desc: g.metaDescription,
-  readTime: g.readTime,
-  category: g.category,
-  icon: categoryIcons[g.category] ?? FileText,
-}))
-
-const categoryColors: Record<string, string> = {
-  'Droit commercial': 'bg-blue-100 text-blue-700',
-  'Procédure': 'bg-orange-100 text-orange-700',
-  'Trésorerie': 'bg-green-100 text-green-700',
-  'Pratique': 'bg-purple-100 text-purple-700',
-}
+// Ordre d'affichage des catégories : du quotidien vers la procédure.
+const CATEGORY_ORDER = ['Pratique', 'Droit commercial', 'Trésorerie', 'Procédure']
 
 export default function GuidesPage() {
+  const categories = CATEGORY_ORDER.filter((c) => GUIDES.some((g) => g.category === c))
+  const [featured, ...others] = GUIDES
+
   return (
-    <div className="rf-site min-h-screen">
-      {/* Header */}
-      <SiteNav />
-
-      <main id="main-content" className="mx-auto max-w-6xl px-5 py-8 space-y-7">
-        {/* Hero */}
-        <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold px-4 py-1.5 mb-5">
-            <Scale className="h-4 w-4" />
-            Ressources juridiques gratuites
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-semibold text-gray-900 mb-4">
-            Guides recouvrement & droit commercial
-          </h1>
-          <p className="text-gray-500 text-lg leading-relaxed">
-            Le droit du recouvrement en clair, sans jargon inutile. 10 guides rédigés par{' '}
-            {PUBLISHER.name}, fondateur d’Encair et alternant en cabinet d’expertise comptable. Ils
-            donnent des repères généraux et ne remplacent pas un conseil juridique.
+    <PublicPage>
+      <JsonLd data={breadcrumbJsonLd([{ name: 'Guides', path: '/guides' }])} />
+      <div className="rf-page">
+        <header className="rf-page-head">
+          <span className="rf-eyebrow">Ressources gratuites</span>
+          <h1>Le recouvrement des factures, expliqué simplement.</h1>
+          <p>
+            {GUIDES.length} guides pour relancer sans abîmer la relation client, connaître vos droits
+            et savoir quand passer à la procédure. Rédigés par {PUBLISHER.name}, fondateur d’Encair
+            et alternant en cabinet d’expertise comptable : des repères généraux, qui ne remplacent
+            pas un conseil juridique.
           </p>
-        </div>
+        </header>
 
-        {/* Lead magnet banner */}
-        <div className="rounded-2xl bg-[#182b40] p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-white/20">
-            <Download className="h-6 w-6 text-white" />
+        <Link href={`/guides/${featured.slug}`} className="rf-card group mb-10 flex-col gap-5 p-7 sm:p-9 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-2xl">
+            <div className="mb-4 flex flex-wrap items-center gap-3">
+              <span className="rf-chip">{featured.category}</span>
+              <span className="rf-meta inline-flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5" aria-hidden="true" /> {featured.readTime} de lecture
+              </span>
+            </div>
+            <h2 className="text-2xl font-semibold tracking-tight text-[#182b40] sm:text-3xl">{featured.title}</h2>
+            <p className="mt-3 text-[15px] leading-relaxed text-[#4e5b68]">{featured.metaDescription}</p>
           </div>
-          <div className="flex-1">
-            <h3 className="font-bold text-white text-lg">3 modèles de relance gratuits</h3>
-            <p className="text-blue-200 text-sm mt-0.5">
-              Trois rappels amiables à copier et adapter au solde réel de votre facture.
+          <span className="rf-arrow-link shrink-0">
+            Lire le guide <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </span>
+        </Link>
+
+        {categories.map((category) => {
+          const items = others.filter((g) => g.category === category)
+          if (items.length === 0) return null
+          return (
+            <section key={category} aria-labelledby={`cat-${category}`} className="mb-12">
+              <h2 id={`cat-${category}`} className="rf-h2 mb-5">{category}</h2>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {items.map((guide) => (
+                  <Link key={guide.slug} href={`/guides/${guide.slug}`} className="rf-card group flex-col gap-3 p-6">
+                    <span className="rf-meta inline-flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5" aria-hidden="true" /> {guide.readTime} de lecture
+                    </span>
+                    <h3 className="text-lg font-semibold leading-snug tracking-tight text-[#182b40]">{guide.title}</h3>
+                    <p className="line-clamp-3 flex-1 text-sm leading-relaxed text-[#4e5b68]">{guide.metaDescription}</p>
+                    <span className="rf-arrow-link mt-1">
+                      Lire le guide <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )
+        })}
+
+        <section aria-label="Outils gratuits" className="mb-12 grid grid-cols-1 gap-4 md:grid-cols-2">
+          <Link href="/modeles" className="rf-card group items-start gap-4 p-6">
+            <Mail className="mt-0.5 h-5 w-5 shrink-0 text-[#b9522d]" aria-hidden="true" />
+            <span>
+              <span className="block font-semibold text-[#182b40]">{REMINDER_TEMPLATES.length} modèles de relance amiable</span>
+              <span className="mt-1 block text-sm leading-relaxed text-[#4e5b68]">
+                {REMINDER_TEMPLATES.map((t, i) => (i === 0 ? t.tone : t.tone.charAt(0).toLowerCase() + t.tone.slice(1))).join(', ')} : à copier et adapter au solde réel.
+              </span>
+            </span>
+          </Link>
+          <Link href="/calculateur-penalites" className="rf-card group items-start gap-4 p-6">
+            <Calculator className="mt-0.5 h-5 w-5 shrink-0 text-[#b9522d]" aria-hidden="true" />
+            <span>
+              <span className="block font-semibold text-[#182b40]">Calculateur de pénalités de retard</span>
+              <span className="mt-1 block text-sm leading-relaxed text-[#4e5b68]">
+                Intérêts au taux BCE + 10 points, semestre par semestre, et indemnité forfaitaire de 40 €.
+              </span>
+            </span>
+          </Link>
+        </section>
+
+        <section className="rf-panel flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
+          <div className="max-w-xl">
+            <span className="rf-eyebrow">Passer à la pratique</span>
+            <h2 className="text-2xl font-semibold tracking-tight">Suivez vos impayés sans tableur.</h2>
+            <p className="mt-3 text-sm leading-relaxed">
+              Encair rassemble vos impayés importés par CSV, prépare vos relances email et suit
+              promesses, paiements partiels et litiges. {TRIAL_LINE}
             </p>
           </div>
-          <Link
-            href="/modeles"
-            className="flex-shrink-0 rounded-xl bg-white text-blue-700 font-bold text-sm px-5 py-2.5 hover:bg-blue-50 transition-colors whitespace-nowrap"
-          >
-            Voir les modèles
+          <Link href="/auth/register" className="rf-button rf-button-light shrink-0">
+            {CTA_LABEL} <ArrowUpRight size={18} aria-hidden="true" />
           </Link>
-        </div>
-
-        {/* Guides grid */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {guides.map((guide, i) => {
-            const Icon = guide.icon
-            const available = AVAILABLE_SLUGS.has(guide.slug)
-            const cardClass = `rounded-xl border bg-white p-5 flex flex-col gap-3 transition-all group ${
-              available ? 'hover:border-blue-300 hover:shadow-md cursor-pointer' : 'cursor-default opacity-75'
-            }`
-            const content = (
-              <>
-                <div className="flex items-start justify-between gap-3">
-                  <div className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${categoryColors[guide.category]?.replace('text-', 'text-').split(' ')[0] || 'bg-gray-100'}`}>
-                    <Icon className={`h-4.5 w-4.5 ${categoryColors[guide.category]?.split(' ')[1] || 'text-gray-600'}`} />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${categoryColors[guide.category] || 'bg-gray-100 text-gray-600'}`}>
-                      {guide.category}
-                    </span>
-                    <span className="flex items-center gap-1 text-xs text-gray-500">
-                      <Clock className="h-3 w-3" />
-                      {guide.readTime}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <h2 className="text-sm font-bold text-gray-900 mb-1.5 leading-snug group-hover:text-blue-700 transition-colors">
-                    {guide.title}
-                  </h2>
-                  <p className="text-xs text-gray-500 leading-relaxed line-clamp-3">{guide.desc}</p>
-                </div>
-                <div className="flex items-center justify-between pt-1 border-t border-gray-50">
-                  <span className="text-xs text-gray-500">Guide #{i + 1}</span>
-                  {available ? (
-                    <span className="flex items-center gap-1 text-xs font-semibold text-blue-600 group-hover:gap-1.5 transition-all">
-                      Lire le guide
-                      <ChevronRight className="h-3.5 w-3.5" />
-                    </span>
-                  ) : (
-                    <span className="text-xs text-gray-300 italic">Bientôt disponible</span>
-                  )}
-                </div>
-              </>
-            )
-            return available ? (
-              <Link key={guide.slug} href={`/guides/${guide.slug}`} className={cardClass}>
-                {content}
-              </Link>
-            ) : (
-              <div key={guide.slug} className={cardClass}>
-                {content}
-              </div>
-            )
-          })}
-        </div>
-
-        <p className="text-center text-sm text-gray-500">
-          Besoin d’un chiffre précis ?{' '}
-          <Link href="/calculateur-penalites" className="font-semibold text-blue-700 underline">
-            Calculez les pénalités de retard d’une facture
-          </Link>
-        </p>
-
-        {/* CTA */}
-        <div className="rounded-2xl border bg-white p-8 text-center">
-          <h3 className="text-xl font-bold text-gray-900 mb-2">
-            Suivez vos impayés sans tableur
-          </h3>
-          <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">
-            Encair rassemble vos impayés importés par CSV, prépare vos relances email et suit
-            promesses, paiements partiels et litiges.
-          </p>
-          <Link
-            href="/auth/register"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#182b40] text-white font-bold px-6 py-3 transition-all hover:bg-[#294059]"
-          >
-            {CTA_LABEL}
-            <ChevronRight className="h-4 w-4" />
-          </Link>
-          <p className="text-xs text-gray-500 mt-3">{TRIAL_LINE}</p>
-        </div>
-      </main>
-
-      <SiteFooter />
-    </div>
+        </section>
+      </div>
+    </PublicPage>
   )
 }

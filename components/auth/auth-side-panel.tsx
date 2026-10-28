@@ -11,7 +11,7 @@ const sideFeatures = [
 /** Panneau commun aux pages de connexion et d’inscription. */
 export function AuthSidePanel({ compact = false }: { compact?: boolean }) {
   return (
-    <aside className="hidden lg:flex lg:w-5/12 shrink-0 flex-col justify-between bg-[#182b40] p-8 text-white">
+    <aside aria-label="Présentation d’Encair" className="hidden lg:flex lg:w-5/12 shrink-0 flex-col justify-between bg-[#182b40] p-8 text-white">
       <Logo variant="mono-white" size="md" />
       <div className="max-w-md py-7">
         <p className="mb-3 text-xs font-semibold uppercase tracking-[.12em] text-[#f2a17e]">Le suivi des impayés, en clair</p>

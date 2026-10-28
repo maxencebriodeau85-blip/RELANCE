@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import { pageMetadata } from '@/lib/seo'
 import { LegalLayout } from '@/components/legal/legal-layout'
 import { ContactLink, LegalField } from '@/components/legal/legal-field'
 import { OFFER } from '@/lib/plans'
@@ -10,12 +10,12 @@ import {
   VAT_MENTION,
 } from '@/lib/legal'
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: 'Conditions générales d’utilisation et de vente',
   description:
     'Conditions générales d’utilisation et de vente du logiciel Encair : essai, tarif fondateur, paiement, résiliation, responsabilités.',
-  alternates: { canonical: '/cgu' },
-}
+  path: '/cgu',
+})
 
 export default function CGUPage() {
   return (

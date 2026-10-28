@@ -56,7 +56,7 @@ export function ProductPreview() {
         <div className="rf-preview-heading">
           <div>
             <span className="rf-eyebrow">BUREAU D’ÉTUDES (EXEMPLE)</span>
-            <h3>Vos actions du jour</h3>
+            <p className="rf-preview-title">Vos actions du jour</p>
           </div>
           <span className="rf-avatar">BE</span>
         </div>
@@ -115,7 +115,7 @@ export function ProductPreview() {
               </button>
             ))}
           </div>
-          <aside className="rf-next-action" aria-live="polite">
+          <div className="rf-next-action" aria-live="polite">
             <div className="rf-action-icon">
               {selected === 0 ? (
                 <Mail size={20} />
@@ -126,13 +126,13 @@ export function ProductPreview() {
               )}
             </div>
             <span className="rf-eyebrow">Prochaine action</span>
-            <h4>{invoice.name}</h4>
+            <p className="rf-next-title">{invoice.name}</p>
             <p id="preview-action-detail">{opened ? invoice.text : invoice.note}</p>
             <button type="button" aria-expanded={opened} aria-controls="preview-action-detail" onClick={() => setOpened(!opened)}>
               {opened ? 'Revenir au suivi' : invoice.action}
               {opened ? <Check size={15} /> : <ArrowUpRight size={15} />}
             </button>
-          </aside>
+          </div>
         </div>
         <p className="rf-preview-foot">
           Cliquez sur un client pour explorer le suivi. Aucun email n’est

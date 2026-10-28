@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import { pageMetadata } from '@/lib/seo'
 import { LegalLayout } from '@/components/legal/legal-layout'
 import { ContactLink, LegalField } from '@/components/legal/legal-field'
 import {
@@ -8,12 +8,12 @@ import {
   SUBPROCESSORS,
 } from '@/lib/legal'
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: 'Politique de confidentialité',
   description:
     'Données traitées par Encair, finalités, durées de conservation, prestataires, transferts hors UE et droits.',
-  alternates: { canonical: '/privacy' },
-}
+  path: '/privacy',
+})
 
 export default function PrivacyPage() {
   return (

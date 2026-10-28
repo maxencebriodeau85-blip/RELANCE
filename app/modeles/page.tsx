@@ -1,138 +1,90 @@
 import Link from 'next/link'
-import type { Metadata } from 'next'
-import { Mail, AlertTriangle, Info, ChevronRight, ClipboardCopy } from 'lucide-react'
-import { SiteNav } from '@/components/landing/site-nav'
-import { SiteFooter } from '@/components/landing/footer'
+import { ArrowRight, ArrowUpRight, Info } from 'lucide-react'
+import { PublicPage } from '@/components/landing/public-page'
+import { JsonLd } from '@/components/seo/json-ld'
+import { breadcrumbJsonLd, pageMetadata } from '@/lib/seo'
 import { CTA_LABEL, TRIAL_LINE } from '@/lib/plans'
 import { PUBLISHER } from '@/lib/legal'
 import { REMINDER_TEMPLATES } from '@/lib/reminder-templates'
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: 'Modèles de relance de facture — trois rappels amiables',
   description:
-    "3 modèles de relance amiable à adapter au solde réel de vos factures.",
-  alternates: { canonical: '/modeles' },
-  openGraph: {
-    title: 'Modèles de relance de facture gratuits',
-    description:
-      "3 modèles de relance amiable à copier et adapter.",
-    type: 'website',
-  },
-}
-
-const templates = REMINDER_TEMPLATES.map((template) => ({
-  id: template.type, title: template.label, tone: template.tone,
-  toneColor: 'bg-blue-100 text-blue-700', context: 'À adapter après vérification du destinataire et du solde restant.',
-  subject: template.defaultSubject, body: template.defaultBody,
-}))
+    'Trois modèles de relance de facture impayée à copier : premier rappel, suivi du règlement et dernier rappel amiable, à adapter au solde réel de chaque facture.',
+  path: '/modeles',
+  ogTitle: 'Modèles de relance de facture gratuits',
+})
 
 export default function ModelesPage() {
   return (
-    <div className="rf-site min-h-screen">
-      {/* Header */}
-      <SiteNav />
-
-      <main id="main-content" className="mx-auto max-w-5xl px-5 py-8 space-y-6">
-        {/* Hero */}
-        <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 rounded-full bg-green-100 text-green-700 text-sm font-semibold px-4 py-1.5 mb-5">
-            <ClipboardCopy className="h-4 w-4" />
-            3 modèles amiables à copier
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-semibold text-gray-900 mb-4">
-            Modèles de lettres de relance
-          </h1>
-          <p className="text-gray-500 text-lg leading-relaxed">
-            3 modèles proposés par {PUBLISHER.name}, fondateur d’Encair, à adapter à votre situation.
-            Ce sont les mêmes modèles de base que dans l’application. Choisissez une cadence adaptée à la situation de votre client.
+    <PublicPage>
+      <JsonLd data={breadcrumbJsonLd([{ name: 'Modèles de relance', path: '/modeles' }])} />
+      <div className="rf-page rf-page-narrow">
+        <header className="rf-page-head">
+          <span className="rf-eyebrow">Modèles gratuits</span>
+          <h1>Trois modèles de relance amiable, prêts à adapter.</h1>
+          <p>
+            Proposés par {PUBLISHER.name}, fondateur d’Encair : ce sont les mêmes modèles de base que
+            dans l’application. Vérifiez le destinataire et le solde restant avant chaque envoi, et
+            choisissez une cadence adaptée à votre client.
           </p>
-        </div>
+        </header>
 
-        {/* Automation upsell */}
-        <div className="rounded-2xl bg-[#182b40] p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="flex-1">
-            <h3 className="font-bold text-white">
-              Préparez vos relances email dans Encair
-            </h3>
-            <p className="text-blue-200 text-sm mt-1">
-              Encair remplit ces modèles avec le solde restant et les données de votre facture. Vérifiez-les avant un envoi manuel ou l’activation d’un scénario automatique. La mise en demeure n’est pas incluse.
-            </p>
-          </div>
-          <Link
-            href="/auth/register"
-            className="flex-shrink-0 rounded-xl bg-white text-blue-700 font-bold text-sm px-5 py-2.5 hover:bg-blue-50 transition-colors whitespace-nowrap flex items-center gap-1.5"
-          >
-            {CTA_LABEL}
-            <ChevronRight className="h-4 w-4" />
-          </Link>
-        </div>
-
-        {/* Templates */}
-        <div className="space-y-5">
-          {templates.map((tpl) => (
-            <div key={tpl.id} className="rounded-xl border bg-white overflow-hidden">
-              {/* Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b bg-gray-50">
+        <ol className="space-y-6">
+          {REMINDER_TEMPLATES.map((template, index) => (
+            <li key={template.type} className="rf-card block overflow-hidden">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#ebe6dc] px-6 py-4">
                 <div className="flex items-center gap-3">
-                  <Mail className="h-5 w-5 text-gray-500 flex-shrink-0" />
-                  <div>
-                    <h2 className="font-bold text-gray-900 text-sm">{tpl.title}</h2>
-                    <p className="text-xs text-gray-500 mt-0.5">{tpl.context}</p>
-                  </div>
+                  <span className="grid h-8 w-8 place-items-center rounded-md bg-[#182b40] text-sm font-semibold text-white" aria-hidden="true">
+                    {index + 1}
+                  </span>
+                  <h2 className="font-semibold text-[#182b40]">{template.label}</h2>
                 </div>
-                <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold flex-shrink-0 ${tpl.toneColor}`}>
-                  {tpl.tone}
-                </span>
+                <span className="rf-chip">{template.tone}</span>
               </div>
-
-              {/* Subject */}
-              <div className="px-6 py-3 border-b bg-blue-50/50">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider mr-2">Objet :</span>
-                <span className="text-sm text-gray-800 font-medium">{tpl.subject}</span>
+              <div className="border-b border-[#ebe6dc] bg-[#fbf9f4] px-6 py-3 text-sm">
+                <span className="mr-2 font-semibold text-[#5b6570]">Objet :</span>
+                <span className="font-medium text-[#182b40]">{template.defaultSubject}</span>
               </div>
-
-              {/* Body */}
-              <div className="px-6 py-4">
-                <pre className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed font-sans">
-                  {tpl.body}
-                </pre>
-              </div>
-
-              {/* Footer */}
-              <div className="px-6 py-3 border-t bg-gray-50 flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                  <Info className="h-3.5 w-3.5 text-amber-500" />
-                  À adapter — pénalités et 40 € : clients professionnels uniquement
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">Variables entre {'{}'} à remplacer</span>
-                </div>
-              </div>
-            </div>
+              <pre className="whitespace-pre-wrap px-6 py-5 font-sans text-[15px] leading-relaxed text-[#2f3f50]">
+                {template.defaultBody}
+              </pre>
+              <p className="flex items-start gap-2 border-t border-[#ebe6dc] bg-[#fbf9f4] px-6 py-3 text-xs leading-relaxed text-[#5b6570]">
+                <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#a74a28]" aria-hidden="true" />
+                Remplacez les variables entre accolades. Pénalités de retard et indemnité de 40 € :
+                clients professionnels uniquement.
+              </p>
+            </li>
           ))}
-        </div>
+        </ol>
 
-        {/* CTA bottom */}
-        <div className="rounded-2xl border bg-white p-8 text-center">
-          <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto mb-3" />
-          <h3 className="text-xl font-bold text-gray-900 mb-2">
-            Moins de copier-coller, aucune relance oubliée
-          </h3>
-          <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">
-            Encair remplit les variables avec les données de chaque facture et vous rappelle quoi relancer ; vous validez chaque envoi.
+        <aside className="rf-callout mt-8">
+          <strong>Et la mise en demeure ?</strong> Elle produit des effets juridiques : elle n’est pas
+          fournie comme modèle. Le{' '}
+          <Link href="/guides/mise-en-demeure-guide-complet">guide de la mise en demeure</Link> détaille
+          les éléments à y faire figurer ; faites-la relire si l’enjeu est important.
+        </aside>
+
+        <section className="rf-panel mt-12" aria-labelledby="essai-modeles">
+          <span className="rf-eyebrow">Moins de copier-coller</span>
+          <h2 id="essai-modeles" className="text-2xl font-semibold tracking-tight">
+            Encair remplit ces modèles pour chaque facture.
+          </h2>
+          <p className="mt-3 max-w-xl text-sm leading-relaxed">
+            Numéro, échéance et solde restant sont repris de la facture. Vous vérifiez chaque relance
+            avant un envoi manuel ou l’activation d’un scénario automatique.
           </p>
-          <Link
-            href="/auth/register"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#182b40] text-white font-bold px-6 py-3 transition-all hover:bg-[#294059]"
-          >
-            {CTA_LABEL}
-            <ChevronRight className="h-4 w-4" />
-          </Link>
-          <p className="text-xs text-gray-500 mt-3">{TRIAL_LINE}</p>
-        </div>
-      </main>
-
-      <SiteFooter />
-    </div>
+          <div className="mt-6 flex flex-wrap items-center gap-5">
+            <Link href="/auth/register" className="rf-button rf-button-light">
+              {CTA_LABEL} <ArrowUpRight size={18} aria-hidden="true" />
+            </Link>
+            <Link href="/guides/relance-clients-ton-progressif" className="inline-flex items-center gap-2 text-sm font-semibold text-white underline-offset-4 hover:underline">
+              Choisir le bon ton de relance <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
+          <p className="mt-4 text-xs">{TRIAL_LINE}</p>
+        </section>
+      </div>
+    </PublicPage>
   )
 }
