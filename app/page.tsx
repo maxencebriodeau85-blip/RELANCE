@@ -30,6 +30,10 @@ const faq: [string, string][] = [
     'Non. Exportez vos factures au format CSV depuis votre outil actuel (ou un fichier Excel enregistré en CSV), puis importez-les dans Encair. Vous continuez à établir vos factures dans votre logiciel habituel.',
   ],
   [
+    'Et la facturation électronique obligatoire ?',
+    'Encair n’est pas une plateforme agréée et n’émet pas de factures : vous continuez à facturer avec votre logiciel ou votre plateforme. Encair suit ce qui reste à encaisser à partir de leur export CSV, et vos relances tiennent compte des promesses, des litiges et des règlements. Le guide « Facturation électronique 2026-2027 » détaille ce qui change pour vos impayés.',
+  ],
+  [
     'Mon logiciel de facturation relance déjà, pourquoi Encair ?',
     'Si ses relances vous suffisent, gardez-les. Encair sert quand une relance doit tenir compte de ce que le client vous a dit : une promesse pour vendredi, un acompte versé, une facture contestée. Ces situations mettent l’envoi en pause automatiquement, et vous voyez chaque jour les factures qui demandent une action.',
   ],

@@ -55,3 +55,31 @@ describe('configuration de sécurité', () => {
     expect([...exposed].filter((name) => !allowed.has(name))).toEqual([])
   })
 })
+
+describe('politique de sécurité du contenu', () => {
+  it('n’autorise eval() qu’en développement, jamais en production', async () => {
+    const load = async (env: string) => {
+      const { createRequire: cr } = await import('node:module')
+      const req = cr(import.meta.url)
+      const path = req.resolve('../../next.config.js')
+      delete req.cache[path]
+      const previous = process.env.NODE_ENV
+      ;(process.env as Record<string, string>).NODE_ENV = env
+      try {
+        const config = req(path) as { headers: () => Promise<{ source: string; headers: { key: string; value: string }[] }[]> }
+        const rules = await config.headers()
+        return rules.find((r) => r.source === '/(.*)')!.headers.find((h) => h.key === 'Content-Security-Policy')!.value
+      } finally {
+        ;(process.env as Record<string, string>).NODE_ENV = previous as string
+        delete req.cache[path]
+      }
+    }
+    const production = await load('production')
+    expect(production).toMatch(/script-src 'self'/)
+    expect(production).not.toContain('unsafe-eval')
+    expect(production).toContain("object-src 'none'")
+    expect(production).toContain("base-uri 'self'")
+    expect(production).toContain("frame-ancestors 'none'")
+    expect(await load('development')).toContain("'unsafe-eval'")
+  })
+})

@@ -1,9 +1,14 @@
 /** @type {import('next').NextConfig} */
 
+// 'unsafe-eval' n'est nécessaire qu'au serveur de développement (rechargement
+// à chaud). Aucun bundle de production n'évalue de code : le retirer en
+// production empêche un script injecté de fabriquer du code via eval().
+const devOnlyEval = process.env.NODE_ENV === 'production' ? '' : " 'unsafe-eval'"
+
 const cspHeader = [
   "default-src 'self'",
   // Next.js inline scripts + Stripe.js
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://checkout.stripe.com https://va.vercel-scripts.com",
+  `script-src 'self' 'unsafe-inline'${devOnlyEval} https://js.stripe.com https://checkout.stripe.com https://va.vercel-scripts.com`,
   // Styles: inline (Next.js). La police Inter est servie par le site.
   "style-src 'self' 'unsafe-inline'",
   // Fonts (Inter embarquée dans app/fonts)
@@ -17,6 +22,8 @@ const cspHeader = [
   // Workers for Next.js
   "worker-src 'self' blob:",
   "base-uri 'self'",
+  // Équivalent moderne de X-Frame-Options: DENY (aucun site ne peut encadrer Encair)
+  "frame-ancestors 'none'",
   "form-action 'self'",
   // Block all plugins (Flash etc.)
   "object-src 'none'",
