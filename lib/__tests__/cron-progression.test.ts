@@ -1,16 +1,20 @@
-import { beforeEach, describe, it, expect, vi } from 'vitest'
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest'
 const mocks = vi.hoisted(() => ({
   rpc: vi.fn(),
   send: vi.fn(),
   invoices: vi.fn(),
   history: vi.fn(),
   queries: [] as string[],
+  dataset: null as null | ReturnType<typeof invoice>[],
+  cursor: null as string | null,
 }))
 vi.mock('@/lib/supabase/server', () => ({
   createAdminClient: async () => ({
     rpc: mocks.rpc,
     from: (table: string) => {
       const q: Record<string, unknown> = {}
+      let after: string | null = null
+      let limit = Infinity
       for (const method of [
         'select',
         'in',
@@ -23,10 +27,15 @@ vi.mock('@/lib/supabase/server', () => ({
         'neq',
       ])
         q[method] = () => q
-      q.limit = () => q
+      q.gt = (_: string, value: string) => { after = value; return q }
+      q.limit = (value: number) => { limit = value; return q }
       q.then = (resolve: (v: unknown) => unknown) =>
         Promise.resolve(
-          table === 'invoices' ? mocks.invoices() : mocks.history(),
+          table === 'invoices'
+            ? mocks.dataset
+              ? { data: mocks.dataset.filter((row) => !after || row.id > after).slice(0, limit), error: null }
+              : mocks.invoices()
+            : mocks.history(),
         ).then(resolve)
       return q
     },
@@ -50,7 +59,9 @@ const invoice = (id: string) => ({
   profiles: { active_scenario: 'standard' },
 })
 beforeEach(() => {
-  vi.clearAllMocks()
+  vi.resetAllMocks()
+  mocks.dataset = null
+  mocks.cursor = null
   vi.stubEnv('CRON_SECRET', 'test')
   mocks.rpc.mockImplementation(async (n: string) => ({
     data:
@@ -66,6 +77,7 @@ beforeEach(() => {
   })
   mocks.send.mockResolvedValue({ status: 200 })
 })
+afterEach(() => { vi.useRealTimers(); vi.unstubAllEnvs() })
 const run = () =>
   GET(
     new Request('https://encair.test/api/cron/reminders', {
@@ -118,5 +130,65 @@ describe('Cron progress and failures', () => {
         : { error: { code: 'XX000' } },
     )
     expect((await run()).status).toBe(503)
+  })
+})
+
+
+describe('Bounded cron rotation with persistent checkpoints', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    mocks.rpc.mockImplementation(async (name: string, args?: { p_cursor: string | null }) => {
+      if (name === 'claim_collection_worker')
+        return { data: { lease_id: 'lease', cursor_id: mocks.cursor }, error: null }
+      if (name === 'finish_collection_worker') mocks.cursor = args!.p_cursor
+      return { data: true, error: null }
+    })
+  })
+  const timedRun = async () => {
+    const response = run()
+    await vi.runAllTimersAsync()
+    return response
+  }
+  const row = (index: number, owner = 'owner-a') => ({
+    ...invoice(String(index).padStart(4, '0')), user_id: owner,
+  })
+  it('checkpoints a rejected dispatch and reaches the next account on retry', async () => {
+    mocks.dataset = [row(1), row(2, 'owner-b')]
+    mocks.send.mockRejectedValueOnce(new Error('network failure before provider dispatch'))
+    const failed = await timedRun()
+    expect(failed.status).toBe(503)
+    expect(await failed.json()).toMatchObject({ ok: false, attempted: 1, scanned: 1, sent: 0 })
+    expect(mocks.cursor).toBe('0001')
+    expect((await timedRun()).status).toBe(200)
+    expect(mocks.send).toHaveBeenLastCalledWith('0002', 'owner-b', 'email_1', 'automatic')
+  })
+  it('continues with the next account after an unconfirmed provider result', async () => {
+    mocks.dataset = [row(1), row(2, 'owner-b')]
+    mocks.send.mockResolvedValueOnce({ status: 502 })
+    expect((await timedRun()).status).toBe(503)
+    expect(mocks.cursor).toBe('0001')
+    expect((await timedRun()).status).toBe(200)
+    expect(mocks.send).toHaveBeenLastCalledWith('0002', 'owner-b', 'email_1', 'automatic')
+  })
+  it('scans pages of 100 ineligible rows then reaches another account and wraps', async () => {
+    mocks.dataset = Array.from({ length: 206 }, (_, i) => ({
+      ...row(i + 1, i < 205 ? 'owner-a' : 'owner-b'), is_sample: i < 205,
+    }))
+    expect(await (await timedRun()).json()).toMatchObject({ scanned: 100, attempted: 0 })
+    expect(mocks.cursor).toBe('0100')
+    expect(await (await timedRun()).json()).toMatchObject({ scanned: 100, attempted: 0 })
+    expect(mocks.cursor).toBe('0200')
+    expect(await (await timedRun()).json()).toMatchObject({ scanned: 6, attempted: 1, sent: 1 })
+    expect(mocks.send).toHaveBeenCalledExactlyOnceWith('0206', 'owner-b', 'email_1', 'automatic')
+    await timedRun()
+    expect(mocks.cursor).toBeNull()
+  })
+  it('limits dispatches to 25 and resumes without dropping the remaining rows', async () => {
+    mocks.dataset = Array.from({ length: 27 }, (_, i) => row(i + 1, i < 25 ? 'owner-a' : 'owner-b'))
+    expect(await (await timedRun()).json()).toMatchObject({ attempted: 25, sent: 25, scanned: 25 })
+    expect(mocks.cursor).toBe('0025')
+    expect(await (await timedRun()).json()).toMatchObject({ attempted: 2, sent: 2 })
+    expect(mocks.send).toHaveBeenCalledTimes(27)
+    expect(mocks.send).toHaveBeenLastCalledWith('0027', 'owner-b', 'email_1', 'automatic')
   })
 })
