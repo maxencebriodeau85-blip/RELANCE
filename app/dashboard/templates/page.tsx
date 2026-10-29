@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast'
 import { Mail, RotateCcw, Save, Variable, Info } from 'lucide-react'
 import Link from 'next/link'
 
+import { interpolateTemplate, wrapCustomBody, type EmailTemplateData } from '@/lib/email-templates'
 import { REMINDER_TEMPLATES as TEMPLATES, TEMPLATE_VARIABLES as VARIABLES, type EditableReminderType as TemplateType } from '@/lib/reminder-templates'
 
 type Template = typeof TEMPLATES[number]
@@ -21,30 +22,17 @@ interface TemplateOverride {
   enabled: boolean
 }
 
-// Sample data used to render a live preview of the template as the user types.
-const PREVIEW_VARS: Record<string, string> = {
-  client_name: 'Acme Corp',
-  invoice_number: 'F-2026-042',
-  amount: '2 400,00 €',
-  due_date: '15 mars 2026',
-  days_overdue: '12',
-  creditor_name: 'Mon Entreprise',
-  creditor_email: 'contact@mon-entreprise.fr',
-  payment_url: '',
+// Données d'exemple : l'aperçu est rendu par le même code que l'envoi réel
+// (interpolation, mise en page, récapitulatif), dans un cadre isolé.
+const PREVIEW_DATA: EmailTemplateData = {
+  creditorName: 'Mon Entreprise',
+  creditorEmail: 'contact@mon-entreprise.fr',
+  clientName: 'Acme Corp',
+  invoiceNumber: 'F-2026-042',
+  amount: 2400,
+  dueDate: '2026-03-15',
+  daysOverdue: 12,
   description: 'Mission de conseil — janvier 2026',
-}
-
-function previewInterpolate(s: string): string {
-  return s.replace(/\{\{(\w+)\}\}/g, (_, k) => PREVIEW_VARS[k] ?? `{{${k}}}`)
-}
-
-function previewEscape(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/\n/g, '<br>')
 }
 
 export default function TemplatesPage() {
@@ -258,22 +246,21 @@ export default function TemplatesPage() {
 
                   {dirty && <p role="status" className="text-xs text-amber-800">Modifications non enregistrées</p>}
                   {errors[tpl.type] && <p role="alert" className="text-sm text-red-700">{errors[tpl.type]}</p>}
-                  {/* Live preview */}
+                  {/* Aperçu fidèle de l'email reçu par le client */}
                   <div className="rounded-lg border border-gray-200 bg-gray-50 overflow-hidden">
-                    <div className="px-3 py-2 bg-white border-b border-gray-100 text-[11px] uppercase font-bold tracking-wider text-gray-400">
-                      Aperçu (avec données d&apos;exemple)
+                    <div className="px-3 py-2 bg-white border-b border-gray-100 text-[11px] uppercase font-bold tracking-wider text-gray-600">
+                      Aperçu de l&apos;email reçu (données d&apos;exemple)
                     </div>
                     <div className="p-4">
-                      <div className="text-xs font-semibold text-gray-500 mb-1">Objet</div>
+                      <div className="text-xs font-semibold text-gray-600 mb-1">Objet</div>
                       <div className="text-sm font-medium text-gray-900 mb-3">
-                        {previewInterpolate(subject)}
+                        {interpolateTemplate(subject, PREVIEW_DATA)}
                       </div>
-                      <div className="text-xs font-semibold text-gray-500 mb-1">Corps</div>
-                      <div
-                        className="text-sm text-gray-800 bg-white rounded border border-gray-100 p-3 leading-relaxed"
-                        dangerouslySetInnerHTML={{
-                          __html: previewEscape(previewInterpolate(body)),
-                        }}
+                      <iframe
+                        title={`Aperçu de la ${tpl.label.toLowerCase()}`}
+                        sandbox=""
+                        className="h-[520px] w-full rounded border border-gray-200 bg-white"
+                        srcDoc={wrapCustomBody(interpolateTemplate(body, PREVIEW_DATA), PREVIEW_DATA, interpolateTemplate(subject, PREVIEW_DATA)).html}
                       />
                     </div>
                   </div>

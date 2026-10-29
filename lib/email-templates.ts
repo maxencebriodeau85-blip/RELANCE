@@ -58,7 +58,7 @@ export function getEmailTemplate(
   if (!template) throw new Error('Le générateur de mise en demeure est retiré.')
   const subject = interpolateTemplate(template.defaultSubject, data)
   const body = interpolateTemplate(template.defaultBody, data)
-  return { subject, ...wrapCustomBody(body, data) }
+  return { subject, ...wrapCustomBody(body, data, subject) }
 }
 
 // Variable interpolation for user-customized templates.
@@ -78,31 +78,68 @@ export function interpolateTemplate(template: string, data: EmailTemplateData): 
   return template.replace(/\{\{(\w+)\}\}/g, (match, key) => vars[key] ?? match)
 }
 
-// Wrap a user-customized plain-text body into a simple branded HTML email,
-// keeping the payment button if a URL is available.
+// Mise en page HTML des relances. L'email part au nom du créancier : sobre,
+// neutre (pas aux couleurs d'Encair), lisible sur mobile et dans Outlook
+// (tableaux et styles en ligne), avec un récapitulatif chiffré toujours exact
+// quel que soit le texte personnalisé. Toute donnée saisie est échappée.
+const FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+const INK = '#1f2a37'
+const MUTED = '#5b6570'
+const LINE = '#e3e1dc'
+
+function recapRow(label: string, value: string, strong = false): string {
+  return `<tr><td style="padding:8px 12px 8px 0;border-top:1px solid ${LINE};font:14px/1.4 ${FONT};color:${MUTED};white-space:nowrap;vertical-align:top;">${label}</td><td align="right" style="padding:8px 0;border-top:1px solid ${LINE};font:${strong ? '600 16px' : '14px'}/1.4 ${FONT};color:${INK};">${value}</td></tr>`
+}
+
 export function wrapCustomBody(
   body: string,
-  data: EmailTemplateData
+  data: EmailTemplateData,
+  subject?: string,
 ): { html: string; text: string } {
-  const escapedBody = escapeHtml(body).replace(/\n/g, '<br>')
-  const paymentButton = data.paymentUrl
-    ? `<div style="text-align:center;margin:24px 0;"><a href="${escapeHtml(data.paymentUrl)}" style="background:#3B82F6;color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:15px;display:inline-block;">Régler la facture en ligne</a></div>`
-    : ''
+  const escapedBody = escapeHtml(body).replace(/\r?\n/g, '<br>')
   const eName = escapeHtml(data.creditorName)
+  const amount = escapeHtml(formatEuro(data.amount))
+  const description = data.description?.trim()
+  const paymentButton = data.paymentUrl
+    ? `<tr><td style="padding:8px 32px 24px;"><a href="${escapeHtml(data.paymentUrl)}" style="display:inline-block;background:${INK};color:#ffffff;padding:13px 24px;border-radius:6px;text-decoration:none;font:600 15px/1.2 ${FONT};">Régler la facture en ligne</a></td></tr>`
+    : ''
 
   const html = `<!DOCTYPE html>
 <html lang="fr">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  ${preheader(`Facture ${data.invoiceNumber} : solde restant à régler ${formatEuro(data.amount)}.`)}
-  <div style="border-bottom: 2px solid #3B82F6; padding-bottom: 16px; margin-bottom: 24px;">
-    <h2 style="color: #1E40AF; margin: 0;">${eName}</h2>
-  </div>
-  <div style="font-size: 14px;">${escapedBody}</div>
-  ${paymentButton}
-  <div style="border-top: 1px solid #E5E7EB; padding-top: 16px; margin-top: 24px; font-size: 12px; color: #9CA3AF;">
-    <p>Envoyé par Encair pour ${eName}.</p>
-  </div>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<title>${escapeHtml(subject ?? `Facture ${data.invoiceNumber}`)}</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f3ef;">
+${preheader(`Facture ${data.invoiceNumber} : solde restant à régler ${formatEuro(data.amount)}.`)}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f3ef;">
+<tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background:#ffffff;border:1px solid ${LINE};border-radius:8px;">
+<tr><td style="padding:24px 32px 16px;border-bottom:1px solid ${LINE};font:600 18px/1.3 ${FONT};color:${INK};">${eName}</td></tr>
+<tr><td style="padding:24px 32px 8px;font:15px/1.65 ${FONT};color:${INK};">${escapedBody}</td></tr>
+${paymentButton}
+<tr><td style="padding:8px 32px 28px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#faf9f6;border:1px solid ${LINE};border-radius:6px;">
+<tr><td style="padding:14px 16px 6px;font:600 12px/1.3 ${FONT};letter-spacing:.06em;text-transform:uppercase;color:${MUTED};">Récapitulatif</td></tr>
+<tr><td style="padding:0 16px 8px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+${recapRow('Facture', `n° ${escapeHtml(data.invoiceNumber)}`)}
+${description ? recapRow('Objet', escapeHtml(description.length > 120 ? `${description.slice(0, 117)}…` : description)) : ''}
+${recapRow('Échéance', escapeHtml(formatDate(data.dueDate)))}
+${recapRow('Reste à régler', amount, true)}
+</table>
+</td></tr>
+</table>
+</td></tr>
+<tr><td style="padding:16px 32px 24px;border-top:1px solid ${LINE};font:12px/1.6 ${FONT};color:${MUTED};">
+Message adressé par ${eName}. Pour toute question ou si le règlement est déjà parti, répondez simplement à cet email.<br>Envoyé avec Encair.
+</td></tr>
+</table>
+</td></tr>
+</table>
 </body>
 </html>`
 
@@ -120,7 +157,7 @@ export function resolveEmailTemplate(
   if (override && override.enabled) {
     const subject = interpolateTemplate(override.subject, data)
     const body = interpolateTemplate(override.body, data)
-    const { html, text } = wrapCustomBody(body, data)
+    const { html, text } = wrapCustomBody(body, data, subject)
     return { subject, html, text }
   }
   return getEmailTemplate(type, data)

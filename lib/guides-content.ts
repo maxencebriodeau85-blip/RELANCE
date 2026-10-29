@@ -14,6 +14,73 @@ export interface GuideContent {
 
 export const GUIDES: GuideContent[] = [
   {
+    slug: 'facturation-electronique-impayes',
+    title: 'Facturation électronique 2026-2027 : ce qui change pour vos factures impayées',
+    metaTitle: 'Facture électronique : ce qui change pour les impayés',
+    metaDescription:
+      "Réception obligatoire depuis le 1er septembre 2026, émission pour les PME et TPE au 1er septembre 2027 : statuts, refus, encaissement et effets concrets sur vos relances.",
+    category: 'Pratique',
+    readTime: '7 min',
+    publishedAt: '2026-10-29',
+    updatedAt: '2026-10-29',
+    intro:
+      "Depuis le 1er septembre 2026, toutes les entreprises assujetties à la TVA établies en France doivent pouvoir recevoir des factures électroniques, et les grandes entreprises et ETI doivent déjà les émettre. Les PME et micro-entreprises suivront le 1er septembre 2027. La réforme ne règle pas vos retards de paiement à votre place, mais elle change la façon de prouver l'envoi d'une facture, de traiter un refus et d'enregistrer un règlement. Voici ce qu'il faut savoir pour vos relances.",
+    sections: [
+      {
+        heading: 'Le calendrier et qui est concerné',
+        paragraphs: [
+          "La réforme vise les ventes et achats entre entreprises assujetties à la TVA établies en France. Les opérations avec des particuliers ou des clients établis à l'étranger restent hors facture électronique, mais leurs données doivent être transmises à l'administration (e-reporting).",
+        ],
+        list: [
+          "Depuis le 1er septembre 2026 : toutes les entreprises doivent pouvoir recevoir des factures électroniques ; les grandes entreprises et les ETI doivent les émettre.",
+          "Au 1er septembre 2027 : l'obligation d'émettre s'étend aux PME et aux micro-entreprises.",
+          "Les factures passent par une plateforme agréée, choisie par chaque entreprise, qui émet, reçoit et transmet les données à l'administration.",
+        ],
+      },
+      {
+        heading: "« Je n'ai jamais reçu la facture » : un argument qui s'affaiblit",
+        paragraphs: [
+          "Dès que vous émettez vos factures sous forme électronique (c'est possible dès maintenant, puisque vos clients doivent pouvoir les recevoir, et obligatoire au 1er septembre 2027 pour les PME et TPE), elles ne circulent plus en pièce jointe d'un email qui peut s'égarer : elles sont déposées sur votre plateforme et acheminées vers celle de votre client, et chaque étape de traitement produit un statut daté. Le parcours de la facture devient traçable des deux côtés.",
+          "Pour vos relances, c'est un appui concret : avant de relancer, vérifiez sur votre plateforme que la facture a bien été transmise et n'a pas été rejetée. Une facture rejetée pour une raison technique (format, données manquantes) n'a jamais atteint votre client : la relancer ne sert à rien, il faut la corriger et la redéposer.",
+        ],
+      },
+      {
+        heading: 'Un refus doit être motivé, et ne tranche pas un litige',
+        paragraphs: [
+          "Votre client peut refuser une facture électronique. Selon le guide pratique de la DGFiP (juillet 2026), ce statut « refusée » est obligatoirement motivé, ne peut être utilisé que pour les motifs prévus par la norme et ne doit pas servir pour un simple litige commercial. Il ne tranche pas non plus le différend entre les parties.",
+          "En pratique : un refus vous dit pourquoi la facture bloque (montant, référence de commande, destinataire). Corrigez ce qui doit l'être et émettez la facture correcte plutôt que de relancer l'ancienne. Un désaccord commercial sur la prestation, lui, se règle toujours par l'échange, la médiation ou le juge : notez-le comme un litige et suspendez les relances le temps de le résoudre.",
+        ],
+      },
+      {
+        heading: "Le paiement aussi laisse une trace",
+        paragraphs: [
+          "Les spécifications de la réforme prévoient un statut signalant qu'une facture a été encaissée, éventuellement en plusieurs fois. Il concerne en particulier les prestations de services dont la TVA est due à l'encaissement, car il alimente les données de TVA. Renseigner vos encaissements au fil de l'eau devient donc une habitude utile, et pas seulement pour le suivi des impayés.",
+          "C'est aussi la condition d'une relance juste : relancer un client qui a déjà payé, même partiellement, abîme la relation plus sûrement qu'un retard. Tenez à jour le reste à payer de chaque facture avant tout envoi.",
+        ],
+      },
+      {
+        heading: 'Ce que la réforme ne fait pas',
+        paragraphs: [
+          "La facture électronique ne raccourcit pas les délais de paiement et ne déclenche aucune relance. Les règles de fond restent les mêmes : délais de paiement, pénalités de retard et indemnité forfaitaire de 40 € entre professionnels (art. L441-10 du Code de commerce), mise en demeure, injonction de payer.",
+          "Les manquements à la réforme sont sanctionnés à part : amende par facture non émise sous forme électronique, dans les limites de l'article 1737 du CGI, et régime de l'article 1788 D du CGI pour le e-reporting.",
+        ],
+      },
+      {
+        heading: 'La checklist pour les TPE',
+        paragraphs: ["Pour être prêt sans désorganiser votre suivi des paiements :"],
+        list: [
+          "Choisissez votre plateforme agréée, si ce n'est pas déjà fait : la réception est obligatoire depuis le 1er septembre 2026.",
+          "Vérifiez les informations de facturation de vos clients (raison sociale, SIREN, adresse) : une donnée fausse entraîne un rejet.",
+          "Avant chaque relance, contrôlez le statut de la facture : déposée, rejetée, refusée ou encaissée.",
+          "Enregistrez chaque règlement, même partiel, dès qu'il arrive.",
+          "Préparez l'émission électronique pour le 1er septembre 2027 avec votre logiciel de facturation et votre expert-comptable.",
+        ],
+      },
+    ],
+    conclusion:
+      "La réforme rend la facture plus traçable : moins de « facture jamais reçue », des refus motivés et des encaissements enregistrés. Elle ne fait pas payer vos clients plus vite. Le suivi reste le vôtre : savoir chaque jour quelles factures sont dues, lesquelles sont contestées et lesquelles sont réglées, puis relancer au bon moment. Vérifiez les règles qui s'appliquent à votre activité sur impots.gouv.fr et avec votre expert-comptable.",
+  },
+  {
     slug: 'mise-en-demeure-guide-complet',
     title: 'Mise en demeure : contenu, délais et effets juridiques — guide complet 2026',
     metaTitle: 'Mise en demeure : contenu, délais et effets en 2026',
