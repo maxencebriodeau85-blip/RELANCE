@@ -96,6 +96,9 @@ function SidebarContent({
     profile?.plan === 'free_trial' && profile?.trial_ends_at
       ? daysUntil(profile.trial_ends_at)
       : null
+  const trialEnded =
+    profile?.plan === 'free_trial' &&
+    (!profile?.trial_ends_at || new Date(profile.trial_ends_at).getTime() <= Date.now())
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-[#fcfbf8]">
@@ -131,7 +134,7 @@ function SidebarContent({
           <Search className="h-3.5 w-3.5" />
           Rechercher…
         </span>
-        <kbd className="flex items-center gap-0.5 font-mono text-[10px] text-gray-400 group-hover:text-gray-600 transition-colors">
+        <kbd className="flex items-center gap-0.5 font-mono text-[10px] text-gray-600 transition-colors">
           <span className="bg-white border border-gray-200 rounded px-1 py-0.5">
             ⌘
           </span>
@@ -145,7 +148,7 @@ function SidebarContent({
       <nav aria-label="Navigation principale" className="min-h-0 flex-1 overflow-y-auto px-3 pb-5 pt-4">
         {navGroups.map((group) => (
           <div key={group.label} className="mb-5 last:mb-0">
-            <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[.13em] text-[#788491]">
+            <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[.13em] text-[#5b6570]">
               {group.label}
             </p>
             <div className="space-y-0.5">
@@ -178,16 +181,18 @@ function SidebarContent({
       </nav>
 
       {/* Trial banner */}
-      {trialDaysLeft !== null && (
+      {(trialDaysLeft !== null || trialEnded) && (
         <div className="mx-3 mb-3 rounded-xl border border-[#ead8c4] bg-[#fbf3e9] p-3">
           <div className="flex items-center gap-1.5 mb-2">
             <Clock className="h-3.5 w-3.5 text-amber-600 flex-shrink-0" />
             <p className="text-xs font-semibold text-amber-900">
-              Essai · {trialDaysLeft}j restant{trialDaysLeft > 1 ? 's' : ''}
+              {trialEnded
+                ? 'Essai terminé'
+                : `Essai · ${trialDaysLeft}j restant${(trialDaysLeft ?? 0) > 1 ? 's' : ''}`}
             </p>
           </div>
           <Link
-            href="/dashboard/settings"
+            href="/subscription"
             onClick={onClose}
             className="flex items-center justify-between min-h-9 rounded-md bg-[#182b40] px-2.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#294059]"
           >
@@ -254,7 +259,7 @@ export function Sidebar() {
   }, [])
 
   return (
-    <aside className="hidden h-full w-64 shrink-0 flex-col border-r border-[#e8e6e0] md:flex">
+    <aside aria-label="Menu de l’espace Encair" className="hidden h-full w-64 shrink-0 flex-col border-r border-[#e8e6e0] md:flex">
       <SidebarContent profile={profile} email={email} pathname={pathname} />
     </aside>
   )

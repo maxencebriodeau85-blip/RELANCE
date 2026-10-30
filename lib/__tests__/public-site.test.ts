@@ -166,3 +166,28 @@ describe('security.txt (RFC 9116)', () => {
     vi.unstubAllEnvs()
   })
 })
+
+describe('espace connecté : même identité que le site', () => {
+  const files = (dir: string): string[] =>
+    readdirSync(join(root, dir)).flatMap((name) => {
+      const path = join(dir, name)
+      return statSync(join(root, path)).isDirectory() ? files(path) : /\.tsx$/.test(name) ? [path] : []
+    })
+  const appFiles = [...files('app/dashboard'), ...files('components/dashboard'), ...files('components/invoices'), 'app/subscription/page.tsx', 'components/ui/empty-state.tsx']
+
+  it.each(appFiles)('%s n’emploie plus les bleus et violets de l’ancienne charte', (file) => {
+    expect(read(file)).not.toMatch(/\b(?:bg|text|from|to|via|border|ring|shadow)-(?:blue|indigo|purple|violet|sky|cyan|fuchsia)-\d{2,3}\b|brand-orb/)
+  })
+
+  it('le bouton de paiement est toujours un bouton plein, lisible sur fond clair', () => {
+    // Régression : « rf-button » seul n'a pas de fond ; le bouton de la page
+    // d'abonnement était quasi invisible.
+    expect(read('components/auth/checkout-button.tsx')).toMatch(/rf-button rf-button-dark/)
+  })
+
+  it('les pages inaccessibles (redirigées) ne sont plus livrées', () => {
+    for (const dir of ['app/dashboard/pipeline', 'app/dashboard/contacts']) {
+      expect(() => statSync(join(root, dir)), dir).toThrow()
+    }
+  })
+})

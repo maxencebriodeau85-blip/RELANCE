@@ -39,12 +39,12 @@ const PLAN_LABELS: Record<string, string> = {
 
 const PLAN_COLORS: Record<string, string> = {
   free_trial: 'bg-gray-100 text-gray-700 border-gray-200',
-  starter: 'bg-blue-100 text-brand-700 border-blue-200',
-  pro: 'bg-purple-100 text-purple-700 border-purple-200',
+  starter: 'bg-brand-100 text-brand-700 border-brand-200',
+  pro: 'bg-[#fbf3ec] text-[#a74a28] border-[#f0dece]',
   business: 'bg-amber-100 text-amber-700 border-amber-200',
 }
 
-const PLANS = [{ id: OFFER.key, name: OFFER.name, price: String(OFFER.price), limit: '100 nouvelles factures / mois', features: [...OFFER.features], icon: Zap, color: 'text-brand-700', border: 'border-emerald-200', recommended: false }]
+const PLANS = [{ id: OFFER.key, name: OFFER.name, price: String(OFFER.price), limit: '100 nouvelles factures / mois', features: [...OFFER.features], icon: Zap, color: 'text-[#182b40]', border: 'border-[#dacaba]', recommended: false }]
 
 function SettingsPageInner() {
   const { toast } = useToast()
@@ -268,7 +268,7 @@ function SettingsPageInner() {
                   >
                     {plan.recommended && (
                       <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
-                        <span className="bg-purple-600 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">Recommandé</span>
+                        <span className="bg-[#b9522d] text-white text-xs font-bold px-2.5 py-0.5 rounded-full">Recommandé</span>
                       </div>
                     )}
                     {isCurrent && (
@@ -283,7 +283,7 @@ function SettingsPageInner() {
                     <ul className="space-y-1">
                       {plan.features.map((f) => (
                         <li key={f} className="text-xs text-gray-600 flex items-start gap-1">
-                          <CheckCircle className="h-3 w-3 text-green-500 mt-0.5 flex-shrink-0" />
+                          <CheckCircle className="h-3 w-3 text-[#b9522d] mt-0.5 flex-shrink-0" aria-hidden="true" />
                           {f}
                         </li>
                       ))}
@@ -442,7 +442,7 @@ function SettingsPageInner() {
               </button>
             </div>
 
-            <div className="rounded-lg border bg-blue-50 p-3 flex items-start gap-2">
+            <div className="rounded-lg border bg-brand-50 p-3 flex items-start gap-2">
               <Shield className="h-4 w-4 text-brand-600 mt-0.5 flex-shrink-0" />
               <p className="text-sm text-brand-700">
                 Les relances utilisent votre nom d’entreprise. Les réponses sont adressées à l’email de votre compte.

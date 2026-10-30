@@ -147,7 +147,7 @@ export default function TemplatesPage() {
       <div className="p-6 space-y-6 max-w-4xl">
         <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">Les modèles par défaut sont des relances amiables sans pénalités automatiques. Vérifiez vos textes personnalisés : les mentions de l’article L441-10 et de l’indemnité de 40 € concernent les relations entre professionnels, pas les clients particuliers.</p>
         {/* Concept primer */}
-        <div className="rounded-2xl bg-gradient-to-br from-brand-50 via-white to-purple-50 border border-brand-100 p-5">
+        <div className="rounded-2xl bg-gradient-to-br from-brand-50 via-white to-[#fbf3ec] border border-brand-100 p-5">
           <h2 className="text-sm font-bold text-gray-900 mb-1">Comment ça fonctionne</h2>
           <p className="text-sm text-gray-600 leading-relaxed">
             La personnalisation est incluse pendant votre essai et dans l’offre Fondateur.
@@ -207,7 +207,7 @@ export default function TemplatesPage() {
                         <Mail className="h-4 w-4" />
                         {tpl.label}
                         {isCustomized && (
-                          <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-brand-700 rounded px-1.5 py-0.5">
+                          <span className="text-[10px] font-bold uppercase tracking-wider bg-brand-100 text-brand-700 rounded px-1.5 py-0.5">
                             Personnalisé
                           </span>
                         )}
@@ -236,7 +236,7 @@ export default function TemplatesPage() {
                       value={body}
                       onChange={(e) => handleEdit(tpl.type, 'body', e.target.value)}
                       rows={10}
-                      className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm font-mono leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm font-mono leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                       maxLength={5000}
                     />
                     <p className="text-[11px] text-gray-400 mt-1">

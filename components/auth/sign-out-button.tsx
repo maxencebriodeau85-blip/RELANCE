@@ -20,7 +20,8 @@ export function SignOutButton() {
   return (
     <button
       onClick={handleSignOut}
-      className="flex items-center gap-1.5 text-blue-400/60 hover:text-blue-300 text-xs transition-colors"
+      type="button"
+      className="flex items-center gap-1.5 text-xs text-[#4e5b68] underline-offset-4 transition-colors hover:text-[#182b40] hover:underline"
     >
       <LogOut className="h-3.5 w-3.5" />
       Se déconnecter

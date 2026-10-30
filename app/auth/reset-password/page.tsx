@@ -72,7 +72,7 @@ export default function ResetPasswordPage() {
     return (
       <main id="main-content" tabIndex={-1} className="outline-none min-h-screen bg-[#f7f4ed] flex items-center justify-center p-4 pb-28 sm:pb-4 overflow-y-auto">
         <div className="text-center space-y-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent mx-auto" />
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-600 border-t-transparent mx-auto" />
           <p className="text-sm text-gray-500">Vérification du lien…</p>
         </div>
       </main>

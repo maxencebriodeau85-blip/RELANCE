@@ -24,11 +24,11 @@ interface Notif {
 }
 
 const TYPE_CONFIG: Record<string, { icon: typeof Bell; color: string; label: string }> = {
-  follow_up:       { icon: Phone,    color: 'text-brand-600 bg-blue-50',    label: 'Relance' },
+  follow_up:       { icon: Phone,    color: 'text-brand-600 bg-brand-50',    label: 'Relance' },
   reminder:        { icon: Bell,     color: 'text-amber-600 bg-amber-50',  label: 'Rappel' },
   invoice_overdue: { icon: FileText, color: 'text-red-600 bg-red-50',      label: 'Facture' },
   deal_signed:     { icon: Users,    color: 'text-green-600 bg-green-50',  label: 'Deal signé' },
-  sequence_step:   { icon: Mail,     color: 'text-violet-600 bg-violet-50', label: 'Séquence' },
+  sequence_step:   { icon: Mail,     color: 'text-[#a74a28] bg-[#fbf3ec]', label: 'Séquence' },
 }
 
 const FILTER_TABS = [
@@ -122,7 +122,7 @@ export default function NotificationsPage() {
               className={cn(
                 'px-3 py-1.5 text-sm font-medium rounded-lg transition-colors',
                 filter === tab.key
-                  ? 'bg-blue-50 text-brand-700'
+                  ? 'bg-brand-50 text-brand-700'
                   : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
               )}
             >
@@ -173,7 +173,7 @@ export default function NotificationsPage() {
                     const inner = (
                       <div className={cn(
                         'flex items-start gap-3 px-4 py-3.5 transition-colors group',
-                        !n.read ? 'bg-blue-50/40 hover:bg-blue-50' : 'hover:bg-gray-50'
+                        !n.read ? 'bg-brand-50/40 hover:bg-brand-50' : 'hover:bg-gray-50'
                       )}>
                         <div className={cn('flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full mt-0.5', typeInfo.color)}>
                           <Icon className="h-4 w-4" />
@@ -184,7 +184,7 @@ export default function NotificationsPage() {
                               {n.title}
                             </p>
                             {n.action_url && (
-                              <ExternalLink className="h-3.5 w-3.5 text-gray-300 group-hover:text-blue-500 transition-colors flex-shrink-0 mt-0.5" />
+                              <ExternalLink className="h-3.5 w-3.5 text-gray-300 group-hover:text-brand-500 transition-colors flex-shrink-0 mt-0.5" />
                             )}
                           </div>
                           {n.body && (
@@ -200,7 +200,7 @@ export default function NotificationsPage() {
                           </div>
                         </div>
                         {!n.read && (
-                          <div className="flex-shrink-0 mt-2 h-2 w-2 rounded-full bg-blue-500" />
+                          <div className="flex-shrink-0 mt-2 h-2 w-2 rounded-full bg-brand-500" />
                         )}
                       </div>
                     )
