@@ -38,16 +38,14 @@ export async function middleware(request: NextRequest) {
   //
   // Safety nets:
   //   - never redirect from localhost or *.local (dev)
-  //   - never redirect webhook routes (Stripe/Resend hit specific URLs)
-  //   - never redirect /api/health (uptime monitors hit any host)
+  //   - never redirect /api/*: provider webhooks and uptime monitors hit fixed
+  //     URLs, Vercel Cron does not follow redirects, and a 301 turns an API
+  //     client's POST into a GET. Only pages move to the canonical host.
   const isLocalHost =
     hostname === 'localhost' ||
     hostname === '127.0.0.1' ||
     hostname.endsWith('.local')
-  const isWebhook =
-    pathname.startsWith('/api/stripe/webhook') ||
-    pathname.startsWith('/api/webhooks/') ||
-    pathname.startsWith('/api/health')
+  const isApi = pathname === '/api' || pathname.startsWith('/api/')
 
   const enforceCanonical = process.env.ENFORCE_CANONICAL_HOST === 'true'
   if (
@@ -55,7 +53,7 @@ export async function middleware(request: NextRequest) {
     canonicalHost &&
     process.env.VERCEL_ENV !== 'preview' &&
     !isLocalHost &&
-    !isWebhook &&
+    !isApi &&
     hostname !== canonicalHost
   ) {
     const canonical = new URL(`https://${canonicalHost}${pathname}${search}`)
