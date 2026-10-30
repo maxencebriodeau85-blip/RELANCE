@@ -52,7 +52,17 @@ Les valeurs Vercel sont relues avec `get_domain_config` (Vercel) ; celles de Res
 | Resend `encair.fr` | **Vérifié** (DKIM, SPF et MX `send`, CNAME `rsend`) |
 | Boîte `contact@encair.fr` | À créer chez OVH par l'éditeur (mot de passe) ; MX déjà publiés |
 | Supabase Auth (Site URL, redirections) | À mettre à jour par l'éditeur (connexion au tableau de bord) |
-| Clés Resend de production | Non créées : décision d'ouvrir les envois réels à prendre après la recette (13 factures de test encore en production) |
+| `RESEND_FROM_EMAIL` (Production) | `relances@encair.fr` |
+| `RESEND_API_KEY` (Production) | À créer par l'éditeur (voir ci-dessous) |
+| `RESEND_WEBHOOK_SECRET` (Production) | Volontairement absent : tant qu'il manque, **toute relance est refusée** (manuelle, automatique, fin d'essai), avant réservation |
+
+## À faire par l'éditeur
+
+1. **Clé Resend de production.** Resend → API Keys → *Create API key* : nom `encair-production`, permission *Sending access*, domaine `encair.fr`. Coller la clé directement dans Vercel → Settings → Environment Variables : `RESEND_API_KEY`, type *Sensitive*, environnement *Production* uniquement. Ne jamais la coller dans une conversation ni dans le dépôt. Puis redéployer. Effet : le formulaire `/contact` et l'email de bienvenue fonctionnent ; les relances restent verrouillées (pas de `RESEND_WEBHOOK_SECRET`).
+2. **Supabase Auth → URL Configuration.** Site URL `https://encair.fr` ; Redirect URLs : `https://encair.fr/auth/confirm`, `https://encair.fr/auth/confirm?next=/auth/reset-password&type=recovery`, `https://encair.fr/auth/reset-password`.
+3. **Supabase Auth → SMTP Settings** (après l'étape 1, avec une seconde clé Resend dédiée `encair-supabase-smtp`) : hôte `smtp.resend.com`, port `465`, utilisateur `resend`, mot de passe = cette clé, expéditeur `Encair <bonjour@encair.fr>`. Tester ensuite une inscription avec une adresse extérieure.
+4. **Boîte `contact@encair.fr`** dans OVH → Zimbra Mail → Compte email. Puis remplacer `SUPPORT_EMAIL` et `NEXT_PUBLIC_CONTACT_EMAIL` dans Vercel et redéployer.
+5. **Avant d'ouvrir les relances réelles** (création du webhook Resend `https://encair.fr/api/webhooks/resend` et de `RESEND_WEBHOOK_SECRET`) : supprimer ou archiver les 13 factures de test de production. Au 30/10/2026, deux d'entre elles ne sont pas en pause, sont échues et portent une adresse de client : elles partiraient au premier passage du cron.
 
 ## Bascule de l'URL canonique
 
