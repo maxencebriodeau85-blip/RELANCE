@@ -4,7 +4,7 @@
 
 ## Support au quotidien
 
-- **Adresse** : celle de `SUPPORT_EMAIL` et `NEXT_PUBLIC_CONTACT_EMAIL` dans Vercel (aujourd'hui l'adresse Gmail de l'éditeur ; `encair.fr` est acheté depuis le 30/10/2026, l'adresse passe à `contact@encair.fr` dès que la boîte Zimbra est créée et testée, voir `docs/DOMAINE.md`). Le formulaire `/contact` et les réponses aux emails d'Encair y arrivent.
+- **Adresse** : celle de `SUPPORT_EMAIL` et `NEXT_PUBLIC_CONTACT_EMAIL` dans Vercel (`contact@encair.fr` depuis le 31/10/2026 : boîte Zimbra OVH, webmail https://webmail.mail.ovh.net/). Le formulaire `/contact` et les réponses aux emails d'Encair y arrivent.
 - **Délai annoncé** : réponse personnelle, en général sous **48 h ouvrées** (page Contact). Tenir ce délai ; si une absence le rend impossible, le dire sur la page Contact.
 - **Demandes RGPD** : export en libre-service (Paramètres > Vos données) ; suppression sous un mois selon `scripts/ops/suppression-compte.sql`.
 - **Où regarder pour un client** : Supabase > RECOUVREMENT (tables `invoices`, `reminders`), page **État des relances** de son compte, journaux Vercel.

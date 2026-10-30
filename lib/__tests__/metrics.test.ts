@@ -8,12 +8,14 @@ import {
   PLAN_LIMITS,
 } from '../metrics'
 import type { Invoice } from '../database.types'
+import { businessDate } from '../collection'
 
-// Dates are computed relative to "now" at test-run time rather than hardcoded
-// literals, so these tests stay correct regardless of when they run.
+// Dates are computed relative to today's Paris business date, like the code
+// under test: a UTC-based "today" is off by one between 00:00 in Paris and
+// 00:00 UTC, which made these tests fail late in the evening (UTC).
 function daysAgo(n: number): string {
-  const d = new Date()
-  d.setDate(d.getDate() - n)
+  const d = new Date(`${businessDate()}T12:00:00Z`)
+  d.setUTCDate(d.getUTCDate() - n)
   return d.toISOString().slice(0, 10)
 }
 function daysFromNow(n: number): string {

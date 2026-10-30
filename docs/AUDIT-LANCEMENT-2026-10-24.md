@@ -98,4 +98,4 @@ Vérifications locales : `npm run typecheck`, `npm test` (373 tests), `npm run l
 | P1 | Brancher une surveillance externe sur `/api/cron/status` (en-tête `Authorization: Bearer …`) et sur `/api/health`. | Une alerte est reçue lors d'un test volontaire. |
 | P1 | Passer Supabase en offre Pro avant le lancement commercial : protection native des mots de passe, sauvegardes gérées et PITR. Sur Free, la sauvegarde GitHub est la seule existante. | Advisor `auth_leaked_password_protection` résolu. |
 | P1 | Décider du délai de grâce `past_due`, et régler Stripe « après échec de toutes les relances » sur *Annuler* ou *Marquer impayé*. | Réglage noté dans `RECETTE-STRIPE.md`. |
-| P2 | Remplacer `maxence.briodeau85@gmail.com` par une adresse du futur domaine dans `SUPPORT_EMAIL` et `NEXT_PUBLIC_CONTACT_EMAIL`. | Adresse professionnelle affichée. |
+| P2 | ~~Remplacer l'adresse Gmail de l'éditeur par une adresse du domaine dans `SUPPORT_EMAIL` et `NEXT_PUBLIC_CONTACT_EMAIL`.~~ Fait le 31/10/2026 : `contact@encair.fr`. | Adresse professionnelle affichée. |
