@@ -85,4 +85,23 @@ describe('Collection worker attempts', () => {
       (await db.query('select claim_collection_worker() as result')).rows[0],
     ).toEqual({ result: null })
   })
+  it('recovers the checkpoint after lease expiry and rejects a stale worker finish', async () => {
+    // Simulate a crashed worker without sleeping or running a real cron.
+    await db.query("update collection_worker set lease_until=null where name='reminders'")
+    const old = (await db.query<{ result: { lease_id: string } }>(
+      'select claim_collection_worker() as result',
+    )).rows[0].result.lease_id
+    const checkpoint = '00000000-0000-4000-8000-000000000001'
+    await db.query("update collection_worker set cursor_id=$1,lease_until=now()-interval '1 second' where name='reminders'", [checkpoint])
+    const recovered = (await db.query<{ result: { lease_id: string; cursor_id: string } }>(
+      'select claim_collection_worker() as result',
+    )).rows[0].result
+    expect(recovered.cursor_id).toBe(checkpoint)
+    expect(recovered.lease_id).not.toBe(old)
+    expect((await db.query('select claim_collection_worker() as result')).rows[0]).toEqual({ result: null })
+    expect((await db.query('select finish_collection_worker($1,null,$2) as ok', [old, '{"ok":true}'])).rows[0]).toEqual({ ok: false })
+    expect((await db.query('select finish_collection_worker($1,$2,$3) as ok', [recovered.lease_id, checkpoint, '{"ok":true}'])).rows[0]).toEqual({ ok: true })
+    expect((await db.query<{ result: { cursor_id: string } }>('select claim_collection_worker() as result')).rows[0].result.cursor_id).toBe(checkpoint)
+  })
+
 })

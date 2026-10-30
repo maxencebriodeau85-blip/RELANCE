@@ -111,15 +111,18 @@ export async function GET(request: Request) {
         continue
       }
       attempted++
+      // Checkpoint the attempted row even if dispatch rejects before returning a
+      // status (for example, a database/network read). A broken account must not
+      // pin every subsequent run to the same invoice. Dispatch still owns the
+      // pending-send/idempotence safeguards when delivery is uncertain.
+      cursor = row.id
+      scanned++
       const result = await sendReminder(
         row.id,
         row.user_id,
         step.type,
         'automatic',
       )
-      // Advance even on provider failure: do not let one broken account starve all others.
-      cursor = row.id
-      scanned++
       if (result.status === 200) sent++
       else if (result.status >= 500) throw Error('DELIVERY_FAILED')
       else skipped++
