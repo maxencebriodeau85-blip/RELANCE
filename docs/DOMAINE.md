@@ -40,9 +40,23 @@ Les relances partent de `send.encair.fr` (enveloppe) avec une signature DKIM `d=
 
 Les valeurs Vercel sont relues avec `get_domain_config` (Vercel) ; celles de Resend dans le tableau de bord Resend ou `get-domain`. En cas de doute, ce sont ces sources qui font foi, pas ce tableau.
 
+## État au 30/10/2026 (22h30)
+
+| Élément | État |
+| --- | --- |
+| Délégation `.fr` vers OVH | Publiée (`dns103` / `ns103.ovh.net`) |
+| Vercel `encair.fr` / `www.encair.fr` | Configurés, certificat émis ; `www` → 308 vers la racine |
+| `https://encair.fr` | 200 depuis l'Inde, Israël et la Suède (check-host.net) |
+| `NEXT_PUBLIC_APP_URL` | `https://encair.fr` : canonique, Open Graph, sitemap (23 URL), robots, security.txt sur encair.fr |
+| `ENFORCE_CANONICAL_HOST` | `true` en Production : les pages des alias `*.vercel.app` redirigent en 301 ; `/api/*` jamais |
+| Resend `encair.fr` | **Vérifié** (DKIM, SPF et MX `send`, CNAME `rsend`) |
+| Boîte `contact@encair.fr` | À créer chez OVH par l'éditeur (mot de passe) ; MX déjà publiés |
+| Supabase Auth (Site URL, redirections) | À mettre à jour par l'éditeur (connexion au tableau de bord) |
+| Clés Resend de production | Non créées : décision d'ouvrir les envois réels à prendre après la recette (13 factures de test encore en production) |
+
 ## Bascule de l'URL canonique
 
-À faire seulement quand `https://encair.fr` répond en HTTPS avec le bon certificat :
+À faire seulement quand `https://encair.fr` répond en HTTPS avec le bon certificat (étapes 1, 3 et 4 faites le 30/10/2026) :
 
 1. Vercel → Production : `NEXT_PUBLIC_APP_URL=https://encair.fr`, puis redéployer (la variable est figée au build).
 2. Supabase Auth → URL Configuration : Site URL `https://encair.fr` ; redirections `https://encair.fr/auth/confirm`, `https://encair.fr/auth/confirm?next=/auth/reset-password&type=recovery`, `https://encair.fr/auth/reset-password`.
