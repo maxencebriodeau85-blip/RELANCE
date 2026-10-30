@@ -23,11 +23,11 @@ export function CheckoutButton() {
   }
   return (
     <div>
-      <button disabled={busy} onClick={checkout} className="rf-button w-full">
+      <button type="button" disabled={busy} onClick={checkout} className="rf-button rf-button-dark w-full disabled:cursor-wait disabled:opacity-70">
         {busy ? 'Ouverture…' : 'Choisir l’offre fondateur'}
       </button>
       {error && (
-        <p role="alert" className="mt-3 text-sm text-red-300">
+        <p role="alert" className="mt-3 text-sm text-[#b42318]">
           {error}
         </p>
       )}

@@ -5,8 +5,8 @@ export function EmptyState({
   title,
   description,
   action,
-  iconColor = 'text-blue-600',
-  iconBg = 'bg-blue-50',
+  iconColor = 'text-brand-600',
+  iconBg = 'bg-brand-50',
 }: {
   icon: LucideIcon
   title: string

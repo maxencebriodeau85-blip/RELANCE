@@ -19,11 +19,11 @@ interface Notif {
 }
 
 const TYPE_ICONS: Record<string, { icon: typeof Bell; color: string }> = {
-  follow_up:      { icon: Phone,    color: 'text-brand-600 bg-blue-50' },
+  follow_up:      { icon: Phone,    color: 'text-brand-600 bg-brand-50' },
   reminder:       { icon: Bell,     color: 'text-amber-600 bg-amber-50' },
   invoice_overdue:{ icon: FileText, color: 'text-red-600 bg-red-50' },
   deal_signed:    { icon: Users,    color: 'text-green-600 bg-green-50' },
-  sequence_step:  { icon: Mail,     color: 'text-violet-600 bg-violet-50' },
+  sequence_step:  { icon: Mail,     color: 'text-[#a74a28] bg-[#fbf3ec]' },
 }
 
 export function NotificationBell() {
@@ -121,7 +121,7 @@ export function NotificationBell() {
                 const content = (
                   <div className={cn(
                     'flex items-start gap-3 px-4 py-3 transition-colors hover:bg-gray-50',
-                    !n.read && 'bg-blue-50/50 hover:bg-blue-50'
+                    !n.read && 'bg-brand-50/50 hover:bg-brand-50'
                   )}>
                     <div className={cn('flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full', typeInfo.color)}>
                       <Icon className="h-3.5 w-3.5" />
@@ -134,7 +134,7 @@ export function NotificationBell() {
                       </p>
                     </div>
                     {!n.read && (
-                      <div className="flex-shrink-0 mt-1.5 h-2 w-2 rounded-full bg-blue-500" />
+                      <div className="flex-shrink-0 mt-1.5 h-2 w-2 rounded-full bg-brand-500" />
                     )}
                   </div>
                 )

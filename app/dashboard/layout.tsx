@@ -57,7 +57,7 @@ export default async function DashboardLayout({
       {/* Main content area */}
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         {/* Top bar — mobile: hamburger + logo + bell | desktop: bell only */}
-        <div className="rf-workspace-top flex shrink-0 items-center justify-between border-b border-[#e8e6e0] px-3 sm:px-5">
+        <header className="rf-workspace-top flex shrink-0 items-center justify-between border-b border-[#e8e6e0] px-3 sm:px-5">
           {/* Mobile left */}
           <div className="flex items-center gap-3 md:hidden">
             <MobileNav />
@@ -70,7 +70,7 @@ export default async function DashboardLayout({
           </p>
           {/* Right: notification bell */}
           <NotificationBell />
-        </div>
+        </header>
 
         <main id="main-content" tabIndex={-1} className="min-h-0 flex-1 overflow-y-auto">
           {['past_due', 'incomplete'].includes(profile.subscription_status ?? '') && (

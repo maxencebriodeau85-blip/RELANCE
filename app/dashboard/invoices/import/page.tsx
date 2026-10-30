@@ -256,7 +256,7 @@ export default function ImportPage() {
           {(['upload', 'mapping', 'preview', 'success'] as Step[]).map(
             (s, i) => {
               const stepLabels = [
-                'Upload',
+                'Fichier',
                 'Correspondance',
                 'Aperçu',
                 'Terminé',
@@ -279,7 +279,7 @@ export default function ImportPage() {
                   <div
                     className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${
                       isCurrent
-                        ? 'bg-blue-100 text-brand-700'
+                        ? 'bg-brand-100 text-brand-700'
                         : isDone
                           ? 'bg-green-100 text-green-700'
                           : 'text-gray-400'
@@ -316,11 +316,11 @@ export default function ImportPage() {
                 {...getRootProps()}
                 className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors ${
                   isDragActive
-                    ? 'border-blue-400 bg-blue-50'
+                    ? 'border-brand-400 bg-brand-50'
                     : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
                 }`}
               >
-                <input {...getInputProps()} />
+                <input {...getInputProps()} aria-label="Choisir le fichier CSV à importer" />
                 <Upload className="h-10 w-10 mx-auto mb-3 text-gray-400" />
                 <p className="text-base font-medium text-gray-700">
                   {isDragActive

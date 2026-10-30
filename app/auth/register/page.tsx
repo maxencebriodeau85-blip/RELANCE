@@ -43,7 +43,7 @@ function PasswordStrength({ password }: { password: string }) {
   if (/[^A-Za-z0-9]/.test(password)) strength++
 
   const labels = ['Faible', 'Faible', 'Moyen', 'Fort', 'Très fort']
-  const colors = ['', 'bg-red-500', 'bg-yellow-500', 'bg-blue-500', 'bg-green-500']
+  const colors = ['', 'bg-red-500', 'bg-yellow-500', 'bg-brand-500', 'bg-green-500']
 
   return (
     <div id="password-strength" className="space-y-1 mt-1">

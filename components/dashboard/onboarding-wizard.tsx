@@ -102,7 +102,7 @@ export function OnboardingWizard({ initialStep = 1 }: { initialStep?: number }) 
               <div
                 key={s.id}
                 className={`h-1 flex-1 rounded-full transition-colors ${
-                  s.id <= step ? 'bg-blue-500' : 'bg-gray-100'
+                  s.id <= step ? 'bg-brand-500' : 'bg-gray-100'
                 }`}
               />
             ))}
@@ -115,7 +115,7 @@ export function OnboardingWizard({ initialStep = 1 }: { initialStep?: number }) 
         {/* Content */}
         <div className="p-6 sm:p-8 pt-4">
           <div className="flex flex-col items-center text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500 text-white mb-5 shadow-lg shadow-blue-200">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#182b40] text-white mb-5 shadow-lg shadow-brand-100">
               <Icon className="h-7 w-7" />
             </div>
 
@@ -131,7 +131,7 @@ export function OnboardingWizard({ initialStep = 1 }: { initialStep?: number }) 
                   'Activer les relances automatiques',
                 ].map((t) => (
                   <li key={t} className="flex items-center gap-2 text-sm text-gray-700">
-                    <CheckCircle className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                    <CheckCircle className="h-4 w-4 text-brand-500 flex-shrink-0" />
                     {t}
                   </li>
                 ))}

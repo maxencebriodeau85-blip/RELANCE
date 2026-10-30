@@ -190,7 +190,7 @@ export default function InvoicesPage() {
         {!loading && invoices.length > 0 && (
           <div className="flex gap-2 flex-wrap">
             {[
-              { label: 'Reste à encaisser', value: formatEuro(invoices.reduce((s, i) => s + Math.round(outstanding(i) * 100), 0) / 100), cls: 'bg-blue-50 text-brand-700 border-blue-100' },
+              { label: 'Reste à encaisser', value: formatEuro(invoices.reduce((s, i) => s + Math.round(outstanding(i) * 100), 0) / 100), cls: 'bg-brand-50 text-brand-700 border-brand-100' },
               { label: 'En retard', value: `${invoices.filter(i => getDaysOverdue(i) > 0 && i.status !== 'paid' && i.status !== 'disputed').length}`, cls: 'bg-red-50 text-red-700 border-red-100' },
               { label: 'Payées', value: `${invoices.filter(i => i.status === 'paid').length}`, cls: 'bg-green-50 text-green-700 border-green-100' },
             ].map((chip) => (
@@ -244,7 +244,7 @@ export default function InvoicesPage() {
             />
           </div>
           <Select value={statusFilter} onValueChange={(val) => { setStatusFilter(val); setPage(1) }}>
-            <SelectTrigger className="w-44">
+            <SelectTrigger className="w-44" aria-label="Filtrer par statut">
               <SelectValue placeholder="Tous les statuts" />
             </SelectTrigger>
             <SelectContent>
@@ -286,8 +286,8 @@ export default function InvoicesPage() {
 
         {/* Bulk action bar */}
         {selected.size > 0 && (
-          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5">
-            <span className="text-sm font-semibold text-blue-900">
+          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-2.5">
+            <span className="text-sm font-semibold text-brand-900">
               {selected.size} sélectionnée{selected.size > 1 ? 's' : ''}
             </span>
             <div className="flex flex-wrap items-center gap-2">
@@ -302,7 +302,7 @@ export default function InvoicesPage() {
                 <Trash2 className="mr-1.5 h-3.5 w-3.5" />Supprimer
               </Button>
             </div>
-            <button onClick={clearSelection} aria-label="Désélectionner tout" className="ml-auto text-blue-400 hover:text-brand-600 transition-colors">
+            <button onClick={clearSelection} aria-label="Désélectionner tout" className="ml-auto text-brand-400 hover:text-brand-600 transition-colors">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -384,7 +384,7 @@ export default function InvoicesPage() {
                   const daysOverdue = getDaysOverdue(invoice)
                   const isSelected = selected.has(invoice.id)
                   return (
-                    <TableRow key={invoice.id} className={`hover:bg-gray-50 transition-colors ${isSelected ? 'bg-blue-50/60' : ''}`}>
+                    <TableRow key={invoice.id} className={`hover:bg-gray-50 transition-colors ${isSelected ? 'bg-brand-50/60' : ''}`}>
                       <TableCell className="pl-4">
                         <button onClick={() => toggleSelect(invoice.id)} aria-label="Sélectionner">
                           {isSelected
@@ -412,11 +412,11 @@ export default function InvoicesPage() {
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           <Button variant="ghost" size="icon" asChild className="h-8 w-8">
-                            <Link href={`/dashboard/invoices/${invoice.id}`}><Eye className="h-4 w-4" /></Link>
+                            <Link href={`/dashboard/invoices/${invoice.id}`} aria-label={`Voir la facture ${invoice.invoice_number}`} title="Voir la facture"><Eye className="h-4 w-4" aria-hidden="true" /></Link>
                           </Button>
                           {invoice.status !== 'paid' && invoice.status !== 'disputed' && (
                             <Button variant="ghost" size="icon" asChild className="h-8 w-8">
-                              <Link href={`/dashboard/invoices/${invoice.id}?action=remind`}><Send className="h-4 w-4" /></Link>
+                              <Link href={`/dashboard/invoices/${invoice.id}?action=remind`} aria-label={`Préparer une relance pour la facture ${invoice.invoice_number}`} title="Préparer une relance"><Send className="h-4 w-4" aria-hidden="true" /></Link>
                             </Button>
                           )}
                         </div>

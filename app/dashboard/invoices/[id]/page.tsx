@@ -47,10 +47,10 @@ const reminderTypeTone: Record<string, string> = {
 
 const reminderStatusConfig: Record<string, { label: string; color: string; dot: string }> = {
   pending: { label: 'Envoi à vérifier', color: 'text-amber-700', dot: 'bg-amber-500' },
-  sent: { label: 'Envoyé', color: 'text-brand-600', dot: 'bg-blue-500' },
+  sent: { label: 'Envoyé', color: 'text-brand-600', dot: 'bg-brand-500' },
   delivered: { label: 'Délivré', color: 'text-green-600', dot: 'bg-green-500' },
   opened: { label: 'Ouvert', color: 'text-emerald-600', dot: 'bg-emerald-500' },
-  clicked: { label: 'Cliqué', color: 'text-purple-600', dot: 'bg-purple-500' },
+  clicked: { label: 'Cliqué', color: 'text-[#a74a28]', dot: 'bg-[#b9522d]' },
   failed: { label: 'Échec', color: 'text-red-600', dot: 'bg-red-500' },
   bounced: { label: 'Rebondi', color: 'text-orange-600', dot: 'bg-orange-500' },
   complained: { label: 'Spam signalé', color: 'text-red-700', dot: 'bg-red-600' },
@@ -438,7 +438,7 @@ export default function InvoiceDetailPage() {
 
             {/* Send reminder card */}
             {canSendReminder && (
-              <Card className="border-blue-100 bg-blue-50/40">
+              <Card className="border-brand-100 bg-brand-50/40">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <Send className="h-4 w-4 text-brand-600" />
@@ -458,7 +458,7 @@ export default function InvoiceDetailPage() {
                           onClick={() => setSelectedReminderType(t)}
                           className={`relative rounded-lg border p-2.5 text-left transition-all ${
                             selectedReminderType === t
-                              ? 'border-blue-500 bg-white shadow-sm ring-1 ring-blue-500'
+                              ? 'border-brand-500 bg-white shadow-sm ring-1 ring-brand-500'
                               : 'border-gray-200 bg-white hover:border-gray-300'
                           }`}
                         >
@@ -515,10 +515,10 @@ export default function InvoiceDetailPage() {
                           complained_at?: string | null
                         }
                         const events = [
-                          { label: ['pending','failed'].includes(reminder.status) ? 'Tentative enregistrée' : 'Envoyé', at: ['pending','failed'].includes(reminder.status) ? reminder.created_at : reminder.sent_at, dot: 'bg-blue-500' },
+                          { label: ['pending','failed'].includes(reminder.status) ? 'Tentative enregistrée' : 'Envoyé', at: ['pending','failed'].includes(reminder.status) ? reminder.created_at : reminder.sent_at, dot: 'bg-brand-500' },
                           r.delivered_at && { label: 'Délivré', at: r.delivered_at, dot: 'bg-green-500' },
                           r.opened_at && { label: 'Ouvert', at: r.opened_at, dot: 'bg-emerald-500' },
-                          r.clicked_at && { label: 'Cliqué', at: r.clicked_at, dot: 'bg-purple-500' },
+                          r.clicked_at && { label: 'Cliqué', at: r.clicked_at, dot: 'bg-[#b9522d]' },
                           r.bounced_at && { label: 'Rebondi', at: r.bounced_at, dot: 'bg-orange-500' },
                           r.complained_at && { label: 'Spam signalé', at: r.complained_at, dot: 'bg-red-600' },
                         ].filter(Boolean) as { label: string; at: string; dot: string }[]

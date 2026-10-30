@@ -722,3 +722,15 @@ a:hover .rf-arrow-link svg, .rf-arrow-link:hover svg { transform: translateX(3px
 .rf-page-head-compact .rf-meta { margin-top: 12px; }
 .rf-site .rf-next-title { margin-top: 2px; color: #182b40; font-size: 15px; font-weight: 600; line-height: 1.35; }
 .rf-site .rf-next-action p.rf-next-title { clear: none; margin: 2px 0 0; color: #182b40; font-size: 15px; }
+
+/* Espace connecté : textes secondaires lisibles (AA) sans retoucher chaque écran.
+   :where() garde la spécificité d'une simple classe, pour que les états
+   hover: et focus: de Tailwind continuent de s'appliquer. */
+.rf-workspace .rf-workspace-top p { color: #5b6570; }
+.rf-workspace :where(.text-gray-400) { color: #5f6a75; }
+.rf-workspace :where(.text-gray-500, .text-muted-foreground) { color: #4e5b68; }
+.rf-workspace :where(.text-amber-600) { color: #b45309; }
+.rf-workspace :where(.text-orange-500, .text-orange-600) { color: #c2410c; }
+.rf-workspace :where(.text-red-600) { color: #b91c1c; }
+.rf-workspace :where(.text-green-600) { color: #15803d; }
+.rf-workspace :where(.opacity-70.font-normal) { opacity: 1; }

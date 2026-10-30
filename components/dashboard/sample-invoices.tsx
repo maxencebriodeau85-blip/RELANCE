@@ -50,9 +50,9 @@ export function SampleInvoicesButton() {
 export function SampleInvoicesBanner({ count }: { count: number }) {
   const { busy, error, run } = useSamples('DELETE')
   return (
-    <div role="status" className="border-b border-sky-200 bg-sky-50 px-5 py-3 text-sm text-sky-950">
+    <div role="status" className="border-b border-brand-200 bg-brand-50 px-5 py-3 text-sm text-brand-950">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <FlaskConical className="h-4 w-4 flex-shrink-0 text-sky-700" aria-hidden="true" />
+        <FlaskConical className="h-4 w-4 flex-shrink-0 text-brand-700" aria-hidden="true" />
         <span>
           {count > 1 ? `${count} factures d’exemple sont affichées` : 'Une facture d’exemple est affichée'} : aucune
           relance ne part, elles ne comptent pas dans votre quota.
