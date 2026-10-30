@@ -15,7 +15,7 @@ export async function POST(request: Request) {
       !process.env.SUPPORT_EMAIL
     )
       return NextResponse.json(
-        { error: 'Le service de messagerie n’est pas encore disponible.' },
+        { error: 'Le formulaire est momentanément indisponible. Écrivez-nous directement par email, à l’adresse indiquée sur cette page.' },
         { status: 503 },
       )
     // Rate limit: 5 messages per IP per hour.
@@ -81,24 +81,31 @@ export async function POST(request: Request) {
       !process.env.RESEND_API_KEY.includes('placeholder')
     ) {
       try {
-        const { Resend } = await import('resend')
-        const resend = new Resend(process.env.RESEND_API_KEY)
         const fromEmail = process.env.RESEND_FROM_EMAIL!
 
         // Strip CR/LF from name/subject to prevent header injection
         const safeName = name.replace(/[\r\n<>"]/g, '')
         const safeSubject = subject.replace(/[\r\n]/g, ' ')
 
-        const result = await resend.emails.send({
-          from: `Encair Contact <${fromEmail}>`,
-          to: [supportTo],
-          reply_to: email,
-          subject: `[Contact] ${safeSubject}`,
-          text: `Nouveau message via le formulaire de contact :\n\nNom : ${safeName}\nEmail : ${email}\n\n---\n\n${message}\n`,
-          tags: [{ name: 'type', value: 'contact' }],
+        // API HTTP de Resend, comme pour les relances : pas de SDK à maintenir.
+        const response = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: `Encair Contact <${fromEmail}>`,
+            to: [supportTo],
+            reply_to: email,
+            subject: `[Contact] ${safeSubject}`,
+            text: `Nouveau message via le formulaire de contact :\n\nNom : ${safeName}\nEmail : ${email}\n\n---\n\n${message}\n`,
+            tags: [{ name: 'type', value: 'contact' }],
+          }),
+          signal: AbortSignal.timeout(10000),
         })
-        if (result.error || !result.data?.id)
-          throw new Error('Email not accepted')
+        const result = (await response.json().catch(() => null)) as { id?: string } | null
+        if (!response.ok || !result?.id) throw new Error('Email not accepted')
       } catch (emailErr) {
         console.error('Contact email send error:', emailErr)
         return NextResponse.json(
