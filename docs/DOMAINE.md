@@ -53,16 +53,18 @@ Les valeurs Vercel sont relues avec `get_domain_config` (Vercel) ; celles de Res
 | `ENFORCE_CANONICAL_HOST` | `true` en Production : les pages des alias `*.vercel.app` redirigent en 301 ; `/api/*` jamais |
 | Resend `encair.fr` | **Vérifié** (DKIM, SPF et MX `send`, CNAME `rsend`) |
 | Boîte `contact@encair.fr` | Créée le 31/10/2026 ; `SUPPORT_EMAIL` et `NEXT_PUBLIC_CONTACT_EMAIL` basculés dessus (Production et Preview) |
-| Supabase Auth (Site URL, redirections) | À mettre à jour par l'éditeur (connexion au tableau de bord) |
+| Supabase Auth (Site URL, redirections) | Site URL `https://encair.fr` ; redirections `https://encair.fr/**` (+ ancien alias `/auth/callback`) ; joker `https://*.vercel.app/**` **supprimé** (tout site Vercel pouvait recevoir les liens) — 31/10/2026 |
+| Supabase Auth SMTP | Resend (`smtp.resend.com:465`, utilisateur `resend`, expéditeur `Encair <contact@encair.fr>`) — 31/10/2026, mot de passe saisi par l'éditeur |
+| Modèles Supabase Auth | `supabase/templates/confirmation.html` et `recovery.html` collés (objets « Confirmez votre adresse email Encair », « Réinitialisez votre mot de passe Encair ») — 31/10/2026 |
 | `RESEND_FROM_EMAIL` (Production) | `relances@encair.fr` |
-| `RESEND_API_KEY` (Production) | Clé `encair-production` créée le 31/10/2026 (*Sending access*, domaine `encair.fr`) ; à coller dans Vercel par l'éditeur |
+| `RESEND_API_KEY` (Production) | Clé `encair-production` (*Sending access*, domaine `encair.fr`), en place depuis le 31/10/2026 : formulaire `/contact` testé (livré à `contact@encair.fr`), email de bienvenue actif |
 | `RESEND_WEBHOOK_SECRET` (Production) | Volontairement absent : tant qu'il manque, **toute relance est refusée** (manuelle, automatique, fin d'essai), avant réservation |
 
 ## À faire par l'éditeur
 
-1. **Clé Resend de production.** Resend → API Keys → *Create API key* : nom `encair-production`, permission *Sending access*, domaine `encair.fr`. Coller la clé directement dans Vercel → Settings → Environment Variables : `RESEND_API_KEY`, type *Sensitive*, environnement *Production* uniquement. Ne jamais la coller dans une conversation ni dans le dépôt. Puis redéployer. Effet : le formulaire `/contact` et l'email de bienvenue fonctionnent ; les relances restent verrouillées (pas de `RESEND_WEBHOOK_SECRET`).
-2. **Supabase Auth → URL Configuration.** Site URL `https://encair.fr` ; Redirect URLs : `https://encair.fr/auth/confirm`, `https://encair.fr/auth/confirm?next=/auth/reset-password&type=recovery`, `https://encair.fr/auth/reset-password`.
-3. **Supabase Auth → SMTP Settings** (après l'étape 1, avec une seconde clé Resend dédiée `encair-supabase-smtp`) : hôte `smtp.resend.com`, port `465`, utilisateur `resend`, mot de passe = cette clé, expéditeur `Encair <contact@encair.fr>` (les réponses arrivent dans la boîte support). Tester ensuite une inscription avec une adresse extérieure.
+1. ~~Clé Resend de production~~ (faite le 31/10/2026). **Clé Resend de production.** Resend → API Keys → *Create API key* : nom `encair-production`, permission *Sending access*, domaine `encair.fr`. Coller la clé directement dans Vercel → Settings → Environment Variables : `RESEND_API_KEY`, type *Sensitive*, environnement *Production* uniquement. Ne jamais la coller dans une conversation ni dans le dépôt. Puis redéployer. Effet : le formulaire `/contact` et l'email de bienvenue fonctionnent ; les relances restent verrouillées (pas de `RESEND_WEBHOOK_SECRET`).
+2. ~~Supabase Auth → URL Configuration~~ (faite le 31/10/2026). Site URL `https://encair.fr` ; Redirect URLs : `https://encair.fr/auth/confirm`, `https://encair.fr/auth/confirm?next=/auth/reset-password&type=recovery`, `https://encair.fr/auth/reset-password`.
+3. ~~Supabase Auth → SMTP Settings~~ (fait le 31/10/2026, avec la même clé `encair-production`) (après l'étape 1, avec une seconde clé Resend dédiée `encair-supabase-smtp`) : hôte `smtp.resend.com`, port `465`, utilisateur `resend`, mot de passe = cette clé, expéditeur `Encair <contact@encair.fr>` (les réponses arrivent dans la boîte support). Tester ensuite une inscription avec une adresse extérieure.
 4. ~~Boîte `contact@encair.fr`~~ : faite le 31/10/2026, adresses du site basculées.
 5. **Avant d'ouvrir les relances réelles** (création du webhook Resend `https://encair.fr/api/webhooks/resend` et de `RESEND_WEBHOOK_SECRET`) : supprimer ou archiver les 13 factures de test de production. Au 30/10/2026, deux d'entre elles ne sont pas en pause, sont échues et portent une adresse de client : elles partiraient au premier passage du cron.
 
