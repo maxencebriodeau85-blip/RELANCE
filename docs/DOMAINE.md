@@ -2,7 +2,7 @@
 
 Domaine acheté chez OVHcloud le 30 octobre 2026 (commande 261628714), pour 1 an, renouvellement en octobre 2027. Titulaire : l'éditeur, en tant que personne physique ; à transférer à la société une fois celle-ci immatriculée (changement de titulaire chez OVH).
 
-Inclus dans la commande : DNSSEC et un compte e-mail Zimbra Starter (`contact@encair.fr`, à créer depuis l'espace client OVH : le mot de passe de la boîte est choisi par l'éditeur).
+Inclus dans la commande : DNSSEC et un compte e-mail Zimbra Starter : `contact@encair.fr`, créé le 31/10/2026 (organisation Zimbra `ENCAIR`, plateforme partagée avec `combien-media.fr`). Webmail : https://webmail.mail.ovh.net/.
 
 Serveurs DNS : `dns103.ovh.net`, `ns103.ovh.net`. Domaine verrouillé contre le transfert.
 
@@ -32,7 +32,9 @@ Les serveurs DNS restent ceux d'OVH : c'est ce qui garde la boîte Zimbra (MX OV
 | (racine) | TXT | `v=spf1 include:mx.ovh.com ~all` | SPF de la racine : autorise l'envoi depuis la boîte OVH |
 | `_autodiscover._tcp` | SRV | `0 0 443 zimbra1.mail.ovh.net.` | Configuration automatique des clients mail |
 
-Valeurs e-mail OVH reprises de la zone `combien-media.fr`, déjà servie par la même plateforme Zimbra. Les signatures DKIM d'OVH (`ovhmo-selector-1/2._domainkey`) sont propres à chaque domaine : à activer depuis Zimbra une fois la boîte créée.
+Valeurs e-mail OVH reprises de la zone `combien-media.fr`, déjà servie par la même plateforme Zimbra. Les signatures DKIM d'OVH (CNAME `ovhmo-selector-1/2._domainkey`) ont été ajoutées par OVH à l'ajout du domaine dans Zimbra.
+
+**Piège** : l'ajout d'un domaine dans Zimbra en *configuration recommandée* remplace **tous** les MX de la zone, y compris le MX `send` de Resend (supprimé le 31/10/2026, remis le jour même). Après toute opération e-mail chez OVH, relire la zone et vérifier le domaine dans Resend.
 
 Supprimés de la zone par défaut d'OVH (30/10/2026) : A `213.186.33.5` sur la racine et `www` (page de parking), TXT `1|www.encair.fr` et `3|welcome`, CNAME `ftp`, SPF `v=spf1 -all`.
 
@@ -40,7 +42,7 @@ Les relances partent de `send.encair.fr` (enveloppe) avec une signature DKIM `d=
 
 Les valeurs Vercel sont relues avec `get_domain_config` (Vercel) ; celles de Resend dans le tableau de bord Resend ou `get-domain`. En cas de doute, ce sont ces sources qui font foi, pas ce tableau.
 
-## État au 30/10/2026 (22h30)
+## État au 31/10/2026
 
 | Élément | État |
 | --- | --- |
@@ -50,18 +52,18 @@ Les valeurs Vercel sont relues avec `get_domain_config` (Vercel) ; celles de Res
 | `NEXT_PUBLIC_APP_URL` | `https://encair.fr` : canonique, Open Graph, sitemap (23 URL), robots, security.txt sur encair.fr |
 | `ENFORCE_CANONICAL_HOST` | `true` en Production : les pages des alias `*.vercel.app` redirigent en 301 ; `/api/*` jamais |
 | Resend `encair.fr` | **Vérifié** (DKIM, SPF et MX `send`, CNAME `rsend`) |
-| Boîte `contact@encair.fr` | À créer chez OVH par l'éditeur (mot de passe) ; MX déjà publiés |
+| Boîte `contact@encair.fr` | Créée le 31/10/2026 ; `SUPPORT_EMAIL` et `NEXT_PUBLIC_CONTACT_EMAIL` basculés dessus (Production et Preview) |
 | Supabase Auth (Site URL, redirections) | À mettre à jour par l'éditeur (connexion au tableau de bord) |
 | `RESEND_FROM_EMAIL` (Production) | `relances@encair.fr` |
-| `RESEND_API_KEY` (Production) | À créer par l'éditeur (voir ci-dessous) |
+| `RESEND_API_KEY` (Production) | Clé `encair-production` créée le 31/10/2026 (*Sending access*, domaine `encair.fr`) ; à coller dans Vercel par l'éditeur |
 | `RESEND_WEBHOOK_SECRET` (Production) | Volontairement absent : tant qu'il manque, **toute relance est refusée** (manuelle, automatique, fin d'essai), avant réservation |
 
 ## À faire par l'éditeur
 
 1. **Clé Resend de production.** Resend → API Keys → *Create API key* : nom `encair-production`, permission *Sending access*, domaine `encair.fr`. Coller la clé directement dans Vercel → Settings → Environment Variables : `RESEND_API_KEY`, type *Sensitive*, environnement *Production* uniquement. Ne jamais la coller dans une conversation ni dans le dépôt. Puis redéployer. Effet : le formulaire `/contact` et l'email de bienvenue fonctionnent ; les relances restent verrouillées (pas de `RESEND_WEBHOOK_SECRET`).
 2. **Supabase Auth → URL Configuration.** Site URL `https://encair.fr` ; Redirect URLs : `https://encair.fr/auth/confirm`, `https://encair.fr/auth/confirm?next=/auth/reset-password&type=recovery`, `https://encair.fr/auth/reset-password`.
-3. **Supabase Auth → SMTP Settings** (après l'étape 1, avec une seconde clé Resend dédiée `encair-supabase-smtp`) : hôte `smtp.resend.com`, port `465`, utilisateur `resend`, mot de passe = cette clé, expéditeur `Encair <bonjour@encair.fr>`. Tester ensuite une inscription avec une adresse extérieure.
-4. **Boîte `contact@encair.fr`** dans OVH → Zimbra Mail → Compte email. Puis remplacer `SUPPORT_EMAIL` et `NEXT_PUBLIC_CONTACT_EMAIL` dans Vercel et redéployer.
+3. **Supabase Auth → SMTP Settings** (après l'étape 1, avec une seconde clé Resend dédiée `encair-supabase-smtp`) : hôte `smtp.resend.com`, port `465`, utilisateur `resend`, mot de passe = cette clé, expéditeur `Encair <contact@encair.fr>` (les réponses arrivent dans la boîte support). Tester ensuite une inscription avec une adresse extérieure.
+4. ~~Boîte `contact@encair.fr`~~ : faite le 31/10/2026, adresses du site basculées.
 5. **Avant d'ouvrir les relances réelles** (création du webhook Resend `https://encair.fr/api/webhooks/resend` et de `RESEND_WEBHOOK_SECRET`) : supprimer ou archiver les 13 factures de test de production. Au 30/10/2026, deux d'entre elles ne sont pas en pause, sont échues et portent une adresse de client : elles partiraient au premier passage du cron.
 
 ## Bascule de l'URL canonique
