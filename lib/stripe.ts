@@ -79,6 +79,7 @@ export async function createCheckoutSession({
   cancelUrl,
   userId,
   idempotencyKey,
+  trialEnd,
 }: {
   customerId?: string
   priceId: string
@@ -86,6 +87,8 @@ export async function createCheckoutSession({
   cancelUrl: string
   userId: string
   idempotencyKey?: string
+  /** Fin de l’essai Encair en cours (secondes Unix), voir trialCarryoverEnd. */
+  trialEnd?: number | null
 }) {
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
     mode: 'subscription',
@@ -95,11 +98,21 @@ export async function createCheckoutSession({
     cancel_url: cancelUrl,
     metadata: { userId },
     subscription_data: {
-      // No Stripe trial here: the 30-day free trial is already granted at
-      // signup (profiles.trial_ends_at). Adding trial_period_days would give
-      // a SECOND free month billed by Stripe — double trial = revenue leak.
+      // Never trial_period_days: the 30-day free trial is already granted at
+      // signup (profiles.trial_ends_at), a second free month would leak
+      // revenue. An account still in that trial only carries its REMAINING
+      // days over (trial_end = the same date): the first charge happens when
+      // the Encair trial would have ended, never later.
       metadata: { userId },
+      ...(trialEnd
+        ? {
+            trial_end: trialEnd,
+            trial_settings: { end_behavior: { missing_payment_method: 'cancel' as const } },
+          }
+        : {}),
     },
+    // The card is collected even when nothing is charged today.
+    payment_method_collection: 'always',
     allow_promotion_codes: true,
     billing_address_collection: 'required',
     locale: 'fr',

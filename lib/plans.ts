@@ -40,3 +40,25 @@ export const PLAN_LIMITS: Record<string, number> = {
   pro: 200,
   business: 1000,
 }
+
+/**
+ * Stripe Checkout exige une fin d’essai au moins 48 h dans le futur ; une
+ * heure de marge couvre le temps passé sur la page de paiement.
+ */
+export const MIN_TRIAL_CARRYOVER_MS = 49 * 3_600_000
+
+/**
+ * Fin d’essai Encair à reporter sur l’abonnement Stripe, en secondes Unix :
+ * un compte en essai qui s’abonne garde ses jours gratuits restants et n’est
+ * prélevé qu’à la fin de l’essai. `null` : paiement immédiat (essai terminé,
+ * ou trop proche de sa fin pour Stripe).
+ */
+export function trialCarryoverEnd(
+  profile: { plan?: string | null; trial_ends_at?: string | null } | null | undefined,
+  now: number = Date.now(),
+): number | null {
+  if (!profile || profile.plan !== 'free_trial' || !profile.trial_ends_at) return null
+  const end = Date.parse(profile.trial_ends_at)
+  if (!Number.isFinite(end) || end - now < MIN_TRIAL_CARRYOVER_MS) return null
+  return Math.floor(end / 1000)
+}

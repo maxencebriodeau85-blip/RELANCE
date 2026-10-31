@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { CheckoutButton } from '@/components/auth/checkout-button'
 import { Logo } from '@/components/brand/logo'
 import { SignOutButton } from '@/components/auth/sign-out-button'
-import { OFFER, PRICE_TAX, priceLabel } from '@/lib/plans'
+import { OFFER, PRICE_TAX, priceLabel, trialCarryoverEnd } from '@/lib/plans'
 
 export default async function SubscriptionPage({ searchParams }: { searchParams: Promise<{ checkout?: string }> }) {
   const { checkout } = await searchParams
@@ -33,6 +33,11 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
   const trialEnd = profile.trial_ends_at ? new Date(profile.trial_ends_at) : null
   const isExpired = !trialEnd || !Number.isFinite(trialEnd.getTime()) || trialEnd <= new Date()
   const daysLeft = trialEnd && !isExpired ? Math.max(0, Math.ceil((trialEnd.getTime() - Date.now()) / 86_400_000)) : null
+  // Même règle que /api/stripe/checkout : les jours d’essai restants sont conservés.
+  const firstCharge = trialCarryoverEnd(profile)
+  const firstChargeLabel = firstCharge
+    ? new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', day: 'numeric', month: 'long' }).format(new Date(firstCharge * 1000))
+    : null
 
   return (
     <main id="main-content" tabIndex={-1} className="rf-site flex min-h-screen flex-col items-center px-5 py-10 outline-none sm:py-14">
@@ -89,6 +94,12 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
           <div className="mt-7">
             <CheckoutButton />
           </div>
+          {firstChargeLabel && (
+            <p className="mt-4 rounded-md bg-[#f6f3ec] p-3 text-center text-sm leading-relaxed text-[#2f3f50]">
+              Aucun prélèvement avant le <strong>{firstChargeLabel}</strong> : vos jours d’essai restants sont conservés.
+              Annulation sans frais jusqu’à cette date.
+            </p>
+          )}
           <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-xs text-[#5b6570]">
             <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />
             Paiement sécurisé par Stripe · Sans engagement · Résiliation en ligne

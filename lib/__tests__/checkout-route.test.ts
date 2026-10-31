@@ -48,7 +48,7 @@ describe('Checkout safety and recovery', () => {
     mocks.sessions.mockResolvedValue({ data: Array.from({ length: 100 }, (_, index) => ({ id: `cs_${index}`, mode: 'subscription', metadata: { userId: 'u1' }, status: 'expired' })), has_more: false })
     expect((await POST(request())).status).toBe(200)
     expect(mocks.create).toHaveBeenCalledOnce()
-    expect(mocks.create.mock.calls[0][0].idempotencyKey).toBe('encair-checkout-u1-price_founder-cs_0')
+    expect(mocks.create.mock.calls[0][0].idempotencyKey).toBe('encair-checkout-u1-price_founder-cs_0-now')
   })
   it('still syncs a completed checkout before offering another when history is complete', async () => {
     const session = { id: 'cs_complete', mode: 'subscription', metadata: { userId: 'u1' }, status: 'complete' }
@@ -91,5 +91,21 @@ describe('Checkout safety and recovery', () => {
     expect(first.idempotencyKey).toBe(second.idempotencyKey)
     expect(first.cancelUrl).toContain('/subscription?checkout=cancelled')
     expect(first.successUrl).toContain('/subscription/return?session_id={CHECKOUT_SESSION_ID}')
+  })
+  it('carries the remaining Encair trial over: first charge at its end, not today', async () => {
+    const end = new Date(Date.now() + 10 * 86_400_000).toISOString()
+    mocks.profile.mockResolvedValue({ data: { stripe_customer_id: 'cus_1', plan: 'free_trial', trial_ends_at: end }, error: null })
+    expect((await POST(request())).status).toBe(200)
+    const args = mocks.create.mock.calls[0][0]
+    expect(args.trialEnd).toBe(Math.floor(Date.parse(end) / 1000))
+    expect(args.idempotencyKey).toBe(`encair-checkout-u1-price_founder-first-${args.trialEnd}`)
+  })
+  it('charges immediately when the trial is over or ends within 49 hours', async () => {
+    for (const trial_ends_at of [new Date(Date.now() - 86_400_000).toISOString(), new Date(Date.now() + 40 * 3_600_000).toISOString()]) {
+      mocks.create.mockClear()
+      mocks.profile.mockResolvedValue({ data: { stripe_customer_id: 'cus_1', plan: 'free_trial', trial_ends_at }, error: null })
+      expect((await POST(request())).status).toBe(200)
+      expect(mocks.create.mock.calls[0][0].trialEnd).toBeNull()
+    }
   })
 })
