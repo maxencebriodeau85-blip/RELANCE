@@ -187,7 +187,7 @@ function SettingsPageInner() {
   const handleBillingPortal = async () => {
     if (!profile?.stripe_customer_id) {
       toast({
-        title: 'Portail de facturation',
+        title: 'Mes factures et mon abonnement',
         description: "Abonnez-vous d'abord à un plan payant.",
         variant: 'destructive',
       })
@@ -297,11 +297,16 @@ function SettingsPageInner() {
             </div>
 
             {profile?.stripe_customer_id && (
-              <Button variant="outline" onClick={handleBillingPortal} className="w-full sm:w-auto">
-                <CreditCard className="mr-2 h-4 w-4" />
-                Portail de facturation
-                <ExternalLink className="ml-2 h-3.5 w-3.5 text-gray-400" />
-              </Button>
+              <div className="space-y-2">
+                <Button variant="outline" onClick={handleBillingPortal} className="w-full sm:w-auto">
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  Mes factures et mon abonnement
+                  <ExternalLink className="ml-2 h-3.5 w-3.5 text-gray-400" />
+                </Button>
+                <p className="text-xs text-gray-500">
+                  Sur l’espace sécurisé Stripe : téléchargez vos factures en PDF, changez de carte ou résiliez.
+                </p>
+              </div>
             )}
           </CardContent>
         </Card>

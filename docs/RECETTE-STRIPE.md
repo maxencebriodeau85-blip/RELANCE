@@ -122,7 +122,7 @@ Utiliser une adresse email dédiée par passage (par ex. `recette+stripe-AAAAMMJ
 1. Retour sur `/subscription/return?session_id=cs_…` puis redirection `/dashboard`.
 2. **Attendu webhook** : `checkout.session.completed`, `customer.subscription.created`, `invoice.paid` livrés en **200**.
 3. **Attendu SQL** : `plan=starter`, `stripe_subscription_id=sub_…`, `stripe_customer_id=cus_…`, `trial_ends_at` **inchangé** par rapport à l'étape 2.
-4. **Attendu UI** : plus de bandeau d'essai ; création de facture autorisée ; `/subscription` redirige vers `/dashboard` ; Paramètres affiche « Portail de facturation ».
+4. **Attendu UI** : plus de bandeau d'essai ; création de facture autorisée ; `/subscription` redirige vers `/dashboard` ; Paramètres affiche « Mes factures et mon abonnement ».
 5. Re-cliquer « S'abonner » depuis un ancien onglet : redirection vers le portail, **jamais** un second abonnement (vérifier dans Stripe : un seul abonnement pour le client).
 
 Variante sans 3DS : refaire un passage complet avec `4242 4242 4242 4242`.
@@ -143,7 +143,7 @@ Les horloges de test ne s'attachent qu'à un client **créé avec l'horloge**. L
 - **Attendu** : `invoice.paid` en 200, SQL inchangé (`starter`, même `sub_…`), accès conservé.
 
 **5b — Échec de paiement au renouvellement**
-- Portail de facturation (Paramètres) → ajouter la carte `4000 0000 0000 0341` (l'attachement réussit, les débits échouent), la définir par défaut, supprimer la 4242.
+- « Mes factures et mon abonnement » (Paramètres) → ajouter la carte `4000 0000 0000 0341` (l'attachement réussit, les débits échouent), la définir par défaut, supprimer la 4242.
 - Avancer l'horloge de **1 mois + 2 heures**.
 - **Attendu** : `invoice.payment_failed` et `customer.subscription.updated` (statut `past_due`) en 200 ; SQL : plan **inchangé** (`starter`), `subscription_status = 'past_due'` ; accès **conservé** pendant la fenêtre de relance (délai de grâce, cf. §2.3) ; bandeau rouge « Le dernier paiement de votre abonnement a échoué » dans l'espace client, dont le bouton ouvre le portail Stripe. Après paiement : `subscription_status = 'active'`, bandeau disparu.
 
@@ -162,7 +162,7 @@ Les horloges de test ne s'attachent qu'à un client **créé avec l'horloge**. L
 
 ### Étape 6 — Résiliation en fin de période puis reprise (portail)
 Sur un compte actif (étape 4) :
-1. Paramètres → Portail de facturation → *Annuler l'abonnement* (fin de période).
+1. Paramètres → « Mes factures et mon abonnement » → *Annuler l'abonnement* (fin de période).
 2. **Attendu** : `customer.subscription.updated` (`cancel_at_period_end=true`, statut `active`) en 200 ; SQL inchangé ; accès **conservé**.
 3. Portail → *Renouveler / Ne pas annuler*.
 4. **Attendu** : `customer.subscription.updated` (`cancel_at_period_end=false`) en 200 ; SQL inchangé ; accès conservé.
@@ -202,7 +202,7 @@ Sur un compte actif (étape 4) :
 
 ## 5. Mise en production (go-live)
 
-**État au 31/10/2026 (mode live)** : compte Stripe « Encair » activé ; produit `prod_VXeswKNnLYSuEW` « Encair Fondateur », prix `price_1UWZZ5EQyFDBSzPD20IBprV2` (16,00 € / mois, lookup `encair_founder_monthly_16_eur_v1`, franchise de TVA : aucune taxe) → `STRIPE_FOUNDER_PRICE_ID` posé en Production ; endpoint `we_1UWZbCEQyFDBSzPDcby9xB1y` → `https://encair.fr/api/stripe/webhook`, API `2026-10-28.endive` (même version majeure que le SDK `2026-09-30.endive`), 9 événements du §2.2 ; portail client live enregistré (factures, coordonnées, carte, résiliation avec motif ; retour `https://encair.fr/dashboard/settings`) ; paramètres Billing copiés du mode test. Clé restreinte `encair-production` (Customers, Checkout Sessions, Subscriptions, Customer Portal en écriture ; Prices en lecture : couvre tous les appels de l'application, sans `expand`) créée par l'éditeur et collée dans `STRIPE_SECRET_KEY` ; secret de l'endpoint collé dans `STRIPE_WEBHOOK_SECRET` (Production) ; production redéployée le 31/10/2026 : `/api/health` → `billingReady: true`, webhook non signé → 400, checkout anonyme → 401. Reste : paiement réel de contrôle (étape 8).
+**État au 31/10/2026 (mode live)** : compte Stripe « Encair » activé ; produit `prod_VXeswKNnLYSuEW` « Encair Fondateur », prix `price_1UWZZ5EQyFDBSzPD20IBprV2` (16,00 € / mois, lookup `encair_founder_monthly_16_eur_v1`, franchise de TVA : aucune taxe) → `STRIPE_FOUNDER_PRICE_ID` posé en Production ; endpoint `we_1UWZbCEQyFDBSzPDcby9xB1y` → `https://encair.fr/api/stripe/webhook`, API `2026-10-28.endive` (même version majeure que le SDK `2026-09-30.endive`), 9 événements du §2.2 ; portail client live enregistré (factures, coordonnées, carte, résiliation avec motif ; retour `https://encair.fr/dashboard/settings`) ; paramètres Billing copiés du mode test. Clé restreinte `encair-production` (Customers, Checkout Sessions, Subscriptions, Customer Portal en écriture ; Prices en lecture : couvre tous les appels de l'application, sans `expand`) créée par l'éditeur et collée dans `STRIPE_SECRET_KEY` ; secret de l'endpoint collé dans `STRIPE_WEBHOOK_SECRET` (Production) ; production redéployée le 31/10/2026 : `/api/health` → `billingReady: true`, webhook non signé → 400, checkout anonyme → 401. Reste : paiement réel de contrôle (étape 8). Paiement réel de 16 € effectué le 31/10/2026 (webhooks en 200, compte passé en `starter` / `active`). Réglages client du compte live au 31/10/2026 : nom commercial public **Encair** (remplace « RelanceFlow »), e-mail d'assistance `contact@encair.fr`, URL d'assistance `/contact`, CGU `/cgu`, confidentialité `/privacy`, libellé bancaire `ENCAIR`, téléphone non affiché sur les reçus ; pied de page par défaut des factures : « TVA non applicable, art. 293 B du CGI. Encair – encair.fr – contact@encair.fr » (s'applique aux factures créées ensuite, pas à la première). E-mails client Stripe (reçus de paiement, remboursements) désactivés et langue par défaut anglaise à cette date : sans ces e-mails, l'abonné retrouve ses factures uniquement dans Paramètres → « Mes factures et mon abonnement ».
 
 État connu (31/10/2026) : les trois variables Stripe sont en Production, le paiement est ouvert. Note : la variable Preview `STRIPE_WEBHOOK_SECRET` de la branche `codex/encair-customer-journey` a été écrasée par erreur avec le secret live ; à recoller avec le secret de l'endpoint **test** avant toute recette en préproduction sur cette branche.
 
