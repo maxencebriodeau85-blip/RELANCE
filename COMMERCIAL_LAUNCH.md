@@ -18,7 +18,7 @@ Ce document est une **checklist de mise en production**, pas une attestation de 
 - [ ] Première importation guidée ; l'utilisateur sait pourquoi ses factures sont initialement en pause.
 - [ ] Essai expiré, quota atteint et échec de paiement expliqués sans perte de données. *27/10/2026 : bandeau « essai terminé », messages de quota, et bandeau « paiement échoué » avec accès direct au portail Stripe (statut enregistré par le webhook, tests `stripe-lifecycle`) ; données conservées (contrôles 28-29 de `recette-base.sql`). Reste à le voir à l'écran, connecté.*
 - [ ] Checkout Stripe test : double clic, annulation, paiement réussi, webhook retardé, échec, résiliation et portail.
-- [ ] Taxes applicables vérifiées avec un professionnel ; prix HT et facturation cohérents.
+- [ ] Taxes applicables vérifiées avec un professionnel ; prix HT et facturation cohérents. *31/10/2026 : franchise en base de TVA retenue par l'éditeur (art. 293 B du CGI) ; prix affichés « 16 €/mois » avec la mention, `PUBLISHER_VAT_EXEMPT=true`. Reste : SIREN, puis mention sur les factures Stripe.*
 
 ## Bloquants — confiance et exploitation
 - [ ] Domaine et disponibilité de la marque Encair vérifiés ; URL canonique et TLS opérationnels. *30/10/2026 : `encair.fr` acheté et servi en HTTPS, URL canonique et redirection des alias Vercel actives (`docs/DOMAINE.md`). Reste : vérification de la marque à l'INPI.*

@@ -1,7 +1,7 @@
 'use client'
 
 import { CheckoutButton } from '@/components/auth/checkout-button'
-import { OFFER } from '@/lib/plans'
+import { OFFER, PRICE_TAX } from '@/lib/plans'
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Header } from '@/components/dashboard/header'
@@ -278,7 +278,7 @@ function SettingsPageInner() {
                     )}
                     <Icon className={`h-5 w-5 mb-2 ${plan.color}`} />
                     <div className="font-bold text-gray-900">{plan.name}</div>
-                    <div className={`text-xl font-bold mt-1 ${plan.color}`}>{plan.price} €<span className="text-xs text-gray-400 font-normal"> HT/mois</span></div>
+                    <div className={`text-xl font-bold mt-1 ${plan.color}`}>{plan.price} €<span className="text-xs text-gray-400 font-normal">{PRICE_TAX}/mois</span></div>
 
                     <ul className="space-y-1">
                       {plan.features.map((f) => (

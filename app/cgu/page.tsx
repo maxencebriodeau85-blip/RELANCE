@@ -1,7 +1,7 @@
 import { pageMetadata } from '@/lib/seo'
 import { LegalLayout } from '@/components/legal/legal-layout'
 import { ContactLink, LegalField } from '@/components/legal/legal-field'
-import { OFFER } from '@/lib/plans'
+import { OFFER, priceLabel } from '@/lib/plans'
 import {
   CONTACT_EMAIL,
   LEGAL_LAST_UPDATED,
@@ -88,7 +88,7 @@ export default function CGUPage() {
       <h2>5. Offre et prix</h2>
       <p>
         L’offre fondateur est proposée à{' '}
-        <strong>{OFFER.price} € HT par mois</strong> ({VAT_MENTION}). Elle
+        <strong>{priceLabel(OFFER.price, ' par mois')}</strong> ({VAT_MENTION}). Elle
         comprend un utilisateur et {OFFER.invoiceLimit} nouvelles factures par
         mois civil. Au-delà, l’ajout de nouvelles factures est bloqué jusqu’au
         premier jour du mois suivant ; aucun supplément n’est facturé.
@@ -97,7 +97,7 @@ export default function CGUPage() {
       <p>
         Le tarif fondateur est garanti au Client tant que son abonnement reste
         actif sans interruption, y compris lorsque le Service évolue et lorsque
-        le tarif public, prévu à {OFFER.publicPrice} € HT par mois, s’appliquera
+        le tarif public, prévu à {priceLabel(OFFER.publicPrice, ' par mois')}, s’appliquera
         aux nouveaux clients. Il est perdu en cas de résiliation, ou de
         suspension pour défaut de paiement non régularisé dans le délai prévu à
         l’article 6. L’Éditeur peut mettre fin à l’offre fondateur pour les

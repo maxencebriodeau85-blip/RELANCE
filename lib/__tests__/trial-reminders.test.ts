@@ -31,7 +31,7 @@ describe('Contenu des emails de fin d’essai', () => {
     const { subject, text } = buildTrialReminderEmail(row(), 'https://encair.fr', NOW)
     expect(subject).toBe('Votre essai Encair se termine le mardi 3 novembre')
     expect(text).toContain('4 factures pour 2 800,00 € restant dû, et a déjà envoyé 2 relances.')
-    expect(text).toContain('offre Fondateur à 16 € HT par mois, 100 nouvelles factures par mois, sans engagement')
+    expect(text).toContain('offre Fondateur à 16 € par mois, 100 nouvelles factures par mois, sans engagement')
     expect(text).toContain('https://encair.fr/subscription')
     expect(text).toContain('rien n’est supprimé')
   })

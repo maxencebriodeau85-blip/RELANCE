@@ -191,7 +191,7 @@ export const GUIDES: GuideContent[] = [
         heading: 'Faut-il faire appel à une société de recouvrement ?',
         paragraphs: [
           "Les sociétés de recouvrement amiable se rémunèrent le plus souvent par une commission sur les sommes récupérées. Sur les petites créances, ce coût pèse lourd : comparez-le au montant en jeu.",
-          "Pour une petite entreprise qui suit elle-même ses impayés, un outil de suivi comme Encair (suivi des impayés et relances email, 16 € HT/mois au tarif fondateur) permet de structurer la phase amiable à coût fixe ; la mise en demeure et la procédure restent à votre main.",
+          "Pour une petite entreprise qui suit elle-même ses impayés, un outil de suivi comme Encair (suivi des impayés et relances email, 16 €/mois au tarif fondateur) permet de structurer la phase amiable à coût fixe ; la mise en demeure et la procédure restent à votre main.",
         ],
       },
     ],
