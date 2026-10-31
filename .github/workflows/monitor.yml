@@ -11,12 +11,15 @@ name: Surveillance de la production Encair
 # email GitHub) au lieu d'être ignoré en silence, et rien d'autre ne s'exécute.
 #
 # Secrets :
-#   PROD_DB_URL           le même que pour la sauvegarde.
+#   PROD_DB_URL           facultatif : active les contrôles SQL (relances bloquées,
+#                         en échec…). Absent : ces contrôles sont ignorés, sans alerte.
 #   CRON_SECRET           facultatif : le CRON_SECRET de Vercel, pour lire /api/cron/status.
 #   HEALTHCHECK_PING_URL  facultatif : URL de ping (healthchecks.io) appelée après
 #                         chaque surveillance sans problème critique.
 # Variables (Settings > Secrets and variables > Actions > Variables) :
-#   PROD_URL         ex. https://relance-teal.vercel.app, puis https://encair.fr
+#   PROD_URL         facultatif, défaut https://encair.fr
+#   BACKUP_PROVIDER  « supabase » (défaut : sauvegardes quotidiennes de l'offre
+#                    Supabase payante) ou « github » (workflow backup.yml)
 #   EXPECTED_CONFIG  clés de /api/health qui doivent valoir true, séparées par
 #                    des virgules (défaut ci-dessous).
 #
@@ -73,7 +76,8 @@ jobs:
       run:
         shell: bash
     env:
-      PROD_URL: ${{ vars.PROD_URL }}
+      PROD_URL: ${{ vars.PROD_URL || 'https://encair.fr' }}
+      BACKUP_PROVIDER: ${{ vars.BACKUP_PROVIDER || 'supabase' }}
       EXPECTED_CONFIG: ${{ vars.EXPECTED_CONFIG || 'authReady,supabaseServiceRole,cronSecret,resend,resendWebhook,emailSender,automationReady' }}
       ALERT_TITLE: 'Alerte Encair : production à vérifier'
     steps:
@@ -97,7 +101,7 @@ jobs:
           }
 
           test -n "$PROD_URL" || critique "Variable PROD_URL manquante."
-          test -n "$PROD_DB_URL" || critique "Secret PROD_DB_URL manquant."
+          test -n "$PROD_DB_URL" || echo "::notice::Secret PROD_DB_URL absent : contrôles SQL ignorés."
 
           if [ -n "$PROD_URL" ]; then
             code=$(http_code health.json "$PROD_URL/api/health")
@@ -140,9 +144,13 @@ jobs:
             fi
           fi
 
+          # Sauvegardes : soit celles de l'offre Supabase payante (quotidiennes,
+          # gérées par Supabase, rien à vérifier ici), soit le workflow backup.yml.
+          if [ "$BACKUP_PROVIDER" = "supabase" ]; then
+            echo "::notice::Sauvegardes assurées par Supabase (offre payante) : contrôle GitHub ignoré."
           # Preuve liée au workflow officiel, sur main, terminé avec succès.
           # Le marqueur et l'archive chiffrée doivent appartenir au même run.
-          if latest=$(python3 scripts/ops/verified_backup.py); then
+          elif latest=$(python3 scripts/ops/verified_backup.py); then
             if [ -z "$latest" ]; then
               critique "Sauvegarde : aucune attestation récente issue du workflow officiel sur main avec archive disponible."
             fi
