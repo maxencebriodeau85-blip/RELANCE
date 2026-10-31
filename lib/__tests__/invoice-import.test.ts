@@ -72,6 +72,13 @@ describe('Import integrity', () => {
     expect(map.due_date).toBe('Échéance')
     expect(new Set(Object.values(map)).size).toBe(Object.values(map).length)
   })
+  it('recognises a bare "Numéro" / "Numero" / "Num." invoice-number header', () => {
+    for (const header of ['Numéro', 'Numero', 'Num.']) {
+      const map = suggestColumnMapping(['Client', header, 'Montant TTC', 'Date facture', 'Echeance'])
+      expect(map.invoice_number).toBe(header)
+      expect(map.client_name).toBe('Client')
+    }
+  })
   it('rejects a mapping that reuses a column', () => {
     expect(
       applyColumnMapping([], {

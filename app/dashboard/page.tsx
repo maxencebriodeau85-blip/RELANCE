@@ -65,7 +65,7 @@ export default async function DashboardPage() {
           {
             label: 'Échéances dépassées',
             value: overview.overdue,
-            note: `${overview.overdue_count} factures, litiges inclus`,
+            note: `${overview.overdue_count} facture${overview.overdue_count > 1 ? 's' : ''}, litiges inclus`,
             style: 'bg-white text-brand-900',
           },
           {

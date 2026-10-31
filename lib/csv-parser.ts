@@ -204,6 +204,7 @@ export function suggestColumnMapping(
       /facture/i,
       /invoice/i,
       /ref/i,
+      /^num(ero)?\.?$/i,
       /n°/i,
     ],
     amount: [
