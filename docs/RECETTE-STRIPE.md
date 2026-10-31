@@ -202,6 +202,8 @@ Sur un compte actif (étape 4) :
 
 ## 5. Mise en production (go-live)
 
+**État au 31/10/2026 (mode live)** : compte Stripe « Encair » activé ; produit `prod_VXeswKNnLYSuEW` « Encair Fondateur », prix `price_1UWZZ5EQyFDBSzPD20IBprV2` (16,00 € / mois, lookup `encair_founder_monthly_16_eur_v1`, franchise de TVA : aucune taxe) → `STRIPE_FOUNDER_PRICE_ID` posé en Production ; endpoint `we_1UWZbCEQyFDBSzPDcby9xB1y` → `https://encair.fr/api/stripe/webhook`, API `2026-10-28.endive` (même version majeure que le SDK `2026-09-30.endive`), 9 événements du §2.2 ; portail client live enregistré (factures, coordonnées, carte, résiliation avec motif ; retour `https://encair.fr/dashboard/settings`) ; paramètres Billing copiés du mode test. Clé restreinte `encair-production` (Customers, Checkout Sessions, Subscriptions, Customer Portal en écriture ; Prices en lecture) en attente de la vérification d'identité Stripe par l'éditeur. Restent à coller par l'éditeur : `STRIPE_SECRET_KEY` (clé restreinte) et `STRIPE_WEBHOOK_SECRET` (secret de signature de l'endpoint), puis paiement réel de contrôle (étape 8).
+
 État connu : l'environnement Production Vercel n'a **ni** `STRIPE_SECRET_KEY`, **ni** `STRIPE_WEBHOOK_SECRET`, **ni** `STRIPE_FOUNDER_PRICE_ID` → `/api/stripe/checkout` répond 503 (« Les abonnements ne sont pas encore ouverts ») et le webhook 503. Ne passer en production qu'après une recette complète (§3) validée.
 
 1. **Compte Stripe live activé** (identité, IBAN de versement, raison sociale, adresse, mentions sur relevé). Régime TVA tranché ; si TVA collectée, configurer Stripe Tax ou les taux : le prix `tax_behavior=exclusive` ne calcule rien seul.
