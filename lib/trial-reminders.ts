@@ -1,4 +1,4 @@
-import { OFFER, priceLabel } from './plans'
+import { OFFER, PRICE_TAX, priceLabel } from './plans'
 
 export type TrialReminderRow = {
   user_id: string
@@ -8,6 +8,8 @@ export type TrialReminderRow = {
   invoices: number
   outstanding: number | string
   reminders_sent: number
+  /** Abonnement souscrit pendant l’essai : premier prélèvement à sa fin. */
+  subscribed?: boolean
 }
 
 const PARIS = 'Europe/Paris'
@@ -30,6 +32,22 @@ export function trialEndLabel(end: Date, now: Date = new Date()) {
 export function buildTrialReminderEmail(row: TrialReminderRow, appUrl: string, now: Date = new Date()) {
   const end = new Date(row.trial_ends_at)
   const when = trialEndLabel(end, now)
+  if (row.subscribed) {
+    const text = [
+      'Bonjour,',
+      '',
+      `Votre essai gratuit d’Encair se termine ${when}${when.startsWith('le ') ? '' : ` (${longDate(end)})`}.`,
+      '',
+      `Vous avez activé l’offre ${OFFER.name} pendant votre essai : le premier prélèvement de ${OFFER.price} €${PRICE_TAX} aura lieu à cette date, puis chaque mois. Vous n’avez rien à faire pour continuer.`,
+      '',
+      `Pour annuler sans frais avant cette date : Paramètres → « Mes factures et mon abonnement », ${appUrl}/dashboard/settings`,
+      '',
+      'Une question ? Répondez simplement à cet email.',
+      '',
+      'Encair',
+    ].join('\n')
+    return { subject: `Votre abonnement Encair démarre ${when}`, text }
+  }
   const outstanding = Number(row.outstanding) || 0
   const usage =
     row.invoices > 0

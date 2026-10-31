@@ -78,7 +78,14 @@ export default function CGUPage() {
         nouvelles factures par mois civil.
       </p>
       <p>
-        À la fin de l’essai, aucun prélèvement n’a lieu. Sans abonnement, les
+        Le Client peut souscrire l’abonnement pendant son essai : il conserve
+        alors les jours d’essai restants, et le premier prélèvement intervient à
+        la date de fin de l’essai, qui lui est rappelée par email sept jours
+        puis la veille. Il peut annuler sans frais jusqu’à cette date depuis son
+        espace.
+      </p>
+      <p>
+        Sans souscription, aucun prélèvement n’a lieu à la fin de l’essai. Sans abonnement, les
         relances sont suspendues et aucune nouvelle facture ne peut être ajoutée
         ; le Client conserve l’accès en consultation à ses données et peut les
         exporter au format CSV. La procédure de conservation et de suppression

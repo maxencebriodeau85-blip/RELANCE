@@ -46,6 +46,14 @@ describe('Contenu des emails de fin d’essai', () => {
     expect(text).toContain('https://encair.fr/dashboard/invoices/import')
     expect(text).not.toMatch(/restant dû/)
   })
+  it('abonné pendant l’essai : annonce le premier prélèvement et l’annulation sans frais, sans inviter à s’abonner', () => {
+    const { subject, text } = buildTrialReminderEmail(row({ subscribed: true }), 'https://encair.fr', NOW)
+    expect(subject).toBe('Votre abonnement Encair démarre le mardi 3 novembre')
+    expect(text).toContain('le premier prélèvement de 16 € aura lieu à cette date, puis chaque mois')
+    expect(text).toContain('annuler sans frais avant cette date')
+    expect(text).toContain('https://encair.fr/dashboard/settings')
+    expect(text).not.toContain('/subscription')
+  })
   it('accorde le singulier', () => {
     const { text } = buildTrialReminderEmail(row({ invoices: 1, outstanding: 350, reminders_sent: 1 }), 'https://x', NOW)
     expect(text).toContain('1 facture pour 350,00 € restant dû, et a déjà envoyé 1 relance.')
@@ -126,27 +134,28 @@ describe('Route /api/cron/trial-reminders', () => {
 
 // ---------- Migration (PGlite)
 let db: PGlite
-const ids = { j7: '00000000-0000-0000-0000-000000000007', j1: '00000000-0000-0000-0000-000000000001', far: '00000000-0000-0000-0000-000000000030', paid: '00000000-0000-0000-0000-0000000000aa', unconfirmed: '00000000-0000-0000-0000-0000000000bb' }
+const ids = { j7: '00000000-0000-0000-0000-000000000007', j1: '00000000-0000-0000-0000-000000000001', far: '00000000-0000-0000-0000-000000000030', paid: '00000000-0000-0000-0000-0000000000aa', unconfirmed: '00000000-0000-0000-0000-0000000000bb', trialing: '00000000-0000-0000-0000-0000000000cc' }
 
 beforeAll(async () => {
   db = new PGlite()
   await db.exec(`create role authenticated; create role anon; create role service_role bypassrls;
  create schema auth;
  create table auth.users(id uuid primary key, email text, email_confirmed_at timestamptz);
- create table public.profiles(id uuid primary key, plan text, company_name text, trial_ends_at timestamptz);
+ create table public.profiles(id uuid primary key, plan text, company_name text, trial_ends_at timestamptz, subscription_status text);
  create table public.invoices(user_id uuid, amount numeric, amount_paid numeric, status text);
  create table public.reminders(user_id uuid, status text);
  create function public.enforce_invoice_quota() returns trigger language plpgsql security definer as $$ begin return new; end $$;
  grant execute on function public.enforce_invoice_quota() to anon, authenticated;`)
   await db.exec(readFileSync('supabase/migrations/20261027233000_trial_reminders.sql', 'utf8'))
+  await db.exec(readFileSync('supabase/migrations/20261031150000_trial_reminders_subscribers.sql', 'utf8'))
   await db.exec(`
  insert into auth.users values
   ('${ids.j7}','j7@x.test',now()), ('${ids.j1}','j1@x.test',now()), ('${ids.far}','far@x.test',now()),
-  ('${ids.paid}','paid@x.test',now()), ('${ids.unconfirmed}','u@x.test',null);
+  ('${ids.paid}','paid@x.test',now()), ('${ids.unconfirmed}','u@x.test',null), ('${ids.trialing}','t@x.test',now());
  insert into public.profiles values
-  ('${ids.j7}','free_trial','J7',now()+interval '6 days'), ('${ids.j1}','free_trial','J1',now()+interval '20 hours'),
-  ('${ids.far}','free_trial','Loin',now()+interval '20 days'), ('${ids.paid}','starter','Payé',now()+interval '6 days'),
-  ('${ids.unconfirmed}','free_trial','Non confirmé',now()+interval '6 days');
+  ('${ids.j7}','free_trial','J7',now()+interval '6 days',null), ('${ids.j1}','free_trial','J1',now()+interval '20 hours',null),
+  ('${ids.far}','free_trial','Loin',now()+interval '20 days',null), ('${ids.paid}','starter','Payé',now()+interval '6 days','active'),
+  ('${ids.unconfirmed}','free_trial','Non confirmé',now()+interval '6 days',null), ('${ids.trialing}','starter','Abonné en essai',now()+interval '5 days','trialing');
  insert into public.invoices values ('${ids.j7}',1200,200,'pending'), ('${ids.j7}',500,500,'paid'), ('${ids.j7}',300,0,'pending');
  insert into public.reminders values ('${ids.j7}','delivered'), ('${ids.j7}','pending'), ('${ids.j7}','failed');`)
 }, 30000)
@@ -154,7 +163,7 @@ afterAll(async () => {
   await db?.close()
 })
 
-type Claimed = { user_id: string; email: string; invoices: number; outstanding: string; reminders_sent: number }
+type Claimed = { user_id: string; email: string; invoices: number; outstanding: string; reminders_sent: number; subscribed: boolean }
 const claim = async (days: number) => (await db.query<Claimed>(`select * from public.claim_trial_reminders(${days})`)).rows
 
 describe('Réservation SQL des emails de fin d’essai', () => {
@@ -163,11 +172,12 @@ describe('Réservation SQL des emails de fin d’essai', () => {
       expect((await db.query<{ ok: boolean }>(`select has_function_privilege('${role}','public.claim_trial_reminders(int,int)','EXECUTE') ok`)).rows[0].ok).toBe(false)
     expect((await db.query<{ ok: boolean }>(`select has_function_privilege('service_role','public.claim_trial_reminders(int,int)','EXECUTE') ok`)).rows[0].ok).toBe(true)
   })
-  it('J-7 : seul l’essai qui finit dans la semaine, adresse confirmée, avec son usage réel', async () => {
+  it('J-7 : l’essai qui finit dans la semaine, adresse confirmée, avec son usage réel ; l’abonné en essai est signalé', async () => {
     const rows = await claim(7)
-    expect(rows).toHaveLength(1)
-    expect(rows[0]).toMatchObject({ user_id: ids.j7, email: 'j7@x.test', invoices: 3, reminders_sent: 1 })
-    expect(Number(rows[0].outstanding)).toBe(1300)
+    expect(rows.map((r) => r.user_id)).toEqual([ids.trialing, ids.j7])
+    expect(rows[1]).toMatchObject({ user_id: ids.j7, email: 'j7@x.test', invoices: 3, reminders_sent: 1, subscribed: false })
+    expect(Number(rows[1].outstanding)).toBe(1300)
+    expect(rows[0]).toMatchObject({ user_id: ids.trialing, subscribed: true })
   })
   it('jamais deux fois la même étape', async () => {
     expect(await claim(7)).toHaveLength(0)

@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { createCheckoutSession, createBillingPortalSession, stripe, STRIPE_PLANS, billingConfigured } from '@/lib/stripe'
 import { getAppUrl } from '@/lib/app-url'
 import { syncCheckout } from '@/lib/billing-sync'
+import { trialCarryoverEnd } from '@/lib/plans'
 
 const incompleteHistory = () => NextResponse.json({ error: 'Impossible de vérifier tout votre historique de facturation. Aucun nouvel abonnement n’a été créé. Contactez le support.' }, { status: 503, headers: { 'Cache-Control': 'no-store' } })
 
@@ -52,12 +53,14 @@ export async function POST(request: Request) {
     // A completed checkout may precede its webhook. Sync it before offering another.
     const latest = relevant[0]
     if (latest?.status === 'complete' && await syncCheckout(latest, user.id)) return NextResponse.json({ url: `${appUrl}/dashboard` })
+    // Still in the Encair trial: keep the remaining free days, charge at its end.
+    const trialEnd = trialCarryoverEnd(profile)
     const session = await createCheckoutSession({
-      customerId: customerId!, priceId, userId: user.id,
+      customerId: customerId!, priceId, userId: user.id, trialEnd,
       successUrl: `${appUrl}/subscription/return?session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${appUrl}/subscription?checkout=cancelled`,
       // Concurrent attempts see the same predecessor and receive the same session.
-      idempotencyKey: `encair-checkout-${user.id}-${priceId}-${latest?.id || 'first'}`,
+      idempotencyKey: `encair-checkout-${user.id}-${priceId}-${latest?.id || 'first'}-${trialEnd ?? 'now'}`,
     })
     return NextResponse.json({ url: session.url })
   } catch (error) {

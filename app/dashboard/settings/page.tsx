@@ -256,6 +256,13 @@ function SettingsPageInner() {
           </CardHeader>
           <CardContent className="space-y-4">
             {currentPlan === 'starter' && !profile?.stripe_customer_id && !profile?.stripe_subscription_id && <p className="text-sm text-brand-800 rounded-lg bg-brand-50 p-3">Accès Fondateur accordé à ce compte pour les tests. Aucun prélèvement automatique n’est associé à cet accès.</p>}
+            {profile?.subscription_status === 'trialing' && trialEndsAt && (
+              <p className="text-sm text-brand-800 rounded-lg bg-brand-50 p-3">
+                Essai en cours : premier prélèvement de {OFFER.price} €{PRICE_TAX} le{' '}
+                {new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', day: 'numeric', month: 'long' }).format(new Date(trialEndsAt))}.
+                Vous pouvez annuler sans frais d’ici là.
+              </p>
+            )}
             {/* Plan cards */}
             <div className="grid grid-cols-1 gap-3">
               {PLANS.map((plan) => {
