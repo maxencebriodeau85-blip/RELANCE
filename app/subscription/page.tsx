@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { CheckoutButton } from '@/components/auth/checkout-button'
 import { Logo } from '@/components/brand/logo'
 import { SignOutButton } from '@/components/auth/sign-out-button'
-import { OFFER } from '@/lib/plans'
+import { OFFER, PRICE_TAX, priceLabel } from '@/lib/plans'
 
 export default async function SubscriptionPage({ searchParams }: { searchParams: Promise<{ checkout?: string }> }) {
   const { checkout } = await searchParams
@@ -72,10 +72,10 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
           </div>
           <p className="mt-4 flex items-baseline gap-2 text-[#182b40]">
             <span className="text-5xl font-semibold tracking-tight">{OFFER.price} €</span>
-            <span className="text-sm text-[#5b6570]">HT / mois</span>
+            <span className="text-sm text-[#5b6570]">{PRICE_TAX ? 'HT / mois' : '/ mois'}</span>
           </p>
           <p className="mt-2 text-sm leading-relaxed text-[#5b6570]">
-            Tarif public prévu : {OFFER.publicPrice} € HT/mois. Vos {OFFER.price} € HT/mois sont conservés tant que votre
+            Tarif public prévu : {priceLabel(OFFER.publicPrice)}. Vos {priceLabel(OFFER.price)} sont conservés tant que votre
             abonnement reste actif.
           </p>
           <ul className="mt-6 grid gap-3 border-t border-[#e7e4dc] pt-6">

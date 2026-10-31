@@ -17,7 +17,7 @@ import { SiteNav } from '@/components/landing/site-nav'
 import { SiteFooter } from '@/components/landing/site-footer'
 import { PricingSection } from '@/components/landing/pricing-section'
 import { ProductPreview } from '@/components/landing/product-preview'
-import { CTA_LABEL, OFFER, TRIAL_LINE } from '@/lib/plans'
+import { CTA_LABEL, OFFER, TRIAL_LINE, priceLabel } from '@/lib/plans'
 import { CONTACT_EMAIL, PUBLISHER } from '@/lib/legal'
 
 export const metadata = {
@@ -113,7 +113,7 @@ export default function HomePage() {
             <ShieldCheck size={17} />
             Vous gardez la main sur les envois.
           </span>
-          <span>{OFFER.price} € HT/mois, sans engagement.</span>
+          <span>{priceLabel(OFFER.price)}, sans engagement.</span>
         </div>
         <section id="fonctionnalites" className="rf-section">
           <div className="rf-section-heading">

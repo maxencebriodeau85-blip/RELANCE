@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { ArrowUpRight, Check } from 'lucide-react'
-import { CTA_LABEL, OFFER, TRIAL_LINE } from '@/lib/plans'
+import { CTA_LABEL, OFFER, PRICE_TAX, TRIAL_LINE, VAT_NOTE, priceLabel } from '@/lib/plans'
 
 export function PricingSection() {
   return (
@@ -22,10 +22,10 @@ export function PricingSection() {
         <div className="rf-price-card">
           <div className="rf-price-offer">
             <span className="rf-tag">Tarif fondateur</span>
-            <div className="rf-price">{OFFER.price}<span>€ HT / mois</span></div>
-            <p>Tarif public prévu : {OFFER.publicPrice} € HT/mois.</p>
+            <div className="rf-price">{OFFER.price}<span>{PRICE_TAX ? '€ HT / mois' : '€ / mois'}</span></div>
+            <p>Tarif public prévu : {priceLabel(OFFER.publicPrice)}. {VAT_NOTE}.</p>
             <p className="rf-note">
-              {OFFER.price} € HT/mois conservés tant que votre abonnement reste
+              {priceLabel(OFFER.price)} conservés tant que votre abonnement reste
               actif, même quand le tarif public s’appliquera. Sans engagement.
             </p>
             <Link href="/auth/register" className="rf-button rf-button-dark">

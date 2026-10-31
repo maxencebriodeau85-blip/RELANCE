@@ -1,6 +1,6 @@
 import { FileSpreadsheet, Mail, CalendarClock } from 'lucide-react'
 import { Logo } from '@/components/brand/logo'
-import { OFFER } from '@/lib/plans'
+import { OFFER, priceLabel } from '@/lib/plans'
 
 const sideFeatures = [
   { icon: FileSpreadsheet, label: 'Import CSV', sub: 'Depuis votre logiciel de facturation actuel' },
@@ -31,7 +31,7 @@ export function AuthSidePanel({ compact = false }: { compact?: boolean }) {
         <p className="mt-6 text-sm leading-6 text-[#c6d1dd]">Encair est en lancement : vous faites partie des premiers utilisateurs et je lis chaque retour.</p>
         <p className="mt-2 text-xs font-semibold text-white">Maxence, fondateur</p>
       </div>
-      <p className="text-xs leading-5 text-[#c6d1dd]">{OFFER.trialDays} jours gratuits · {OFFER.trialInvoiceLimit} factures · sans carte bancaire · puis {OFFER.price} € HT/mois au tarif fondateur</p>
+      <p className="text-xs leading-5 text-[#c6d1dd]">{OFFER.trialDays} jours gratuits · {OFFER.trialInvoiceLimit} factures · sans carte bancaire · puis {priceLabel(OFFER.price)} au tarif fondateur</p>
     </aside>
   )
 }

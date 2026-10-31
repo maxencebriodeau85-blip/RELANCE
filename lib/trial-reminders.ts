@@ -1,4 +1,4 @@
-import { OFFER } from './plans'
+import { OFFER, priceLabel } from './plans'
 
 export type TrialReminderRow = {
   user_id: string
@@ -43,7 +43,7 @@ export function buildTrialReminderEmail(row: TrialReminderRow, appUrl: string, n
     '',
     usage,
     '',
-    `Pour continuer sans interruption : offre ${OFFER.name} à ${OFFER.price} € HT par mois, ${OFFER.invoiceLimit} nouvelles factures par mois, sans engagement. Ce tarif vous reste acquis tant que votre abonnement est actif.`,
+    `Pour continuer sans interruption : offre ${OFFER.name} à ${priceLabel(OFFER.price, ' par mois')}, ${OFFER.invoiceLimit} nouvelles factures par mois, sans engagement. Ce tarif vous reste acquis tant que votre abonnement est actif.`,
     `Choisir l’offre : ${appUrl}/subscription`,
     '',
     'Sans abonnement, rien n’est supprimé : vous gardez l’accès à vos factures et à leur export, mais les relances s’arrêtent.',

@@ -17,6 +17,8 @@
  * présenté à des prospects tant que cette liste n'est pas vide.
  */
 
+import { OFFER } from './plans'
+
 /** Version des CGU/CGV — à incrémenter à chaque modification substantielle. */
 export const TERMS_VERSION = '2026-10-18'
 
@@ -42,12 +44,13 @@ export const PUBLISHER = {
   address: env('PUBLISHER_ADDRESS'),
   siren: env('PUBLISHER_SIREN'),
   phone: env('PUBLISHER_PHONE'),
+  // Variable d'environnement si renseignée, sinon le régime déclaré dans l'offre.
   vatExempt:
     env('PUBLISHER_VAT_EXEMPT') === 'true'
       ? true
       : env('PUBLISHER_VAT_EXEMPT') === 'false'
         ? false
-        : null,
+        : OFFER.vatExempt,
   court: env('PUBLISHER_COURT'),
 } as const
 
