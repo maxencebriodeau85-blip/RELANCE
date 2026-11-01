@@ -20,12 +20,12 @@ import { formatEuro, formatDate, getDaysOverdue } from '@/lib/metrics'
 import {
   Plus, Upload, Search, ChevronLeft, ChevronRight, Eye, Send,
   FileText, FilterX, Download, CheckSquare, Trash2, CheckCircle,
-  X, Square,
+  X, Square, Play, Pause,
 } from 'lucide-react'
 import Link from 'next/link'
 import type { Invoice } from '@/lib/database.types'
 import { createClient } from '@/lib/supabase/client'
-import { applyInvoiceAction } from '@/lib/invoice-actions'
+import { applyInvoiceAction, applyInvoiceActionInBatches } from '@/lib/invoice-actions'
 import { useToast } from '@/hooks/use-toast'
 
 const PAGE_SIZE = 10
@@ -139,6 +139,31 @@ export default function InvoicesPage() {
       const n = selected.size
       clearSelection()
       toast({ title: `${n} facture${n > 1 ? 's' : ''} marquée${n > 1 ? 's' : ''} payée${n > 1 ? 's' : ''}` })
+    } catch (error) {
+      toast({ title: 'Action interrompue', description: error instanceof Error ? error.message : 'Réessayez.', variant: 'destructive' })
+    } finally {
+      setBulkLoading(false)
+    }
+  }
+
+  const bulkReminders = async (action: 'activate' | 'pause') => {
+    const items = invoices.filter(i => selected.has(i.id))
+    const n = items.length
+    if (action === 'activate' && !confirm(
+      `Activer les relances pour ${n} facture${n > 1 ? 's' : ''} ?\n\n` +
+      'Vous confirmez que les soldes affichés sont à jour. Les factures réglées, en litige ou sans email restent en pause.',
+    )) return
+    setBulkLoading(true)
+    try {
+      const { affected, skipped } = await applyInvoiceActionInBatches(action, items)
+      await loadInvoices()
+      clearSelection()
+      toast(action === 'activate'
+        ? {
+            title: `Relances activées pour ${affected} facture${affected > 1 ? 's' : ''}`,
+            description: skipped ? `${skipped} laissée${skipped > 1 ? 's' : ''} en pause (réglée, en litige ou sans email).` : undefined,
+          }
+        : { title: `Relances en pause pour ${affected} facture${affected > 1 ? 's' : ''}` })
     } catch (error) {
       toast({ title: 'Action interrompue', description: error instanceof Error ? error.message : 'Réessayez.', variant: 'destructive' })
     } finally {
@@ -293,6 +318,12 @@ export default function InvoicesPage() {
             <div className="flex flex-wrap items-center gap-2">
               <Button size="sm" variant="outline" onClick={bulkMarkPaid} disabled={bulkLoading} className="h-7 text-xs">
                 <CheckCircle className="mr-1.5 h-3.5 w-3.5 text-green-600" />Marquer payé
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => bulkReminders('activate')} disabled={bulkLoading} className="h-7 text-xs">
+                <Play className="mr-1.5 h-3.5 w-3.5 text-brand-600" />Activer les relances
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => bulkReminders('pause')} disabled={bulkLoading} className="h-7 text-xs">
+                <Pause className="mr-1.5 h-3.5 w-3.5" />Mettre en pause
               </Button>
               <ReminderReview ids={invoices.filter(i => selected.has(i.id) && !reminderBlock(i)).map(i => i.id)} disabled={bulkLoading} onSent={loadInvoices} label="Vérifier les relances" />
               <Button size="sm" variant="outline" onClick={() => exportToCSV(invoices.filter(i => selected.has(i.id)))} className="h-7 text-xs">

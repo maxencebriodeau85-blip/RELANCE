@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => null)
     if (
       !body ||
-      !['paid', 'disputed', 'delete'].includes(body.action) ||
+      !['paid', 'disputed', 'delete', 'activate', 'pause'].includes(body.action) ||
       !Array.isArray(body.items) ||
       !body.items.length ||
       body.items.length > 100 ||
