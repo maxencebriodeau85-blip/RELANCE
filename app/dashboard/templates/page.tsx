@@ -27,7 +27,7 @@ interface TemplateOverride {
 const PREVIEW_DATA: EmailTemplateData = {
   creditorName: 'Mon Entreprise',
   creditorEmail: 'contact@mon-entreprise.fr',
-  clientName: 'Acme Corp',
+  clientName: 'SARL Bâti Ouest',
   invoiceNumber: 'F-2026-042',
   amount: 2400,
   dueDate: '2026-03-15',

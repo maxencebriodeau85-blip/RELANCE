@@ -326,7 +326,7 @@ function SettingsPageInner() {
               Informations entreprise
             </CardTitle>
             <CardDescription>
-              Utilisées dans vos mises en demeure et emails de relance
+              Utilisées dans vos emails de relance
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -432,7 +432,7 @@ function SettingsPageInner() {
                 </div>
                 <div className="text-xs text-gray-500 mt-0.5">
                   {capabilities?.automationAvailable && savedAutoReminders
-                    ? 'Envoi quotidien à 8h UTC (10h en été, 9h en hiver en France).'
+                    ? 'Envoi chaque matin vers 9 h (10 h en été), heure de Paris.'
                     : 'Préparez votre scénario et complétez les coordonnées de vos clients.'}
                 </div>
               </div>

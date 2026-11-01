@@ -140,7 +140,7 @@ export default function ScenariosPage() {
     <div>
       <Header
         title="Scénarios de relance"
-        description="Choisissez votre stratégie de recouvrement automatisée"
+        description="Choisissez le rythme de vos rappels"
       />
 
       <div className="p-6 space-y-6 max-w-5xl">
@@ -167,7 +167,7 @@ export default function ScenariosPage() {
               </p>
               <p className={`text-xs mt-0.5 ${autoReminders && automationAvailable ? 'text-green-600' : 'text-gray-400'}`}>
                 {autoReminders && automationAvailable
-                  ? `Scénario "${activeScenario.name}" actif · Envoi quotidien à 8h00 UTC`
+                  ? `Scénario "${activeScenario.name}" actif · Envoi chaque matin vers 9 h (10 h en été), heure de Paris`
                   : 'Choisissez un scénario et vérifiez vos soldes avant tout envoi'}
               </p>
             </div>
@@ -308,7 +308,7 @@ export default function ScenariosPage() {
                 {
                   icon: Clock,
                   title: 'Un passage chaque jour',
-                  body: "Lorsque le service est disponible, les relances dues sont traitées chaque jour à 8h UTC (10h en été, 9h en hiver en France).",
+                  body: "Lorsque le service est disponible, les relances dues sont traitées chaque matin vers 9 h (10 h en été), heure de Paris.",
                 },
                 {
                   icon: Mail,

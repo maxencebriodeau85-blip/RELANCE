@@ -156,14 +156,14 @@ function NewInvoiceForm() {
                 Informations client
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4">
+            <CardContent className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="client_name">Nom / Raison sociale <span className="text-red-500">*</span></Label>
                 <Input
                   id="client_name"
                   value={form.client_name}
                   onChange={set('client_name')}
-                  placeholder="Acme Corp SARL"
+                  placeholder="SARL Bâti Ouest"
                   className={fieldErrors.client_name ? 'border-red-400 focus-visible:ring-red-400' : ''}
                 />
                 <FieldError msg={fieldErrors.client_name} />
@@ -180,7 +180,7 @@ function NewInvoiceForm() {
                 />
                 <FieldError msg={fieldErrors.client_email} /><p className="mt-1 text-xs text-gray-500">Vous pourrez le compléter plus tard. Une adresse est nécessaire pour envoyer une relance.</p>
               </div>
-              <div className="col-span-2 space-y-1.5">
+              <div className="sm:col-span-2 space-y-1.5">
                 <Label htmlFor="client_address">Adresse <span className="text-gray-400 font-normal text-xs">(optionnel)</span></Label>
                 <Input
                   id="client_address"
@@ -216,14 +216,14 @@ function NewInvoiceForm() {
                 Détails de la facture
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4">
+            <CardContent className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="invoice_number">N° de facture <span className="text-red-500">*</span></Label>
                 <Input
                   id="invoice_number"
                   value={form.invoice_number}
                   onChange={set('invoice_number')}
-                  placeholder="FA-2024-001"
+                  placeholder="FA-2026-001"
                   className={fieldErrors.invoice_number ? 'border-red-400 focus-visible:ring-red-400' : ''}
                 />
                 <FieldError msg={fieldErrors.invoice_number} />
@@ -284,7 +284,7 @@ function NewInvoiceForm() {
                   ))}
                 </div>
               </div>
-              <div className="col-span-2 space-y-1.5">
+              <div className="sm:col-span-2 space-y-1.5">
                 <Label htmlFor="notes">Notes internes <span className="text-gray-400 font-normal text-xs">(optionnel, non transmis au client)</span></Label>
                 <textarea
                   id="notes"

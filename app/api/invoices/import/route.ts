@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { readJsonBody } from '@/lib/request-json'
 import { assertActiveAccess } from '@/lib/access-control'
 import { MAX_IMPORT_ROWS, MAX_IMPORT_BYTES, validateInvoiceRows } from '@/lib/invoice-input'
+import { PLAN_LIMITS } from '@/lib/plans'
 
 export async function POST(request: Request) {
   try {
@@ -107,7 +108,47 @@ export async function POST(request: Request) {
           },
           { status: 409 },
         )
-      return NextResponse.json({ invoices: reviewed, summary })
+
+      // Quota restant ce mois-ci (même règle que le trigger enforce_invoice_quota :
+      // mois calendaire UTC, exemples exclus), pour prévenir avant l'échec de l'import.
+      const now = new Date()
+      const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString()
+      const { count: createdThisMonth, error: countError } = await db
+        .from('invoices')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('is_sample', false)
+        .gte('created_at', monthStart)
+      const limit = PLAN_LIMITS[profile.plan ?? 'free_trial'] ?? PLAN_LIMITS.free_trial
+      const quota = countError
+        ? null
+        : { limit, remaining: Math.max(0, limit - (createdThisMonth ?? 0)), trial: profile.plan === 'free_trial' }
+
+      // Réimport : factures encore relancées qui ne figurent plus dans le fichier
+      // (souvent réglées entre-temps). Proposé seulement si le fichier reprend des
+      // factures déjà suivies, sinon un simple ajout signalerait tout le reste.
+      let absent: { id: string; invoice_number: string; client_name: string; updated_at: string }[] = []
+      if (existing.size) {
+        const inFile = new Set(invoices.map((i) => i.invoice_number))
+        for (let offset = 0; offset < 5000; offset += 1000) {
+          const { data, error } = await db
+            .from('invoices')
+            .select('id,invoice_number,client_name,updated_at')
+            .eq('user_id', user.id)
+            .eq('is_sample', false)
+            .eq('reminders_paused', false)
+            .not('status', 'in', '(paid,disputed)')
+            .order('invoice_number')
+            .range(offset, offset + 999)
+          if (error) {
+            absent = []
+            break
+          }
+          absent.push(...(data || []).filter((row) => !inFile.has(row.invoice_number)))
+          if (!data || data.length < 1000) break
+        }
+      }
+      return NextResponse.json({ invoices: reviewed, summary, quota, absent })
     }
     if (invoices.some((row) => !('expected_updated_at' in row)))
       return NextResponse.json(
