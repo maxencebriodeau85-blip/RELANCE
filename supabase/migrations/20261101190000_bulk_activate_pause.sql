@@ -42,3 +42,5 @@ BEGIN
  END LOOP;
  RETURN jsonb_build_object('affected',affected,'skipped',skipped);
 END $$;
+REVOKE ALL ON FUNCTION public.apply_invoice_action(jsonb,text) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.apply_invoice_action(jsonb,text) TO authenticated;
