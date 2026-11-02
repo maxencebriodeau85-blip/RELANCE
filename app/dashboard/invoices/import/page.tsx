@@ -553,6 +553,8 @@ export default function ImportPage() {
                   `${summary.imported} nouvelle(s), ${summary.updated} facture(s) à actualiser, ${summary.unchanged} inchangée(s). `}
                 {skippedRows > 0 &&
                   `${skippedRows} ligne(s) en erreur écartée(s). `}
+                {quota && !overQuota && reviewed.length > 0 &&
+                  `Ce mois-ci, vous pouvez encore ajouter ${quota.remaining} nouvelle(s) facture(s) sur ${quota.limit}. `}
                 Un solde vide conserve les règlements existants ; zéro
                 signifie intégralement réglé. Un email vide conserve l’adresse
                 déjà connue. Les nouvelles factures restent en pause : vous
