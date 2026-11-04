@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
+import { requestJsonWithDeadline, RequestDeadlineError } from '@/lib/request-with-deadline'
 import {
   parseCSVFile,
   applyColumnMapping,
@@ -199,12 +200,11 @@ export default function ImportPage() {
     setAbsent([])
     setPauseAbsent(true)
     try {
-      const response = await fetch('/api/invoices/import', {
+      const { response, data } = await requestJsonWithDeadline('/api/invoices/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ invoices: candidates, preview: true }),
       })
-      const data = await response.json()
       if (!response.ok) {
         const conflicted = new Set<number>((data.errors || []).map((e: ValidationError) => e.row))
         setValidInvoices(response.status === 409 ? candidates.filter((_, index) => !conflicted.has(index + 2)) : [])
@@ -233,13 +233,15 @@ export default function ImportPage() {
           (invoice) => !refsInFile.has(invoice.invoice_number.trim()),
         ),
       )
-    } catch {
+    } catch (error) {
       setErrors([
         {
           row: 1,
           field: 'import',
           message:
-            'Connexion interrompue pendant la vérification. Revenez à la correspondance pour réessayer.',
+            error instanceof RequestDeadlineError
+              ? 'La vérification prend trop de temps. Aucune confirmation envoyée. Revenez à la correspondance pour réessayer.'
+              : 'Connexion interrompue pendant la vérification. Revenez à la correspondance pour réessayer.',
         },
       ])
     } finally {
@@ -256,13 +258,12 @@ export default function ImportPage() {
     setPauseFailed(false)
     setNotImported(0)
     try {
-      const response = await fetch('/api/invoices/import', {
+      const { response, data } = await requestJsonWithDeadline('/api/invoices/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ invoices: toImport }),
       })
 
-      const data = await response.json()
 
       if (!response.ok) {
         toast({
@@ -289,9 +290,9 @@ export default function ImportPage() {
       }
       router.refresh()
       setStep('success')
-    } catch {
+    } catch (error) {
       toast({
-        title: 'Import non confirmé',
+        title: error instanceof RequestDeadlineError ? 'Délai dépassé — résultat à vérifier' : 'Import non confirmé',
         description:
           'La connexion a été interrompue. Vérifiez vos factures avant de réessayer.',
         variant: 'destructive',

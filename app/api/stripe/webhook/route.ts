@@ -245,6 +245,17 @@ export async function POST(request: Request) {
             supabase,
             typeof subscription === 'string' ? subscription : subscription.id,
           )
+        if (event.type === 'invoice.paid' && invoice.amount_paid > 0 && subscription) {
+          const customer = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id
+          if (customer) {
+            const { error } = await supabase.rpc('record_activation_payment' as never, {
+              p_customer: customer,
+              p_subscription: typeof subscription === 'string' ? subscription : subscription.id,
+              p_amount_paid: invoice.amount_paid,
+            } as never)
+            if (error) throw error
+          }
+        }
         break
       }
 

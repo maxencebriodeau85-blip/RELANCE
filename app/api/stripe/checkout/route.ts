@@ -4,6 +4,9 @@ import { createCheckoutSession, createBillingPortalSession, stripe, STRIPE_PLANS
 import { getAppUrl } from '@/lib/app-url'
 import { syncCheckout } from '@/lib/billing-sync'
 import { trialCarryoverEnd } from '@/lib/plans'
+import { missingPublisherFields } from '@/lib/legal'
+
+const commercialUnavailable = () => NextResponse.json({ error: 'La souscription est temporairement indisponible. Votre compte, vos données et la gestion de votre abonnement existant restent accessibles. Contactez le support.' }, { status: 503, headers: { 'Cache-Control': 'no-store' } })
 
 const incompleteHistory = () => NextResponse.json({ error: 'Impossible de vérifier tout votre historique de facturation. Aucun nouvel abonnement n’a été créé. Contactez le support.' }, { status: 503, headers: { 'Cache-Control': 'no-store' } })
 
@@ -17,6 +20,8 @@ export async function POST(request: Request) {
     if (body?.plan !== 'starter') return NextResponse.json({ error: 'Offre invalide.' }, { status: 400 })
     const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', user.id).single()
     if (error || !profile) return NextResponse.json({ error: 'Votre profil est momentanément indisponible.' }, { status: 503 })
+    const commerciallyReady = missingPublisherFields().length === 0
+    if (!commerciallyReady && !profile.stripe_customer_id) return commercialUnavailable()
     const appUrl = getAppUrl()
     const priceId = STRIPE_PLANS.starter.priceId
     const price = await stripe.prices.retrieve(priceId)
@@ -47,12 +52,13 @@ export async function POST(request: Request) {
     const sessions = await stripe.checkout.sessions.list({ customer: customerId!, limit: 100 })
     const relevant = sessions.data.filter(item => item.mode === 'subscription' && item.metadata?.userId === user.id)
     const open = relevant.find(item => item.status === 'open' && item.url)
-    if (open) return NextResponse.json({ url: open.url })
+    if (open) return commerciallyReady ? NextResponse.json({ url: open.url }) : commercialUnavailable()
     // Reusing a known open session is safe; creating another requires a complete history.
     if (sessions.has_more !== false) return incompleteHistory()
     // A completed checkout may precede its webhook. Sync it before offering another.
     const latest = relevant[0]
     if (latest?.status === 'complete' && await syncCheckout(latest, user.id)) return NextResponse.json({ url: `${appUrl}/dashboard` })
+    if (!commerciallyReady) return commercialUnavailable()
     // Still in the Encair trial: keep the remaining free days, charge at its end.
     const trialEnd = trialCarryoverEnd(profile)
     const session = await createCheckoutSession({

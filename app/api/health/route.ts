@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { serviceCapabilities } from '@/lib/service-capabilities'
+import { missingPublisherFields } from '@/lib/legal'
 
 // Lightweight liveness + config probe. Used by uptime monitoring, the deploy
 // pipeline, and to diagnose "I can't log in" issues: it reports WHICH required
@@ -26,6 +27,7 @@ export function GET() {
     // Config presence — booleans only, no secret material is exposed.
     config: {
       authReady,
+      commercialReady: missingPublisherFields().length === 0,
       supabaseUrl,
       supabaseAnonKey,
       supabaseServiceRole: has(process.env.SUPABASE_SERVICE_ROLE_KEY),

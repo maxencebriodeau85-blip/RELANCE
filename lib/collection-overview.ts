@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Invoice } from '@/lib/database.types'
 
 export interface CollectionOverview {
+  sample_count: number
   invoice_count: number
   active_count: number
   outstanding: number
@@ -18,7 +19,7 @@ export interface CollectionOverview {
 
 export async function loadCollectionOverview(db: SupabaseClient): Promise<CollectionOverview> {
   const { data, error } = await db.rpc('collection_overview')
-  if (error || !data || typeof data.invoice_count !== 'number' || !Array.isArray(data.aging) || !Array.isArray(data.priorities)) {
+  if (error || !data || typeof data.invoice_count !== 'number' || typeof data.sample_count !== 'number' || !Array.isArray(data.aging) || !Array.isArray(data.priorities)) {
     throw new Error('Impossible de charger les totaux de vos factures. Réessayez dans un instant.')
   }
   return data as CollectionOverview

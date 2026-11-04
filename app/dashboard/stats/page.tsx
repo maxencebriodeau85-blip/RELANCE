@@ -17,7 +17,7 @@ export default async function StatsPage() {
         <p className="text-sm text-brand-600 font-semibold">VOTRE SUIVI</p>
         <h1 className="text-3xl font-bold mt-2">Où en sont vos impayés ?</h1>
         <p className="text-gray-500 mt-3">
-          Soldes déclarés dans Encair, après déduction des paiements renseignés.
+          Soldes déclarés dans Encair, après déduction des paiements renseignés. Les factures d’exemple sont exclues de ces statistiques.
           Les litiges restent inclus dans les sommes dues.
         </p>
       </header>

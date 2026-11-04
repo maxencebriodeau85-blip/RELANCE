@@ -1,3 +1,4 @@
+import { ActivationClicks } from '@/components/analytics/activation-clicks'
 import { getAppUrl } from '@/lib/app-url'
 import { organizationJsonLd, softwareJsonLd, websiteJsonLd } from '@/lib/seo'
 import { JsonLd } from '@/components/seo/json-ld'
@@ -102,6 +103,7 @@ export default function RootLayout({
         {/* Cookie-less analytics + Core Web Vitals — served from *.vercel-scripts.com,
             allowed by CSP in next.config.js. */}
         <Analytics />
+        <ActivationClicks />
         <SpeedInsights />
       </body>
     </html>

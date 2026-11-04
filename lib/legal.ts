@@ -29,7 +29,7 @@ const frenchDate = (iso: string) =>
 export const LEGAL_LAST_UPDATED_ISO = '2026-10-31'
 export const LEGAL_LAST_UPDATED = frenchDate(LEGAL_LAST_UPDATED_ISO)
 /** Politique de confidentialité : export en libre-service et délai de suppression. */
-export const PRIVACY_LAST_UPDATED_ISO = '2026-10-27'
+export const PRIVACY_LAST_UPDATED_ISO = '2026-11-04'
 export const PRIVACY_LAST_UPDATED = frenchDate(PRIVACY_LAST_UPDATED_ISO)
 
 const env = (key: string): string | null => {
