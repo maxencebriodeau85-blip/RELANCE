@@ -52,6 +52,14 @@ describe('Export RGPD du compte', () => {
     expect(result.data.donnees.relances).toEqual([])
   })
 
+  it('includes activation milestones in the owner export with their actual timestamp column', async () => {
+    const calls: Call[] = []
+    const r = await collectAccountExport(fakeClient(table => table === 'activation_events' ? [{event:'first_invoice',occurred_at:'2026-11-04T12:00:00Z'}] : [],calls),user)
+    expect(r.ok && r.data.donnees.etapes_activation).toEqual([{event:'first_invoice',occurred_at:'2026-11-04T12:00:00Z'}])
+    expect(ACCOUNT_EXPORT_SOURCES.find(s=>s.table==='activation_events')?.order).toBe('occurred_at')
+    expect(calls.find(c=>c.table==='activation_events')?.eq).toEqual(['user_id','owner'])
+  })
+
   it("n'exporte jamais de secret", () => {
     const columns = ACCOUNT_EXPORT_SOURCES.filter((s) => s.table !== 'invoices').map((s) => s.columns).join(',')
     for (const secret of ['webhook_secret', 'access_token', 'refresh_token', 'key_hash', 'config', 'stripe_', '*'])

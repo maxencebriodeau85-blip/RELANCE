@@ -1,7 +1,8 @@
 import { beforeEach, describe, it, expect, vi } from 'vitest'
 const mocks = vi.hoisted(() => ({
-  configured: vi.fn(), create: vi.fn(), portal: vi.fn(), subscriptions: vi.fn(), sessions: vi.fn(), price: vi.fn(), sync: vi.fn(), profile: vi.fn(), user: vi.fn(),
+  legal: vi.fn(), configured: vi.fn(), create: vi.fn(), portal: vi.fn(), subscriptions: vi.fn(), sessions: vi.fn(), price: vi.fn(), sync: vi.fn(), profile: vi.fn(), user: vi.fn(),
 }))
+vi.mock('@/lib/legal', () => ({ missingPublisherFields: mocks.legal }))
 vi.mock('@/lib/stripe', () => ({ billingConfigured: mocks.configured, STRIPE_PLANS: { starter: { priceId: 'price_founder' } }, createCheckoutSession: mocks.create, createBillingPortalSession: mocks.portal,
   stripe: { prices: { retrieve: mocks.price }, subscriptions: { list: mocks.subscriptions }, checkout: { sessions: { list: mocks.sessions } } },
 }))
@@ -10,7 +11,7 @@ vi.mock('@/lib/billing-sync', () => ({ syncCheckout: mocks.sync }))
 import { POST } from '../../app/api/stripe/checkout/route'
 const request = () => new Request('https://encair.test/api/stripe/checkout', { method: 'POST', body: JSON.stringify({ plan: 'starter' }) })
 beforeEach(() => {
-  vi.resetAllMocks(); mocks.configured.mockReturnValue(true)
+  vi.resetAllMocks(); mocks.legal.mockReturnValue([]); mocks.configured.mockReturnValue(true)
   mocks.user.mockResolvedValue({ data: { user: { id: 'u1', email: 'test@example.com' } } })
   mocks.profile.mockResolvedValue({ data: { stripe_customer_id: 'cus_1' }, error: null })
   mocks.price.mockResolvedValue({ active: true, unit_amount: 1600, currency: 'eur', recurring: { interval: 'month', interval_count: 1 } })
@@ -18,6 +19,18 @@ beforeEach(() => {
   mocks.create.mockResolvedValue({ url: 'https://checkout.stripe.com/test' }); mocks.portal.mockResolvedValue({ url: 'https://billing.stripe.com/test' })
 })
 describe('Checkout safety and recovery', () => {
+  it('blocks a new subscription while publisher information is incomplete, without hiding field values', async () => {
+    mocks.legal.mockReturnValue(['PUBLISHER_SIREN'])
+    const r = await POST(request())
+    expect(r.status).toBe(503); expect(mocks.create).not.toHaveBeenCalled()
+    expect(JSON.stringify(await r.json())).not.toContain('PUBLISHER_SIREN')
+  })
+  it('keeps existing subscription management available despite incomplete publisher fields', async () => {
+    mocks.legal.mockReturnValue(['PUBLISHER_SIREN'])
+    mocks.subscriptions.mockResolvedValue({data:[{status:'past_due'}],has_more:false})
+    expect((await POST(request())).status).toBe(200)
+    expect(mocks.portal).toHaveBeenCalledOnce(); expect(mocks.create).not.toHaveBeenCalled()
+  })
   it('does not create checkout when an older active subscription may be outside the first 100 results', async () => {
     const history = [...Array.from({ length: 100 }, (_, index) => ({ id: `sub_canceled_${index}`, status: 'canceled' })), { id: 'sub_older_active', status: 'active' }]
     mocks.subscriptions.mockResolvedValue({ data: history.slice(0, 100), has_more: history.length > 100 })

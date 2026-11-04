@@ -183,6 +183,13 @@ export default function PrivacyPage() {
         .
       </p>
 
+      <h2>Mesure des étapes de démarrage</h2>
+      <p>Encair conserve dans sa propre base les dates des premières étapes du compte : inscription,
+        première facture réelle, activation d’un suivi, premier email accepté par le prestataire,
+        abonnement actif et premier paiement confirmé. Ces événements ne contiennent ni texte de facture,
+        ni adresse email client, ni contenu de message. Ils servent à comprendre les difficultés de démarrage,
+        figurent dans votre export de compte et sont supprimés avec celui-ci. Les statistiques de visite
+        restent distinctes ; ces étapes ne sont pas transmises à un service d’intelligence artificielle.</p>
       <h2>7. Sécurité</h2>
       <p>
         Les échanges sont chiffrés (HTTPS), les données sont chiffrées au repos
@@ -193,7 +200,7 @@ export default function PrivacyPage() {
       <h2>8. Cookies</h2>
       <p>
         Encair n’utilise qu’un cookie strictement nécessaire au maintien de
-        votre connexion. La mesure d’audience fonctionne sans cookie. Sur la
+        votre connexion. La mesure d’audience fonctionne sans cookie. Le clic sur un bouton d’essai est compté avec une catégorie de page (accueil, guide, modèle ou autre), sans identifiant de compte ni contenu de facture. Sur la
         page de paiement de l’abonnement, Stripe dépose ses propres cookies,
         nécessaires à la prévention de la fraude.
       </p>

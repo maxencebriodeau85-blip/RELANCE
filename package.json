@@ -16,7 +16,9 @@
     "supabase:migrate": "npx supabase db push",
     "supabase:reset": "npx supabase db reset",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "check:commercial": "node --import tsx scripts/check-commercial-readiness.ts",
+    "check:public-health": "node scripts/check-public-health.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",

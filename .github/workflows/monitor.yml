@@ -8,7 +8,7 @@ name: Surveillance de la production Encair
 # est ouverte ou complétée. Elle se referme seule quand tout redevient normal.
 #
 # Le job « gate » refuse de travailler sur un dépôt public : il échoue (rouge,
-# email GitHub) au lieu d'être ignoré en silence, et rien d'autre ne s'exécute.
+# email GitHub) au lieu d'être ignoré en silence, les contrôles sensibles restent bloqués. Une sonde publique distincte ne lit aucun secret.
 #
 # Secrets :
 #   PROD_DB_URL           facultatif : active les contrôles SQL (relances bloquées,
@@ -38,6 +38,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  public_health:
+    name: HTTP et configuration publique (aucun secret)
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Vérifier la sonde publique sans accès à la base
+        env:
+          ENCAIR_BASE_URL: ${{ vars.PROD_URL || 'https://encair.fr' }}
+        run: node scripts/check-public-health.mjs
+
   gate:
     name: Dépôt privé obligatoire
     runs-on: ubuntu-latest
@@ -78,6 +91,7 @@ jobs:
     env:
       PROD_URL: ${{ vars.PROD_URL || 'https://encair.fr' }}
       BACKUP_PROVIDER: ${{ vars.BACKUP_PROVIDER || 'supabase' }}
+      BACKUP_RESTORE_VERIFIED_AT: ${{ vars.BACKUP_RESTORE_VERIFIED_AT }}
       EXPECTED_CONFIG: ${{ vars.EXPECTED_CONFIG || 'authReady,supabaseServiceRole,cronSecret,resend,resendWebhook,emailSender,automationReady' }}
       ALERT_TITLE: 'Alerte Encair : production à vérifier'
     steps:
@@ -145,9 +159,11 @@ jobs:
           fi
 
           # Sauvegardes : soit celles de l'offre Supabase payante (quotidiennes,
-          # gérées par Supabase, rien à vérifier ici), soit le workflow backup.yml.
+          # gérées par Supabase, avec attestation de restauration isolée), soit le workflow backup.yml.
           if [ "$BACKUP_PROVIDER" = "supabase" ]; then
-            echo "::notice::Sauvegardes assurées par Supabase (offre payante) : contrôle GitHub ignoré."
+            node scripts/check-backup-attestation.mjs || critique "Sauvegarde gérée : preuve récente de restauration isolée manquante."
+          elif [ "$BACKUP_PROVIDER" != "github" ]; then
+            critique "Fournisseur de sauvegarde non reconnu : vérification refusée."
           # Preuve liée au workflow officiel, sur main, terminé avec succès.
           # Le marqueur et l'archive chiffrée doivent appartenir au même run.
           elif latest=$(python3 scripts/ops/verified_backup.py); then

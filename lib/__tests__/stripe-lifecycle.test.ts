@@ -20,6 +20,7 @@ type Sub = {
 }
 
 const state = vi.hoisted(() => ({
+  rpc: vi.fn(),
   rows: [] as Record<string, unknown>[],
   subs: new Map<string, unknown>(),
   failRead: 0,
@@ -123,7 +124,7 @@ vi.mock('@/lib/supabase/server', () => {
       return query
     },
   })
-  return { createAdminClient: async () => ({ from }) }
+  return { createAdminClient: async () => ({ from, rpc: state.rpc }) }
 })
 
 import { POST } from '@/app/api/stripe/webhook/route'
@@ -182,6 +183,7 @@ async function deliver(type: string, object: unknown, signature = 'valid-signatu
 let trialEnd: string
 
 beforeEach(() => {
+  state.rpc.mockReset().mockResolvedValue({error:null})
   vi.stubEnv('STRIPE_SECRET_KEY', 'test-placeholder')
   vi.stubEnv('STRIPE_WEBHOOK_SECRET', 'test-placeholder')
   vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-placeholder')
@@ -280,6 +282,22 @@ describe('Signup, trial and checkout', () => {
 })
 
 describe('Renewal and failed payments', () => {
+  it('records a positive signed payment, but not a zero trial invoice or bad signature', async () => {
+    await activate()
+    expect((await deliver('invoice.paid',{...renewalInvoice('sub_1'),customer:CUSTOMER,amount_paid:0})).status).toBe(200)
+    expect(state.rpc).not.toHaveBeenCalled()
+    expect((await deliver('invoice.paid',{...renewalInvoice('sub_1'),customer:CUSTOMER,amount_paid:1600},'invalid')).status).toBe(400)
+    expect(state.rpc).not.toHaveBeenCalled()
+    expect((await deliver('invoice.paid',{...renewalInvoice('sub_1'),customer:CUSTOMER,amount_paid:1600})).status).toBe(200)
+    expect(state.rpc).toHaveBeenCalledWith('record_activation_payment',{p_customer:CUSTOMER,p_subscription:'sub_1',p_amount_paid:1600})
+  })
+  it('retains access and allows a webhook retry if payment milestone persistence fails', async () => {
+    await activate();state.rpc.mockResolvedValueOnce({error:{message:'mock database failure'}})
+    const payload={...renewalInvoice('sub_1'),customer:CUSTOMER,amount_paid:1600}
+    expect((await deliver('invoice.paid',payload)).status).toBe(500)
+    expect(access().ok).toBe(true)
+    expect((await deliver('invoice.paid',payload)).status).toBe(200)
+  })
   it('keeps access on a successful renewal (invoice.paid)', async () => {
     await activate()
     expect((await deliver('invoice.paid', renewalInvoice('sub_1'))).status).toBe(200)

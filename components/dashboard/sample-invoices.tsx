@@ -55,7 +55,7 @@ export function SampleInvoicesBanner({ count }: { count: number }) {
         <FlaskConical className="h-4 w-4 flex-shrink-0 text-brand-700" aria-hidden="true" />
         <span>
           {count > 1 ? `${count} factures d’exemple sont affichées` : 'Une facture d’exemple est affichée'} : aucune
-          relance ne part, elles ne comptent pas dans votre quota.
+          relance ne part, elles ne comptent ni dans votre quota ni dans vos totaux financiers.
         </span>
         <Link href="/dashboard/invoices/import" className="font-medium underline underline-offset-2">
           Importer mes factures
