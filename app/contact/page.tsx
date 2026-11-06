@@ -18,6 +18,7 @@ export default function ContactPage() {
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
   const [globalError, setGlobalError] = useState('')
+  const [reference, setReference] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,6 +26,7 @@ export default function ContactPage() {
     setSending(true)
     setErrors({})
     setGlobalError('')
+    setReference('')
 
     try {
       const res = await fetch('/api/contact', {
@@ -33,21 +35,28 @@ export default function ContactPage() {
         body: JSON.stringify(form),
       })
       const data = await res.json()
+      if (typeof data.reference === 'string' && /^[0-9a-f-]{36}$/.test(data.reference))
+        setReference(data.reference)
 
       if (res.status === 422 && data.fields) {
         setErrors(data.fields)
-        setSending(false)
+        setForm((current) => ({ ...current, website: '' }))
         return
       }
       if (!res.ok) {
         setGlobalError(data.error || "Impossible d'envoyer le message.")
-        setSending(false)
+        setForm((current) => ({ ...current, website: '' }))
+        return
+      }
+      if (data.success !== true || data.delivery !== 'accepted') {
+        setGlobalError('La prise en charge du message n’a pas pu être confirmée. Votre texte est conservé. Vérifiez avant de renvoyer.')
         return
       }
 
       setSent(true)
     } catch {
-      setGlobalError('Erreur réseau. Veuillez réessayer.')
+      setGlobalError('La prise en charge du message n’a pas pu être confirmée. Votre texte est conservé. Vérifiez avant de renvoyer.')
+    } finally {
       setSending(false)
     }
   }
@@ -58,10 +67,12 @@ export default function ContactPage() {
         <div className="rf-page rf-page-narrow">
           <div className="rf-card block p-8 text-center sm:p-10" role="status">
             <CheckCircle className="mx-auto mb-4 h-10 w-10 text-[#3f6b4c]" aria-hidden="true" />
-            <h1 className="text-2xl font-semibold tracking-tight text-[#182b40]">Message envoyé</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-[#182b40]">Message pris en charge</h1>
             <p className="mx-auto mt-2 max-w-md text-[15px] leading-relaxed text-[#4e5b68]">
-              Merci pour votre message. Je réponds personnellement, en général sous 48 h ouvrées.
+              Le service d’envoi a accepté votre message. Sa réception dans notre boîte email n’est pas encore confirmée.
+              Je réponds personnellement, en général sous 48 h ouvrées.
             </p>
+            {reference && <p className="rf-meta mt-3 break-all">Référence à conserver : {reference}</p>}
             <Link href="/" className="rf-button rf-button-dark mt-6">
               <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Retour à l’accueil
             </Link>
@@ -179,7 +190,10 @@ export default function ContactPage() {
             {globalError && (
               <div role="alert" className="flex items-start gap-2 rounded-lg border border-[#f3c1bb] bg-[#fdf1ef] p-3">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#b42318]" aria-hidden="true" />
-                <p className="text-sm text-[#8f1d13]">{globalError}</p>
+                <div>
+                  <p className="text-sm text-[#8f1d13]">{globalError}</p>
+                  {reference && <p className="mt-2 break-all text-xs text-[#8f1d13]">Référence à conserver : {reference}</p>}
+                </div>
               </div>
             )}
 
