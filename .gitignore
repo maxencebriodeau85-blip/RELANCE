@@ -36,3 +36,6 @@ Thumbs.db
 supabase/.branches
 supabase/.temp
 __pycache__/
+
+# Local Encair AI reports
+.encair-ai/

@@ -1,0 +1,10 @@
+{
+  "period":"Démonstration fictive — semaine 1",
+  "objective":"Comprendre les freins avant le premier import et choisir une expérience commerciale.",
+  "funnel":{"sent":40,"replies":6,"demos":3,"activated":1,"paid":0},
+  "facts":[
+    {"id":"feedback-import","category":"product","observation":"Donnée fictive : deux personnes disent ne pas savoir quel fichier importer."},
+    {"id":"feedback-value","category":"acquisition","observation":"Donnée fictive : une réponse demande combien de temps le suivi fait gagner. Aucun gain mesuré n'est disponible."},
+    {"id":"product-scope","category":"product","observation":"Périmètre de démonstration : suivi de factures et relances email ; ne pas promettre une récupération garantie des impayés."}
+  ]
+}

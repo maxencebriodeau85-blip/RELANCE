@@ -16,7 +16,8 @@
     "supabase:migrate": "npx supabase db push",
     "supabase:reset": "npx supabase db reset",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "ai:operations": "node --import tsx scripts/encair-ai.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
@@ -42,6 +43,7 @@
     "@supabase/supabase-js": "^2.43.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
+    "ai": "7.0.162",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
